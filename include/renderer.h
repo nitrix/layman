@@ -1,15 +1,9 @@
 #ifndef LEARNGL_RENDERER_H
 #define LEARNGL_RENDERER_H
 
-#include <stdbool.h>
 #include "window.h"
 
-struct renderer {
-    float color;
-};
-
-void renderer_init(void);
-void renderer_fini(void);
+struct renderer;
 
 struct renderer *renderer_create(void);
 void renderer_destroy(struct renderer *renderer);

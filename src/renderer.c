@@ -1,18 +1,31 @@
-#include "renderer.h"
-
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <stdlib.h>
 
-void renderer_init(void) {
-    // Ask flew to use a modern approach to obtain the OpenGL function pointers.
-    glewExperimental = GL_TRUE;
+#include "renderer.h"
+#include "toolkit.h"
 
-    glewInit();
+struct renderer {
+    float color;
+};
+
+atomic_uint renderer_count;
+
+void renderer_increment(void) {
+    unsigned int previous_count = atomic_fetch_add(&renderer_count, 1);
+
+    if (previous_count == 0) {
+        // Ask glew to use a more modern approach for obtaining the OpenGL function pointers.
+        glewExperimental = GL_TRUE;
+
+        glewInit();
+    }
 }
 
-void renderer_fini(void) {
-    // TODO
+void renderer_decrement(void) {
+    unsigned int previous_count = atomic_fetch_sub(&renderer_count, 1);
+
+    if (previous_count == 1) {
+        // TODO
+    }
 }
 
 void renderer_match_viewport(struct renderer *renderer, struct window *window) {
@@ -22,13 +35,17 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window) {
 }
 
 void renderer_set_viewport(struct renderer *renderer, int width, int height) {
+    TK_UNUSED(renderer);
     glViewport(0, 0, width, height);
 }
 
 struct renderer *renderer_create(void) {
+    renderer_increment();
+
     struct renderer *renderer = malloc(sizeof *renderer);
 
     if (!renderer) {
+        renderer_decrement();
         return NULL;
     }
 
@@ -49,8 +66,10 @@ void renderer_clear(struct renderer *renderer) {
 
 void renderer_render(struct renderer *renderer) {
     // TODO: Draw stuff
+    TK_UNUSED(renderer);
 }
 
 void renderer_destroy(struct renderer *renderer) {
     free(renderer);
+    renderer_decrement();
 }

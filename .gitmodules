@@ -4,3 +4,6 @@
 [submodule "lib/glew-cmake"]
 	path = lib/glew-cmake
 	url = https://github.com/Perlmint/glew-cmake
+[submodule "lib/toolkit"]
+	path = lib/toolkit
+	url = https://github.com/nitrix/toolkit

@@ -1,18 +1,9 @@
 #ifndef LEARNGL_WINDOW_H
 #define LEARNGL_WINDOW_H
 
-#include <stdbool.h>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "toolkit.h"
 
-struct window {
-    GLFWwindow *glfw_window;
-    int width;
-    int height;
-};
-
-void window_init(void);
-void window_fini(void);
+struct window;
 
 struct window *window_create(int width, int height, const char *title);
 void window_destroy(struct window *window);

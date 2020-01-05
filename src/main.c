@@ -1,11 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "main.h"
 
 int main(int argc, char *argv[]) {
-    window_init();
-    renderer_init();
-
     struct window *window = window_create(1280, 720, "Learn OpenGL #1");
     struct renderer *renderer = renderer_create();
 
@@ -17,10 +12,7 @@ int main(int argc, char *argv[]) {
     renderer_destroy(renderer);
     window_destroy(window);
 
-    renderer_fini();
-    window_fini();
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 void main_loop(struct window *window, struct renderer *renderer) {
