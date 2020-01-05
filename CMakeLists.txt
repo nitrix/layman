@@ -1,0 +1,4 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(learngl)
+
+ADD_EXECUTABLE(learngl src/main.c)
