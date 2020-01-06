@@ -2,7 +2,7 @@
 #include "main.h"
 
 int main(int argc, char *argv[]) {
-    struct window *window = window_create(1280, 720, "Learn OpenGL #1");
+    struct window *window = window_create(1280, 720, "Learn OpenGL");
     struct renderer *renderer = renderer_create();
 
     window_switch_context(window);
