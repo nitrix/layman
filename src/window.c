@@ -55,6 +55,11 @@ void window_destroy(struct window *window) {
     window_decrement();
 }
 
+void window_handle_events(struct window *window) {
+    TK_UNUSED(window);
+    glfwPollEvents();
+}
+
 void window_framebuffer_size(struct window *window, int *width, int *height) {
     glfwGetFramebufferSize(window->glfw_window, width, height);
 }

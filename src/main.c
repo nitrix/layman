@@ -1,4 +1,3 @@
-#include <GLFW/glfw3.h>
 #include "main.h"
 
 int main(int argc, char *argv[]) {
@@ -18,8 +17,7 @@ int main(int argc, char *argv[]) {
 
 void main_loop(struct window *window, struct renderer *renderer) {
     while (!window_should_close(window)) {
-        glfwPollEvents(); // TODO: Temporary way of handling events.
-
+        window_handle_events(window);
         renderer_clear(renderer);
         renderer_render(renderer);
         window_refresh(window);
