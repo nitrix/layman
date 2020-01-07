@@ -1,10 +1,9 @@
 #include "main.h"
 
-float vertices[] = {-0.5f, 0.5f,  0.0f, -0.5f, -0.5f, 0.0f, 0.5f,  -0.5f, 0.0f,
-                    0.5f,  -0.5f, 0.0f, 0.5f,  0.5f,  0.0f, -0.5f, 0.5f,  0.0f};
+float vertices[] = {
+    -0.5f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, 0.5f, 0.0f, -0.5f, 0.5f, 0.0f,
+};
 
-/* This is a very long comment that spawns multiple lines because it's just way too long to stay on the same one. I
- * wonder how clang will deal with this, especially when it's utter garbage like right now. */
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
 

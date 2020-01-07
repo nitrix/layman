@@ -8,3 +8,4 @@ AllowShortFunctionsOnASingleLine: Empty
 AlignEscapedNewlines: DontAlign
 SpaceBeforeParens: ControlStatements
 IndentCaseLabels: true
+Cpp11BracedListStyle: false
