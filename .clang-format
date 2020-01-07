@@ -1,4 +1,3 @@
-Language: Cpp
 BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
@@ -7,3 +6,5 @@ ColumnLimit: 120
 IncludeBlocks: Regroup
 AllowShortFunctionsOnASingleLine: Empty
 AlignEscapedNewlines: DontAlign
+SpaceBeforeParens: ControlStatements
+IndentCaseLabels: true

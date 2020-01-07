@@ -1,13 +1,7 @@
 #include "main.h"
 
-float vertices[] = {
-    -0.5f,  0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.5f,  0.5f, 0.0f,
-    -0.5f,  0.5f, 0.0f
-};
+float vertices[] = {-0.5f, 0.5f,  0.0f, -0.5f, -0.5f, 0.0f, 0.5f,  -0.5f, 0.0f,
+                    0.5f,  -0.5f, 0.0f, 0.5f,  0.5f,  0.0f, -0.5f, 0.5f,  0.0f};
 
 /* This is a very long comment that spawns multiple lines because it's just way too long to stay on the same one. I
  * wonder how clang will deal with this, especially when it's utter garbage like right now. */
@@ -32,10 +26,10 @@ void main_loop(struct window *window, struct renderer *renderer) {
     struct model *example_model = model_create_raw(vertices, TK_COUNT(vertices));
 
     while (!window_should_close(window)) {
-	window_handle_events(window);
-	renderer_clear(renderer);
-	renderer_render(renderer, example_model);
-	window_refresh(window);
+        window_handle_events(window);
+        renderer_clear(renderer);
+        renderer_render(renderer, example_model);
+        window_refresh(window);
     }
 
     model_destroy(example_model);

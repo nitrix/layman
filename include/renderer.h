@@ -1,8 +1,8 @@
 #ifndef LEARNGL_RENDERER_H
 #define LEARNGL_RENDERER_H
 
-#include "window.h"
 #include "model.h"
+#include "window.h"
 
 struct renderer;
 

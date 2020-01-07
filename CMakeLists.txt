@@ -2,12 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 PROJECT(learngl)
 
 # Learn GL
-ADD_EXECUTABLE(learngl
-    src/main.c
-    src/model.c
-    src/renderer.c
-    src/window.c
-)
+FILE(GLOB_RECURSE SOURCES "src/*.c")
+ADD_EXECUTABLE(learngl ${SOURCES})
 TARGET_INCLUDE_DIRECTORIES(learngl PRIVATE include)
 
 # OpenGL

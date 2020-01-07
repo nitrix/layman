@@ -1,4 +1,5 @@
 #include "toolkit.h"
+
 #include <GL/glew.h>
 
 struct model {
@@ -49,7 +50,7 @@ struct model *model_create_raw(float *vertices, size_t vertex_count) {
     glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof *vertices, vertices, GL_STATIC_DRAW);
 
     // Register our VBO in our VAO as the first attribute.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof (float), 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
     // No longer need the VAO and VBO active.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
