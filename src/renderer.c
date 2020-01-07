@@ -1,10 +1,11 @@
+#include "model.h"
+#include "toolkit.h"
+#include "window.h"
+
 #include <GL/glew.h>
 
-#include "renderer.h"
-#include "toolkit.h"
-
 struct renderer {
-    float color;
+    int dummy;
 };
 
 atomic_uint renderer_count;
@@ -16,7 +17,12 @@ void renderer_increment(void) {
         // Ask glew to use a more modern approach for obtaining the OpenGL function pointers.
         glewExperimental = GL_TRUE;
 
-        glewInit();
+        // glutInitDisplayMode(GLUT_RGB);
+        GLenum err = glewInit();
+        if (err != GLEW_OK) {
+            fprintf(stderr, "glewInit failed: %s\n", glewGetErrorString(err));
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -28,15 +34,15 @@ void renderer_decrement(void) {
     }
 }
 
+void renderer_set_viewport(struct renderer *renderer, int width, int height) {
+    TK_UNUSED(renderer);
+    glViewport(0, 0, width, height);
+}
+
 void renderer_match_viewport(struct renderer *renderer, struct window *window) {
     int width, height;
     window_framebuffer_size(window, &width, &height);
     renderer_set_viewport(renderer, width, height);
-}
-
-void renderer_set_viewport(struct renderer *renderer, int width, int height) {
-    TK_UNUSED(renderer);
-    glViewport(0, 0, width, height);
 }
 
 struct renderer *renderer_create(void) {
@@ -49,22 +55,28 @@ struct renderer *renderer_create(void) {
         return NULL;
     }
 
-    renderer->color = 0.2f;
-
     return renderer;
 }
 
 void renderer_clear(struct renderer *renderer) {
-    renderer->color += 0.01f;
-    if (renderer->color >= 1.0f) {
-        renderer->color = 0.2f;
-    }
+    TK_UNUSED(renderer);
 
-    glClearColor(renderer->color, 0.2f, 0.3f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void renderer_render(struct renderer *renderer) {
+void renderer_render(struct renderer *renderer, struct model *model) {
+    // Wire frame
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Back to normal
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    model_use(model);
+
+    glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(model));
+
+    model_unuse(model);
+
     // TODO: Draw stuff
     TK_UNUSED(renderer);
 }

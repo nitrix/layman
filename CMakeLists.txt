@@ -4,6 +4,7 @@ PROJECT(learngl)
 # Learn GL
 ADD_EXECUTABLE(learngl
     src/main.c
+    src/model.c
     src/renderer.c
     src/window.c
 )

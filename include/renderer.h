@@ -2,6 +2,7 @@
 #define LEARNGL_RENDERER_H
 
 #include "window.h"
+#include "model.h"
 
 struct renderer;
 
@@ -12,6 +13,6 @@ void renderer_set_viewport(struct renderer *renderer, int width, int height);
 void renderer_match_viewport(struct renderer *renderer, struct window *window);
 
 void renderer_clear(struct renderer *renderer);
-void renderer_render(struct renderer *renderer);
+void renderer_render(struct renderer *renderer, struct model *model);
 
 #endif
