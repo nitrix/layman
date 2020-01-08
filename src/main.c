@@ -1,7 +1,15 @@
 #include "main.h"
 
 float vertices[] = {
-    -0.5f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, 0.5f, 0.0f, -0.5f, 0.5f, 0.0f,
+    -0.5f,  0.5f, 0.0f, // V0
+    -0.5f, -0.5f, 0.0f, // V1
+     0.5f, -0.5f, 0.0f, // V2
+     0.5f,  0.5f, 0.0f, // V3
+};
+
+unsigned int indices[] = {
+    0, 1, 3, // Top left triangle (V0, V1, V3)
+    3, 1, 2, // Bottom right triangle (V3, V1, V2)
 };
 
 int main(int argc, char *argv[]) {
@@ -22,7 +30,7 @@ int main(int argc, char *argv[]) {
 }
 
 void main_loop(struct window *window, struct renderer *renderer) {
-    struct model *example_model = model_create_raw(vertices, TK_COUNT(vertices));
+    struct model *example_model = model_create_raw(vertices, TK_COUNT(vertices), indices, TK_COUNT(indices));
 
     while (!window_should_close(window)) {
         window_handle_events(window);

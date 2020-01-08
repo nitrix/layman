@@ -73,7 +73,8 @@ void renderer_render(struct renderer *renderer, struct model *model) {
 
     model_use(model);
 
-    glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(model));
+    // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(model));
+    glDrawElements(GL_TRIANGLES, model_index_count(model), GL_UNSIGNED_INT, 0);
 
     model_unuse(model);
 
