@@ -17,7 +17,6 @@ void renderer_increment(void) {
         // Ask glew to use a more modern approach for obtaining the OpenGL function pointers.
         glewExperimental = GL_TRUE;
 
-        // glutInitDisplayMode(GLUT_RGB);
         GLenum err = glewInit();
         if (err != GLEW_OK) {
             fprintf(stderr, "glewInit failed: %s\n", glewGetErrorString(err));
@@ -30,7 +29,7 @@ void renderer_decrement(void) {
     unsigned int previous_count = atomic_fetch_sub(&renderer_count, 1);
 
     if (previous_count == 1) {
-        // TODO
+        // TODO: Do we not have to de-initialize glew when we're done?
     }
 }
 
@@ -61,25 +60,16 @@ struct renderer *renderer_create(void) {
 void renderer_clear(struct renderer *renderer) {
     TK_UNUSED(renderer);
 
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void renderer_render(struct renderer *renderer, struct model *model) {
-    // Wire frame
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    // Back to normal
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    TK_UNUSED(renderer);
 
     model_use(model);
-
-    // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(model));
     glDrawElements(GL_TRIANGLES, model_index_count(model), GL_UNSIGNED_INT, 0);
-
     model_unuse(model);
-
-    // TODO: Draw stuff
-    TK_UNUSED(renderer);
 }
 
 void renderer_destroy(struct renderer *renderer) {

@@ -1,4 +1,5 @@
 #include "main.h"
+#include "shader.h"
 
 float vertices[] = {
     -0.5f,  0.5f, 0.0f, // V0
@@ -31,13 +32,21 @@ int main(int argc, char *argv[]) {
 
 void main_loop(struct window *window, struct renderer *renderer) {
     struct model *example_model = model_create_raw(vertices, TK_COUNT(vertices), indices, TK_COUNT(indices));
+    struct shader *shader = shader_load("shaders/vertex.glsl", "shaders/fragment.glsl");
+
+    shader_bind(shader, 0, "position");
 
     while (!window_should_close(window)) {
         window_handle_events(window);
         renderer_clear(renderer);
+
+        shader_use(shader);
         renderer_render(renderer, example_model);
+        shader_unuse(shader);
+
         window_refresh(window);
     }
 
+    shader_destroy(shader);
     model_destroy(example_model);
 }
