@@ -4,11 +4,20 @@
 #include "texture.h"
 #include "toolkit.h"
 #include "window.h"
+#include "math.h"
+#include "renderer.h"
 
 #include <GL/glew.h>
 
 struct renderer {
     struct window *window;
+
+    size_t viewport_width;
+    size_t viewport_height;
+
+    float fov;
+    float near_plane;
+    float far_plane;
 };
 
 atomic_uint renderer_count;
@@ -36,7 +45,8 @@ void renderer_decrement(void) {
 }
 
 void renderer_set_viewport(struct renderer *renderer, int width, int height) {
-    TK_UNUSED(renderer);
+    renderer->viewport_width = width;
+    renderer->viewport_height = height;
     glViewport(0, 0, width, height);
 }
 
@@ -46,7 +56,7 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window) {
     renderer_set_viewport(renderer, width, height);
 }
 
-struct renderer *renderer_create(struct window *window) {
+struct renderer *renderer_create(struct window *window, float fov, float near_plane, float far_plane) {
     window_switch_context(window);
     renderer_increment();
 
@@ -60,6 +70,9 @@ struct renderer *renderer_create(struct window *window) {
     renderer_match_viewport(renderer, window);
 
     renderer->window = window;
+    renderer->fov = fov;
+    renderer->near_plane = near_plane;
+    renderer->far_plane = far_plane;
 
     return renderer;
 }
@@ -78,8 +91,11 @@ void renderer_render(struct renderer *renderer, struct entity *entity) {
     shader_use(entity->shader);
     texture_use(entity->texture);
 
-    struct matrix4f transform = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
-    shader_bind_uniform_matrix4f(entity->shader, "transform", transform);
+    struct matrix4f transformation = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
+    shader_bind_uniform_matrix4f(entity->shader, "transformation", transformation);
+
+    struct matrix4f projection = renderer_projection_matrix(renderer);
+    shader_bind_uniform_matrix4f(entity->shader, "projection", projection);
 
     // This is for debugging
     // shader_validate(shader);
@@ -90,4 +106,21 @@ void renderer_render(struct renderer *renderer, struct entity *entity) {
 void renderer_destroy(struct renderer *renderer) {
     free(renderer);
     renderer_decrement();
+}
+
+struct matrix4f renderer_projection_matrix(struct renderer *renderer) {
+    float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
+    float scale_y = (1.0f / tanf(renderer->fov)) * aspect_ratio;
+    float scale_x = scale_y / aspect_ratio;
+    float frustrum_length = renderer->far_plane - renderer->near_plane;
+
+    struct matrix4f m = {
+        .x1 = scale_x,
+        .y2 = scale_y,
+        .z3 = -((renderer->far_plane + renderer->near_plane) / frustrum_length),
+        .z4 = -1,
+        .w3 = -((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
+    };
+
+    return m;
 }

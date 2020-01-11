@@ -26,7 +26,7 @@ float texture_uvs[] = {
 
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
-    struct renderer *renderer = renderer_create(window);
+    struct renderer *renderer = renderer_create(window, 0.610865f, 0.1f, 1000); // 70 FOV
 
     main_loop(window, renderer);
 
@@ -37,14 +37,14 @@ int main(int argc, char *argv[]) {
 }
 
 void main_loop(struct window *window, struct renderer *renderer) {
-    // Prepare example model and shader
+    // Prepare example model, shader and texture
     struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3, texture_uvs);
     struct shader *example_shader = shader_load_by_name("example");
     struct texture *example_texture = texture_load("textures/example.png");
 
-    // Prepare example entities
+    // Prepare example entity
     struct entity *example_entity = entity_create();
-    example_entity->position = (struct vector3f) { 0.0f, 0.0f, 0.0f };
+    example_entity->position = (struct vector3f) { 0.0f, 0.0f, -1.0f };
     example_entity->model = example_model;
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
@@ -52,8 +52,9 @@ void main_loop(struct window *window, struct renderer *renderer) {
     while (!window_should_close(window)) {
         // TODO: Elapsed time frame, needs more investigation.
 
-        entity_rotate(example_entity, 0.010f, 0.0f, 0.0f);
-        entity_move(example_entity, 0.01f, 0.0f, 0.0f);
+        // entity_rotate(example_entity, 0.010f, 0.0f, 0.0f);
+        // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
+        // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
         window_handle_events(window);
 
