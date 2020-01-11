@@ -4,7 +4,7 @@ PROJECT(learngl)
 # Policies
 IF (APPLE)
     SET(CMAKE_MACOSX_RPATH ON)
-ENDIF()
+ENDIF ()
 
 # Learn GL
 FILE(GLOB_RECURSE SOURCES "src/*.c")
@@ -12,9 +12,9 @@ ADD_EXECUTABLE(learngl ${SOURCES})
 TARGET_INCLUDE_DIRECTORIES(learngl PRIVATE include)
 
 # OpenGL
-IF(WIN32)
+IF (WIN32)
     TARGET_LINK_LIBRARIES(learngl PRIVATE opengl32)
-ENDIF()
+ENDIF ()
 
 # GLEW
 ADD_SUBDIRECTORY(lib/glew-cmake)
@@ -25,6 +25,11 @@ TARGET_LINK_LIBRARIES(learngl PRIVATE libglew_static)
 ADD_SUBDIRECTORY(lib/glfw)
 TARGET_INCLUDE_DIRECTORIES(learngl PRIVATE lib/glfw/include)
 TARGET_LINK_LIBRARIES(learngl PRIVATE glfw)
+
+# SOIL
+ADD_SUBDIRECTORY(lib/soil)
+TARGET_INCLUDE_DIRECTORIES(learngl PRIVATE lib/soil/inc)
+TARGET_LINK_LIBRARIES(learngl PRIVATE soil)
 
 # Toolkit
 ADD_SUBDIRECTORY(lib/toolkit)

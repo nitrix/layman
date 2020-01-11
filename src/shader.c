@@ -1,7 +1,11 @@
+#include "model.h"
 #include "toolkit.h"
+
 #include <GL/glew.h>
 
 struct shader {
+    char *name;
+
     GLuint program_id;
     GLuint vertex_shader_id;
     GLuint fragment_shader_id;
@@ -44,13 +48,16 @@ struct shader *shader_load_by_name(const char *name) {
         return NULL;
     }
 
+    // Copy name
+    shader->name = strdup(name);
+
     // Generate paths
     size_t size = 0;
     size = snprintf(NULL, 0, "shaders/%s/vertex.glsl", name);
-    char vertex_path[size+1];
+    char vertex_path[size + 1];
     sprintf(vertex_path, "shaders/%s/vertex.glsl", name);
     size = snprintf(NULL, 0, "shaders/%s/fragment.glsl", name);
-    char fragment_path[size+1];
+    char fragment_path[size + 1];
     sprintf(fragment_path, "shaders/%s/fragment.glsl", name);
 
     shader->vertex_shader_id = _shader_load_one(vertex_path, GL_VERTEX_SHADER);
@@ -71,11 +78,15 @@ struct shader *shader_load_by_name(const char *name) {
         GLchar log[1024];
 
         glGetProgramInfoLog(shader->program_id, sizeof log, NULL, log);
-        fprintf(stderr, "Unable to link shader program!\n%s", log);
+        fprintf(stderr, "Unable to link shader program named `%s`!\n%s", name, log);
 
         // TODO: Cleanup shaders on failure
         return NULL;
     }
+
+    // Binding shader input variables to attributes
+    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_VERTEX_COORDINATES, "position");
+    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_TEXTURE_COORDINATES, "texture_coords");
 
     return shader;
 }
@@ -91,16 +102,12 @@ void shader_validate(struct shader *shader) {
         GLchar log[1024];
 
         glGetProgramInfoLog(shader->program_id, sizeof log, NULL, log);
-        fprintf(stderr, "Unable to validate shader program!\n%s", log);
+        fprintf(stderr, "Unable to validate shader program named `%s`!\n%s", shader->name, log);
     }
 }
 
 void shader_use(struct shader *shader) {
     glUseProgram(shader->program_id);
-}
-
-void shader_bind(struct shader *shader, int index, const char *name) {
-    glBindAttribLocation(shader->program_id, index, name);
 }
 
 void shader_destroy(struct shader *shader) {
@@ -110,5 +117,6 @@ void shader_destroy(struct shader *shader) {
     glDeleteShader(shader->fragment_shader_id);
     glDeleteProgram(shader->program_id);
 
+    free(shader->name);
     free(shader);
 }

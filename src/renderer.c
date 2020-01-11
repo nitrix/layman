@@ -1,7 +1,9 @@
 #include "model.h"
+#include "shader.h"
+#include "texture.h"
 #include "toolkit.h"
 #include "window.h"
-#include "shader.h"
+
 #include <GL/glew.h>
 
 struct renderer {
@@ -27,9 +29,8 @@ void renderer_increment(void) {
 
 void renderer_decrement(void) {
     unsigned int previous_count = atomic_fetch_sub(&renderer_count, 1);
-
     if (previous_count == 1) {
-        // TODO: Do we not have to de-initialize glew when we're done?
+        TK_UNUSED(previous_count);
     }
 }
 
@@ -69,11 +70,12 @@ void renderer_clear(struct renderer *renderer) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void renderer_render(struct renderer *renderer, struct model *model, struct shader *shader) {
+void renderer_render(struct renderer *renderer, struct model *model, struct shader *shader, struct texture *texture) {
     TK_UNUSED(renderer);
 
     model_use(model);
     shader_use(shader);
+    texture_use(texture);
 
     // This is for debugging
     // shader_validate(shader);
