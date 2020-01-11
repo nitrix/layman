@@ -18,7 +18,7 @@ GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
 
     GLuint shader_id = glCreateShader(shader_type);
 
-    glShaderSource(shader_id, 1, &content, &length);
+    glShaderSource(shader_id, 1, (const char **) &content, &length);
     glCompileShader(shader_id);
 
     free(content);
@@ -26,10 +26,8 @@ GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
     GLint success;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
     if (success == GL_FALSE) {
-        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &length);
-        GLchar log[length];
-
-        glGetShaderInfoLog(shader_id, length, NULL, log);
+        GLchar log[1024];
+        glGetShaderInfoLog(shader_id, sizeof log, NULL, log);
 
         fprintf(stderr, "Unable to load shader `%s`!\n%s", filepath, log);
 
@@ -39,15 +37,21 @@ GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
     return shader_id;
 }
 
-struct shader *shader_load(const char *vertex_path, const char *fragment_path) {
+struct shader *shader_load_by_name(const char *name) {
     struct shader *shader = malloc(sizeof *shader);
 
     if (!shader) {
         return NULL;
     }
 
-    // TODO: It would be nice to be able to load a "shader" by name, which
-    // corresponds to a directory of that name, containing the various GLSL shaders (vertex, fragment, geometry).
+    // Generate paths
+    size_t size = 0;
+    size = snprintf(NULL, 0, "shaders/%s/vertex.glsl", name);
+    char vertex_path[size+1];
+    sprintf(vertex_path, "shaders/%s/vertex.glsl", name);
+    size = snprintf(NULL, 0, "shaders/%s/fragment.glsl", name);
+    char fragment_path[size+1];
+    sprintf(fragment_path, "shaders/%s/fragment.glsl", name);
 
     shader->vertex_shader_id = _shader_load_one(vertex_path, GL_VERTEX_SHADER);
     shader->fragment_shader_id = _shader_load_one(fragment_path, GL_FRAGMENT_SHADER);
@@ -56,19 +60,18 @@ struct shader *shader_load(const char *vertex_path, const char *fragment_path) {
     shader->program_id = glCreateProgram();
     glAttachShader(shader->program_id, shader->vertex_shader_id);
     glAttachShader(shader->program_id, shader->fragment_shader_id);
+
+    // Linking
     glLinkProgram(shader->program_id);
-    glValidateProgram(shader->program_id);
 
-    // Verify the validation went well
+    // Verify the linking went well
     GLint status = 0;
-    glGetProgramiv(shader->program_id, GL_VALIDATE_STATUS, &status);
+    glGetProgramiv(shader->program_id, GL_LINK_STATUS, &status);
     if (status == GL_FALSE) {
-        GLint length;
-        glGetShaderiv(shader->program_id, GL_INFO_LOG_LENGTH, &length);
-        GLchar log[length];
+        GLchar log[1024];
 
-        glGetProgramInfoLog(shader->program_id, length, NULL, log);
-        fprintf(stderr, "Unable to validate shader program!\n%s", log);
+        glGetProgramInfoLog(shader->program_id, sizeof log, NULL, log);
+        fprintf(stderr, "Unable to link shader program!\n%s", log);
 
         // TODO: Cleanup shaders on failure
         return NULL;
@@ -77,13 +80,23 @@ struct shader *shader_load(const char *vertex_path, const char *fragment_path) {
     return shader;
 }
 
-void shader_use(struct shader *shader) {
-    glUseProgram(shader->program_id);
+void shader_validate(struct shader *shader) {
+    glValidateProgram(shader->program_id);
+
+    GLint status = 0;
+
+    // Verify the validation went well
+    glGetProgramiv(shader->program_id, GL_VALIDATE_STATUS, &status);
+    if (status == GL_FALSE) {
+        GLchar log[1024];
+
+        glGetProgramInfoLog(shader->program_id, sizeof log, NULL, log);
+        fprintf(stderr, "Unable to validate shader program!\n%s", log);
+    }
 }
 
-void shader_unuse(struct shader *shader) {
-    TK_UNUSED(shader);
-    glUseProgram(0);
+void shader_use(struct shader *shader) {
+    glUseProgram(shader->program_id);
 }
 
 void shader_bind(struct shader *shader, int index, const char *name) {

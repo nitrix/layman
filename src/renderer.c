@@ -1,11 +1,11 @@
 #include "model.h"
 #include "toolkit.h"
 #include "window.h"
-
+#include "shader.h"
 #include <GL/glew.h>
 
 struct renderer {
-    int dummy;
+    struct window *window;
 };
 
 atomic_uint renderer_count;
@@ -44,7 +44,8 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window) {
     renderer_set_viewport(renderer, width, height);
 }
 
-struct renderer *renderer_create(void) {
+struct renderer *renderer_create(struct window *window) {
+    window_switch_context(window);
     renderer_increment();
 
     struct renderer *renderer = malloc(sizeof *renderer);
@@ -53,6 +54,10 @@ struct renderer *renderer_create(void) {
         renderer_decrement();
         return NULL;
     }
+
+    renderer_match_viewport(renderer, window);
+
+    renderer->window = window;
 
     return renderer;
 }
@@ -64,12 +69,16 @@ void renderer_clear(struct renderer *renderer) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void renderer_render(struct renderer *renderer, struct model *model) {
+void renderer_render(struct renderer *renderer, struct model *model, struct shader *shader) {
     TK_UNUSED(renderer);
 
     model_use(model);
-    glDrawElements(GL_TRIANGLES, model_index_count(model), GL_UNSIGNED_INT, 0);
-    model_unuse(model);
+    shader_use(shader);
+
+    // This is for debugging
+    // shader_validate(shader);
+
+    glDrawElements(GL_TRIANGLES, 3 * model_vertex_count(model), GL_UNSIGNED_INT, 0);
 }
 
 void renderer_destroy(struct renderer *renderer) {

@@ -8,19 +8,14 @@ float vertices[] = {
      0.5f,  0.5f, 0.0f, // V3
 };
 
-unsigned int indices[] = {
+unsigned int faces[] = {
     0, 1, 3, // Top left triangle (V0, V1, V3)
     3, 1, 2, // Bottom right triangle (V3, V1, V2)
 };
 
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
-
-    window_switch_context(window); // TODO: Maybe the renderer should take a window, or both be merged even.
-    struct renderer *renderer = renderer_create();
-
-    window_switch_context(window);
-    renderer_match_viewport(renderer, window);
+    struct renderer *renderer = renderer_create(window);
 
     main_loop(window, renderer);
 
@@ -31,22 +26,22 @@ int main(int argc, char *argv[]) {
 }
 
 void main_loop(struct window *window, struct renderer *renderer) {
-    struct model *example_model = model_create_raw(vertices, TK_COUNT(vertices), indices, TK_COUNT(indices));
-    struct shader *shader = shader_load("shaders/vertex.glsl", "shaders/fragment.glsl");
+    // Prepare example model and shader
+    struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3);
+    struct shader *example_shader = shader_load_by_name("example");
 
-    shader_bind(shader, 0, "position");
+    // Bind model buffers to shader input variables by name
+    shader_bind(example_shader, MODEL_BUFFER_VERTICES, "position");
 
     while (!window_should_close(window)) {
         window_handle_events(window);
-        renderer_clear(renderer);
 
-        shader_use(shader);
-        renderer_render(renderer, example_model);
-        shader_unuse(shader);
+        renderer_clear(renderer);
+        renderer_render(renderer, example_model, example_shader);
 
         window_refresh(window);
     }
 
-    shader_destroy(shader);
+    shader_destroy(example_shader);
     model_destroy(example_model);
 }
