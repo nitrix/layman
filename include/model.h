@@ -3,10 +3,9 @@
 
 #include "toolkit.h"
 
-enum MODEL_BUFFER_TYPES {
-    MODEL_BUFFER_VERTICES = 0,
-    MODEL_BUFFER_EDGES    = 1,
-    MODEL_BUFFER_COUNT    = 2,
+enum model_attributes {
+    MODEL_ATTRIBUTE_VERTEX_COORDINATES  = 0,
+    MODEL_ATTRIBUTE_TEXTURE_COORDINATES = 1,
 };
 
 struct model;

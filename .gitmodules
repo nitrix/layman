@@ -7,3 +7,6 @@
 [submodule "lib/toolkit"]
 	path = lib/toolkit
 	url = https://github.com/nitrix/toolkit
+[submodule "lib/soil"]
+	path = lib/soil
+	url = https://github.com/paralin/soil

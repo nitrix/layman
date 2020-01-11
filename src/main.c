@@ -1,5 +1,6 @@
 #include "main.h"
 #include "shader.h"
+#include "texture.h"
 
 float vertices[] = {
     -0.5f,  0.5f, 0.0f, // V0
@@ -29,9 +30,10 @@ void main_loop(struct window *window, struct renderer *renderer) {
     // Prepare example model and shader
     struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3);
     struct shader *example_shader = shader_load_by_name("example");
+    struct texture *example_texture = texture_load("textures/example.png");
 
     // Bind model buffers to shader input variables by name
-    shader_bind(example_shader, MODEL_BUFFER_VERTICES, "position");
+    shader_bind(example_shader, MODEL_ATTRIBUTE_VERTEX_COORDINATES, "position");
 
     while (!window_should_close(window)) {
         window_handle_events(window);
