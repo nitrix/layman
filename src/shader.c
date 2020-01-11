@@ -1,5 +1,7 @@
+#include "matrix.h"
 #include "model.h"
 #include "toolkit.h"
+#include "vector.h"
 
 #include <GL/glew.h>
 
@@ -68,6 +70,10 @@ struct shader *shader_load_by_name(const char *name) {
     glAttachShader(shader->program_id, shader->vertex_shader_id);
     glAttachShader(shader->program_id, shader->fragment_shader_id);
 
+    // Binding shader input variables to attributes.
+    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_VERTEX_COORDINATES, "position");
+    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_TEXTURE_COORDINATES, "texture_coords");
+
     // Linking
     glLinkProgram(shader->program_id);
 
@@ -84,11 +90,54 @@ struct shader *shader_load_by_name(const char *name) {
         return NULL;
     }
 
-    // Binding shader input variables to attributes
-    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_VERTEX_COORDINATES, "position");
-    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_TEXTURE_COORDINATES, "texture_coords");
-
     return shader;
+}
+
+void shader_bind_uniform_matrix4f(struct shader *shader, char *name, struct matrix4f m) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+
+    if (location == -1) {
+      return;
+    }
+
+    float buffer[16] = {
+        m.x1, m.x2, m.x3, m.x4,
+        m.y1, m.y2, m.y3, m.y4,
+        m.z1, m.z2, m.z3, m.z4,
+        m.w1, m.w2, m.w3, m.w4,
+    };
+
+    glUniformMatrix4fv(location, 1, false, buffer);
+}
+
+void shader_bind_uniform_bool(struct shader *shader, char *name, bool b) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+
+    if (location == -1) {
+        return;
+    }
+
+    glUniform1f(location, b ? 1 : 0);
+}
+
+void shader_bind_uniform_float(struct shader *shader, char *name, float f) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+
+    if (location == -1) {
+        return;
+    }
+
+    glUniform1f(location, f);
+}
+
+void shader_bind_uniform_vec3f(struct shader *shader, char *name, struct vector3f v) {
+    GLint location = glGetUniformLocation(shader->program_id, name);
+
+    if (location == -1) {
+        return;
+    }
+
+    glUniform3f(location, v.x, v.y, v.z);
 }
 
 void shader_validate(struct shader *shader) {

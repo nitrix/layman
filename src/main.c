@@ -2,6 +2,7 @@
 
 #include "model.h"
 #include "shader.h"
+#include "entity.h"
 #include "texture.h"
 
 float vertices[] = {
@@ -41,11 +42,23 @@ void main_loop(struct window *window, struct renderer *renderer) {
     struct shader *example_shader = shader_load_by_name("example");
     struct texture *example_texture = texture_load("textures/example.png");
 
+    // Prepare example entities
+    struct entity *example_entity = entity_create();
+    example_entity->position = (struct vector3f) { 0.0f, 0.0f, 0.0f };
+    example_entity->model = example_model;
+    example_entity->shader = example_shader;
+    example_entity->texture = example_texture;
+
     while (!window_should_close(window)) {
+        // TODO: Elapsed time frame, needs more investigation.
+
+        entity_rotate(example_entity, 0.010f, 0.0f, 0.0f);
+        entity_move(example_entity, 0.01f, 0.0f, 0.0f);
+
         window_handle_events(window);
 
         renderer_clear(renderer);
-        renderer_render(renderer, example_model, example_shader, example_texture);
+        renderer_render(renderer, example_entity);
 
         window_refresh(window);
     }

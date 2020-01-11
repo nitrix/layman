@@ -1,3 +1,4 @@
+#include "entity.h"
 #include "model.h"
 #include "shader.h"
 #include "texture.h"
@@ -70,17 +71,20 @@ void renderer_clear(struct renderer *renderer) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void renderer_render(struct renderer *renderer, struct model *model, struct shader *shader, struct texture *texture) {
+void renderer_render(struct renderer *renderer, struct entity *entity) {
     TK_UNUSED(renderer);
 
-    model_use(model);
-    shader_use(shader);
-    texture_use(texture);
+    model_use(entity->model);
+    shader_use(entity->shader);
+    texture_use(entity->texture);
+
+    struct matrix4f transform = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
+    shader_bind_uniform_matrix4f(entity->shader, "transform", transform);
 
     // This is for debugging
     // shader_validate(shader);
 
-    glDrawElements(GL_TRIANGLES, 3 * model_vertex_count(model), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 3 * model_vertex_count(entity->model), GL_UNSIGNED_INT, 0);
 }
 
 void renderer_destroy(struct renderer *renderer) {
