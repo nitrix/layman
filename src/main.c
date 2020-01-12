@@ -108,10 +108,14 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
 
+    // TODO: Temporary
+    camera_move(camera, 0, 0, 5.0f);
+
     while (!window_should_close(window)) {
         // TODO: Elapsed time frame, needs more investigation.
 
-        entity_rotate(example_entity, 0.01f, 0, 0);
+        // TODO: Temporary
+        entity_rotate(example_entity, 0.01f, 0.01f, 0);
         // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
         // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
