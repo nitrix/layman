@@ -1,4 +1,5 @@
 #include "toolkit.h"
+#include "camera.h"
 
 #include <GLFW/glfw3.h>
 
@@ -56,9 +57,24 @@ void window_destroy(struct window *window) {
     window_decrement();
 }
 
-void window_handle_events(struct window *window) {
-    TK_UNUSED(window);
+void window_handle_events(struct window *window, struct camera *camera) {
     glfwPollEvents();
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_W) == GLFW_PRESS) {
+        camera_move(camera, 0, 0, -0.02f);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_S) == GLFW_PRESS) {
+        camera_move(camera, 0, 0, 0.02f);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_A) == GLFW_PRESS) {
+        camera_move(camera, -0.02f, 0, 0);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_D) == GLFW_PRESS) {
+        camera_move(camera, 0.02f, 0, 0);
+    }
 }
 
 void window_framebuffer_size(struct window *window, int *width, int *height) {

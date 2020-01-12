@@ -74,6 +74,8 @@ struct renderer *renderer_create(struct window *window, float fov, float near_pl
     renderer->near_plane = near_plane;
     renderer->far_plane = far_plane;
 
+    glEnable(GL_DEPTH_TEST);
+
     return renderer;
 }
 
@@ -82,9 +84,11 @@ void renderer_clear(struct renderer *renderer) {
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void renderer_render(struct renderer *renderer, struct entity *entity) {
+void renderer_render(struct renderer *renderer, struct camera *camera, struct entity *entity) {
     TK_UNUSED(renderer);
 
     model_use(entity->model);
@@ -96,6 +100,9 @@ void renderer_render(struct renderer *renderer, struct entity *entity) {
 
     struct matrix4f projection = renderer_projection_matrix(renderer);
     shader_bind_uniform_matrix4f(entity->shader, "projection", projection);
+
+    struct matrix4f view = camera_view_matrix(camera);
+    shader_bind_uniform_matrix4f(entity->shader, "view", view);
 
     // This is for debugging
     // shader_validate(shader);
