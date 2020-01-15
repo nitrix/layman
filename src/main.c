@@ -103,19 +103,19 @@ void main_loop(struct window *window, struct renderer *renderer) {
 
     // Prepare example entity
     struct entity *example_entity = entity_create();
-    example_entity->position = (struct vector3f) { 0.0f, 0.0f, -1.0f };
+    example_entity->position = (struct vector3f) { 0.0f, 0.0f, 0.0f };
     example_entity->model = example_model;
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
 
     // TODO: Temporary
-    camera_move(camera, 0, 0, 5.0f);
+    camera_move(camera, 0, 0, 6.0f);
 
     while (!window_should_close(window)) {
         // TODO: Elapsed time frame, needs more investigation.
 
         // TODO: Temporary
-        entity_rotate(example_entity, 0.01f, 0.01f, 0);
+        entity_rotate(example_entity, 0.01f, 0.02f, 0.03f);
         // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
         // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
