@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "entity.h"
 #include "texture.h"
+#include "obj.h"
 
 float vertices[] = {
     -0.5f,0.5f,-0.5f,
@@ -96,10 +97,13 @@ void main_loop(struct window *window, struct renderer *renderer) {
     // Camera
     struct camera *camera = camera_create();
 
+    // TODO: Temporary
+    struct model *example_model = obj_load_model("models/wakfu.obj");
+
     // Prepare example model, shader and texture
-    struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3, texture_uvs);
+    // struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3, texture_uvs);
     struct shader *example_shader = shader_load_by_name("example");
-    struct texture *example_texture = texture_load("textures/example.png");
+    struct texture *example_texture = texture_load("textures/wakfu.png");
 
     // Prepare example entity
     struct entity *example_entity = entity_create();

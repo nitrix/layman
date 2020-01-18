@@ -2,9 +2,15 @@
 #define LEARNGL_VECTOR_H
 
 struct vector3f {
-    float x;
-    float y;
-    float z;
+    float x, y, z;
+};
+
+struct vector2f {
+    float x, y;
+};
+
+struct vector3i {
+    int x, y, z;
 };
 
 #endif

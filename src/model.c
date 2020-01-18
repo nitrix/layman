@@ -57,12 +57,12 @@ struct model *model_create_from_raw(
     glGenBuffers(1, &model->vertices_buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, model->vertices_buffer_id);
     glBufferData(GL_ARRAY_BUFFER, 3 * vertex_count * sizeof *vertices, vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(MODEL_ATTRIBUTE_VERTEX_COORDINATES, 3, GL_FLOAT, GL_FALSE, 3 * sizeof (float), 0);
 
     // Element Buffer Object (EBO).
     glGenBuffers(1, &model->faces_buffer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->faces_buffer_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * face_count * sizeof *faces, faces, GL_STATIC_DRAW);
-    glVertexAttribPointer(MODEL_ATTRIBUTE_VERTEX_COORDINATES, 3, GL_FLOAT, GL_FALSE, 3 * sizeof (float), 0);
 
     // Texture UVs.
     glGenBuffers(1, &model->texture_uvs_buffer_id);

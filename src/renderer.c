@@ -91,6 +91,10 @@ void renderer_clear(struct renderer *renderer) {
 void renderer_render(struct renderer *renderer, struct camera *camera, struct entity *entity) {
     TK_UNUSED(renderer);
 
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
     model_use(entity->model);
     shader_use(entity->shader);
     texture_use(entity->texture);
@@ -107,7 +111,8 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct en
     // This is for debugging
     // shader_validate(shader);
 
-    glDrawElements(GL_TRIANGLES, 3 * model_vertex_count(entity->model), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 3 * model_face_count(entity->model), GL_UNSIGNED_INT, 0);
+    // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(entity->model));
 }
 
 void renderer_destroy(struct renderer *renderer) {
