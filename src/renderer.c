@@ -97,7 +97,7 @@ void renderer_set_wireframe(struct renderer *renderer, bool flag) {
     renderer->wireframe = flag;
 }
 
-void renderer_render(struct renderer *renderer, struct camera *camera, struct entity *entity) {
+void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity) {
     TK_UNUSED(renderer);
 
     if (renderer->wireframe) {
@@ -116,6 +116,7 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct en
     struct matrix4f projection = renderer_projection_matrix(renderer);
     struct matrix4f view = camera_view_matrix(camera);
     shader_bind_uniforms(entity->shader, &transformation, &projection, &view);
+    shader_bind_uniforms_light(entity->shader, light);
 
     // This is for debugging
     // shader_validate(shader);

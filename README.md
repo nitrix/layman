@@ -12,23 +12,23 @@ Just a simple project while I'm learning OpenGL.
 - Support .obj file format.
 - Pan-tilt-zoom camera.
 - Wireframe toggleable mode.
+- Diffuse lighting.
 
-### Work in progress
-
-- Per-pixel lighting
-
-### Planned soon
+### Short term
 
 - Numerous code refactors
     - Window handling events with camera/renderer imports
     - Toolkit collection/dynarray
     - Renderer pluggable/default perspective
 - Drop SOIL, use libpng directly
-- Specular highlights
 - Optimizations
-    - Turn obj module into loader moduke
+    - Turn obj module into loader module
     - Meshes back-face culling
     - Batch rendering
+
+### Long term
+
+- Specular highlights
 - Terrain
 - Transparency
 - Fog

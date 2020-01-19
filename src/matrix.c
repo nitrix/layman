@@ -103,6 +103,7 @@ void matrix_scale(struct matrix4f *m, float sx, float sy, float sz) {
     matrix_dot_product(m, t);
 }
 
+// TODO: Misnamed?
 void matrix_dot_product(struct matrix4f *p, struct matrix4f o) {
     struct matrix4f m = *p;
 

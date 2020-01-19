@@ -4,6 +4,7 @@
 #include "entity.h"
 #include "camera.h"
 #include "window.h"
+#include "light.h"
 
 struct renderer;
 
@@ -15,7 +16,7 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window);
 void renderer_set_wireframe(struct renderer *renderer, bool flag);
 
 void renderer_clear(struct renderer *renderer);
-void renderer_render(struct renderer *renderer, struct camera *camera, struct entity *entity);
+void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity);
 
 struct matrix4f renderer_projection_matrix(struct renderer *renderer);
 

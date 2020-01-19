@@ -2,6 +2,7 @@
 #include "model.h"
 #include "toolkit.h"
 #include "vector.h"
+#include "light.h"
 
 #include <GL/glew.h>
 
@@ -15,6 +16,8 @@ struct shader {
     GLint uniform_transformation;
     GLint uniform_projection;
     GLint uniform_view;
+    GLint uniform_light_position;
+    GLint uniform_light_color;
 };
 
 GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
@@ -77,6 +80,7 @@ struct shader *shader_load_by_name(const char *name) {
     // Binding shader input variables to attributes.
     glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_VERTEX_COORDINATES, "position");
     glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_TEXTURE_COORDINATES, "texture_coords");
+    glBindAttribLocation(shader->program_id, MODEL_ATTRIBUTE_NORMALS, "normal");
 
     // Linking
     glLinkProgram(shader->program_id);
@@ -98,11 +102,13 @@ struct shader *shader_load_by_name(const char *name) {
     shader->uniform_transformation = glGetUniformLocation(shader->program_id, "transformation");
     shader->uniform_projection = glGetUniformLocation(shader->program_id, "projection");
     shader->uniform_view = glGetUniformLocation(shader->program_id, "view");
+    shader->uniform_light_position = glGetUniformLocation(shader->program_id, "light_position");
+    shader->uniform_light_color = glGetUniformLocation(shader->program_id, "light_color");
 
     return shader;
 }
 
-void _shader_bind_uniform_matrix4f( GLint location, struct matrix4f m) {
+void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f m) {
     float buffer[16] = {
         m.x1, m.x2, m.x3, m.x4,
         m.y1, m.y2, m.y3, m.y4,
@@ -113,15 +119,15 @@ void _shader_bind_uniform_matrix4f( GLint location, struct matrix4f m) {
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void _shader_bind_uniform_bool(struct shader *shader, GLint location, bool b) {
+void _shader_bind_uniform_bool(GLint location, bool b) {
     glUniform1f(location, b ? 1 : 0);
 }
 
-void _shader_bind_uniform_float(struct shader *shader, GLint location, float f) {
+void _shader_bind_uniform_float(GLint location, float f) {
     glUniform1f(location, f);
 }
 
-void _shader_bind_uniform_vec3f(struct shader *shader, GLint location, struct vector3f v) {
+void _shader_bind_uniform_vec3f(GLint location, struct vector3f v) {
     glUniform3f(location, v.x, v.y, v.z);
 }
 
@@ -129,6 +135,17 @@ void shader_bind_uniforms(struct shader *shader, struct matrix4f *transformation
     _shader_bind_uniform_matrix4f(shader->uniform_transformation, *transformation);
     _shader_bind_uniform_matrix4f(shader->uniform_projection, *projection);
     _shader_bind_uniform_matrix4f(shader->uniform_view, *view);
+
+}
+
+void shader_bind_uniforms_light(struct shader *shader, struct light *light) {
+    // Light position
+    struct vector3f *light_position = light_get_position(light);
+    glUniform3f(shader->uniform_light_position, light_position->x, light_position->y, light_position->z);
+
+    // Light color
+    struct vector3f *light_color = light_get_color(light);
+    glUniform3f(shader->uniform_light_color, light_color->x, light_color->y, light_color->z);
 }
 
 void shader_validate(struct shader *shader) {

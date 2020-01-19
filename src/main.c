@@ -25,6 +25,9 @@ void main_loop(struct window *window, struct renderer *renderer) {
     // Camera
     struct camera *camera = camera_create();
 
+    // Light
+    struct light *light = light_create();
+
     // Prepare example model, shader and texture
     struct model *example_model = obj_load_model("models/wakfu.obj");
     struct shader *example_shader = shader_load_by_name("wakfu");
@@ -38,7 +41,10 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->texture = example_texture;
 
     // Zoom-out the camera from the origin
-    camera_move(camera, 0, 0, 10.0f);
+    camera_move(camera, 0.0f, 0.0f, 8.0f);
+
+    // Move the light way back
+    light_move(light, 0.0f, 0.0f, 15.0f);
 
     double last_time = glfwGetTime();
     size_t nb_frames = 0;
@@ -63,7 +69,7 @@ void main_loop(struct window *window, struct renderer *renderer) {
         window_handle_events(window, renderer, camera);
 
         renderer_clear(renderer);
-        renderer_render(renderer, camera, example_entity);
+        renderer_render(renderer, camera, light, example_entity);
 
         window_refresh(window);
     }
@@ -72,5 +78,6 @@ void main_loop(struct window *window, struct renderer *renderer) {
     texture_destroy(example_texture);
     shader_destroy(example_shader);
     model_destroy(example_model);
+    light_destroy(light);
     camera_destroy(camera);
 }

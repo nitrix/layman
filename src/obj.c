@@ -134,5 +134,5 @@ struct model *obj_load_model(const char *filepath) {
     tk_collection_fini(&faces);
 
     // TODO: Error handling
-    return model_create_from_raw(final_vertices, final_vertex_count, final_faces, final_face_count, final_textures);
+    return model_create_from_raw(final_vertices, final_vertex_count, final_faces, final_face_count, final_textures, final_normals);
 }
