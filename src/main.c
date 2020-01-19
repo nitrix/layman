@@ -97,12 +97,9 @@ void main_loop(struct window *window, struct renderer *renderer) {
     // Camera
     struct camera *camera = camera_create();
 
-    // TODO: Temporary
-    struct model *example_model = obj_load_model("models/wakfu.obj");
-
     // Prepare example model, shader and texture
-    // struct model *example_model = model_create_from_raw(vertices, TK_COUNT(vertices) / 3, faces, TK_COUNT(faces) / 3, texture_uvs);
-    struct shader *example_shader = shader_load_by_name("example");
+    struct model *example_model = obj_load_model("models/wakfu.obj");
+    struct shader *example_shader = shader_load_by_name("wakfu");
     struct texture *example_texture = texture_load("textures/wakfu.png");
 
     // Prepare example entity
