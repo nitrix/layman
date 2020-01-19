@@ -7,79 +7,7 @@
 #include "texture.h"
 #include "obj.h"
 
-float vertices[] = {
-    -0.5f,0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f,0.5f,-0.5f,
-
-    -0.5f,0.5f,0.5f,
-    -0.5f,-0.5f,0.5f,
-    0.5f,-0.5f,0.5f,
-    0.5f,0.5f,0.5f,
-
-    0.5f,0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,0.5f,
-    0.5f,0.5f,0.5f,
-
-    -0.5f,0.5f,-0.5f,
-    -0.5f,-0.5f,-0.5f,
-    -0.5f,-0.5f,0.5f,
-    -0.5f,0.5f,0.5f,
-
-    -0.5f,0.5f,0.5f,
-    -0.5f,0.5f,-0.5f,
-    0.5f,0.5f,-0.5f,
-    0.5f,0.5f,0.5f,
-
-    -0.5f,-0.5f,0.5f,
-    -0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,-0.5f,
-    0.5f,-0.5f,0.5f
-};
-
-unsigned int faces[] = {
-    0,1,3,
-    3,1,2,
-    4,5,7,
-    7,5,6,
-    8,9,11,
-    11,9,10,
-    12,13,15,
-    15,13,14,
-    16,17,19,
-    19,17,18,
-    20,21,23,
-    23,21,22
-};
-
-float texture_uvs[] = {
-    0,0,
-    0,1,
-    1,1,
-    1,0,
-    0,0,
-    0,1,
-    1,1,
-    1,0,
-    0,0,
-    0,1,
-    1,1,
-    1,0,
-    0,0,
-    0,1,
-    1,1,
-    1,0,
-    0,0,
-    0,1,
-    1,1,
-    1,0,
-    0,0,
-    0,1,
-    1,1,
-    1,0
-};
+#include <GLFW/glfw3.h>
 
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
@@ -109,18 +37,30 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
 
-    // TODO: Temporary
-    camera_move(camera, 0, 0, 6.0f);
+    // Zoom-out the camera from the origin
+    camera_move(camera, 0, 0, 10.0f);
+
+    double last_time = glfwGetTime();
+    size_t nb_frames = 0;
 
     while (!window_should_close(window)) {
-        // TODO: Elapsed time frame, needs more investigation.
+        double current_time = glfwGetTime();
+        nb_frames++;
+        if (current_time - last_time >= 1.0) {
+            printf("%f ms/frame\n", 1000.0 / nb_frames);
+            nb_frames = 0;
+            last_time += 1.0;
+        }
 
-        // TODO: Temporary
-        entity_rotate(example_entity, 0.01f, 0.02f, 0.03f);
+        // TODO: Use elapsed time frame time for smoother animations?
+
+        // TODO: Temporary, the rotation currently is around the world origin instead of model origin, which is wrong.
+        // entity_rotate(example_entity, 0.01f, 0.02f, 0.03f);
+        entity_rotate(example_entity, 0, 0.01f, 0);
         // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
         // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
-        window_handle_events(window, camera);
+        window_handle_events(window, renderer, camera);
 
         renderer_clear(renderer);
         renderer_render(renderer, camera, example_entity);

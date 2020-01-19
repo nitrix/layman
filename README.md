@@ -11,14 +11,19 @@ Just a simple project while I'm learning OpenGL.
 - Matrix and vector math utilities.
 - Support .obj file format.
 - Pan-tilt-zoom camera.
+- Wireframe toggleable mode.
 
 ### Features planned:
 
+- Lookup uniforms only once
 - Numerous code refactors
+    - Window handling events with camera/renderer imports
+    - Toolkit collection/dynarray
+- Drop SOIL, use libpng directly
 - Per-pixel lighting
 - Specular highlights
 - Optimizations
-    - Lookup uniforms only once
+    - Turn obj module into loader moduke
     - Meshes back-face culling
     - Batch rendering
 - Terrain

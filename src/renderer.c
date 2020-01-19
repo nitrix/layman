@@ -18,6 +18,8 @@ struct renderer {
     float fov;
     float near_plane;
     float far_plane;
+
+    bool wireframe;
 };
 
 atomic_uint renderer_count;
@@ -73,6 +75,7 @@ struct renderer *renderer_create(struct window *window, float fov, float near_pl
     renderer->fov = fov;
     renderer->near_plane = near_plane;
     renderer->far_plane = far_plane;
+    renderer->wireframe = false;
 
     glEnable(GL_DEPTH_TEST);
 
@@ -83,17 +86,26 @@ void renderer_clear(struct renderer *renderer) {
     TK_UNUSED(renderer);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 
-    glClear(GL_DEPTH_BUFFER_BIT);
+    unsigned int mask = 0;
+    mask |= (unsigned int) GL_COLOR_BUFFER_BIT;
+    mask |= (unsigned int) GL_DEPTH_BUFFER_BIT;
+    glClear(mask);
+}
+
+void renderer_set_wireframe(struct renderer *renderer, bool flag) {
+    renderer->wireframe = flag;
 }
 
 void renderer_render(struct renderer *renderer, struct camera *camera, struct entity *entity) {
     TK_UNUSED(renderer);
 
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    if (renderer->wireframe) {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    } else {
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+    }
     // glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
-    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
     model_use(entity->model);
     shader_use(entity->shader);

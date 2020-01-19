@@ -5,11 +5,12 @@
 #include "toolkit.h"
 
 struct window;
+struct renderer;
 
 struct window *window_create(int width, int height, const char *title);
 void window_destroy(struct window *window);
 
-void window_handle_events(struct window *window, struct camera *camera);
+void window_handle_events(struct window *window, struct renderer *renderer, struct camera *camera);
 void window_switch_context(struct window *window);
 void window_framebuffer_size(struct window *window, int *width, int *height);
 void window_refresh(struct window *window);
