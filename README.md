@@ -4,7 +4,7 @@ Just a simple project while I'm learning OpenGL.
 
 ![Wakfu example character](docs/screenshot.png)
 
-### Features so far:
+### Currently implemented
 
 - Creating a window and renderer with a modern OpenGL context.
 - Entities have a model, texture, position, rotation and scale.
@@ -13,14 +13,17 @@ Just a simple project while I'm learning OpenGL.
 - Pan-tilt-zoom camera.
 - Wireframe toggleable mode.
 
-### Features planned:
+### Work in progress
 
-- Lookup uniforms only once
+- Per-pixel lighting
+
+### Planned soon
+
 - Numerous code refactors
     - Window handling events with camera/renderer imports
     - Toolkit collection/dynarray
+    - Renderer pluggable/default perspective
 - Drop SOIL, use libpng directly
-- Per-pixel lighting
 - Specular highlights
 - Optimizations
     - Turn obj module into loader moduke

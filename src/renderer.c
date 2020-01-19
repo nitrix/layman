@@ -111,14 +111,11 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct en
     shader_use(entity->shader);
     texture_use(entity->texture);
 
+    // Uniforms
     struct matrix4f transformation = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
-    shader_bind_uniform_matrix4f(entity->shader, "transformation", transformation);
-
     struct matrix4f projection = renderer_projection_matrix(renderer);
-    shader_bind_uniform_matrix4f(entity->shader, "projection", projection);
-
     struct matrix4f view = camera_view_matrix(camera);
-    shader_bind_uniform_matrix4f(entity->shader, "view", view);
+    shader_bind_uniforms(entity->shader, &transformation, &projection, &view);
 
     // This is for debugging
     // shader_validate(shader);

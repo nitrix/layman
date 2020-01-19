@@ -11,6 +11,10 @@ struct shader {
     GLuint program_id;
     GLuint vertex_shader_id;
     GLuint fragment_shader_id;
+
+    GLint uniform_transformation;
+    GLint uniform_projection;
+    GLint uniform_view;
 };
 
 GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
@@ -90,16 +94,15 @@ struct shader *shader_load_by_name(const char *name) {
         return NULL;
     }
 
+    // Find the uniforms
+    shader->uniform_transformation = glGetUniformLocation(shader->program_id, "transformation");
+    shader->uniform_projection = glGetUniformLocation(shader->program_id, "projection");
+    shader->uniform_view = glGetUniformLocation(shader->program_id, "view");
+
     return shader;
 }
 
-void shader_bind_uniform_matrix4f(struct shader *shader, char *name, struct matrix4f m) {
-    GLint location = glGetUniformLocation(shader->program_id, name);
-
-    if (location == -1) {
-      return;
-    }
-
+void _shader_bind_uniform_matrix4f( GLint location, struct matrix4f m) {
     float buffer[16] = {
         m.x1, m.x2, m.x3, m.x4,
         m.y1, m.y2, m.y3, m.y4,
@@ -110,34 +113,22 @@ void shader_bind_uniform_matrix4f(struct shader *shader, char *name, struct matr
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void shader_bind_uniform_bool(struct shader *shader, char *name, bool b) {
-    GLint location = glGetUniformLocation(shader->program_id, name);
-
-    if (location == -1) {
-        return;
-    }
-
+void _shader_bind_uniform_bool(struct shader *shader, GLint location, bool b) {
     glUniform1f(location, b ? 1 : 0);
 }
 
-void shader_bind_uniform_float(struct shader *shader, char *name, float f) {
-    GLint location = glGetUniformLocation(shader->program_id, name);
-
-    if (location == -1) {
-        return;
-    }
-
+void _shader_bind_uniform_float(struct shader *shader, GLint location, float f) {
     glUniform1f(location, f);
 }
 
-void shader_bind_uniform_vec3f(struct shader *shader, char *name, struct vector3f v) {
-    GLint location = glGetUniformLocation(shader->program_id, name);
-
-    if (location == -1) {
-        return;
-    }
-
+void _shader_bind_uniform_vec3f(struct shader *shader, GLint location, struct vector3f v) {
     glUniform3f(location, v.x, v.y, v.z);
+}
+
+void shader_bind_uniforms(struct shader *shader, struct matrix4f *transformation, struct matrix4f *projection, struct matrix4f *view) {
+    _shader_bind_uniform_matrix4f(shader->uniform_transformation, *transformation);
+    _shader_bind_uniform_matrix4f(shader->uniform_projection, *projection);
+    _shader_bind_uniform_matrix4f(shader->uniform_view, *view);
 }
 
 void shader_validate(struct shader *shader) {
