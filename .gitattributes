@@ -2,5 +2,6 @@
 *.c linguist-language=C
 *.h linguist-language=C
 
-# Explicitly block CMake detection.
+# Explicitly block CMake and GLSL detection.
 CMakeLists.txt linguist-detectable=false
+*.glsl linguist-detectable=false
