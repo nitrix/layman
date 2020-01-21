@@ -11,6 +11,9 @@ struct entity {
     struct vector3f position;
     struct vector3f rotation;
     float scale;
+
+    float shine_damper;
+    float reflectivity;
 };
 
 struct entity *entity_create(void);

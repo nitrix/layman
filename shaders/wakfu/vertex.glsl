@@ -7,6 +7,7 @@ in vec3 normal;
 out vec2 pass_texture_coords;
 out vec3 transformed_normal;
 out vec3 to_light_vector;
+out vec3 to_camera_vector;
 
 uniform mat4 transformation;
 uniform mat4 projection;
@@ -23,4 +24,5 @@ void main(void) {
     pass_texture_coords = texture_coords;
     transformed_normal = (transformation * vec4(normal, 0.0)).xyz;
     to_light_vector = light_position - world_position.xyz;
+    to_camera_vector = (inverse(view) * vec4(0, 0, 0, 1.0)).xyz - world_position.xyz;
 }

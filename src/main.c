@@ -39,6 +39,8 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->model = example_model;
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
+    example_entity->shine_damper = 50;
+    example_entity->reflectivity = 0.5f;
 
     // Zoom-out the camera from the origin
     camera_move(camera, 0.0f, 0.0f, 8.0f);

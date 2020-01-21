@@ -3,6 +3,7 @@
 #include "toolkit.h"
 #include "vector.h"
 #include "light.h"
+#include "entity.h"
 
 #include <GL/glew.h>
 
@@ -18,6 +19,8 @@ struct shader {
     GLint uniform_view;
     GLint uniform_light_position;
     GLint uniform_light_color;
+    GLint uniform_shine_damper;
+    GLint uniform_reflectivity;
 };
 
 GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
@@ -104,38 +107,26 @@ struct shader *shader_load_by_name(const char *name) {
     shader->uniform_view = glGetUniformLocation(shader->program_id, "view");
     shader->uniform_light_position = glGetUniformLocation(shader->program_id, "light_position");
     shader->uniform_light_color = glGetUniformLocation(shader->program_id, "light_color");
+    shader->uniform_shine_damper = glGetUniformLocation(shader->program_id, "shine_damper");
+    shader->uniform_reflectivity = glGetUniformLocation(shader->program_id, "reflectivity");
 
     return shader;
 }
 
-void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f m) {
+void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
     float buffer[16] = {
-        m.x1, m.x2, m.x3, m.x4,
-        m.y1, m.y2, m.y3, m.y4,
-        m.z1, m.z2, m.z3, m.z4,
-        m.w1, m.w2, m.w3, m.w4,
+        m->x1, m->x2, m->x3, m->x4,
+        m->y1, m->y2, m->y3, m->y4,
+        m->z1, m->z2, m->z3, m->z4,
+        m->w1, m->w2, m->w3, m->w4,
     };
 
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void _shader_bind_uniform_bool(GLint location, bool b) {
-    glUniform1f(location, b ? 1 : 0);
-}
-
-void _shader_bind_uniform_float(GLint location, float f) {
-    glUniform1f(location, f);
-}
-
-void _shader_bind_uniform_vec3f(GLint location, struct vector3f v) {
-    glUniform3f(location, v.x, v.y, v.z);
-}
-
-void shader_bind_uniforms(struct shader *shader, struct matrix4f *transformation, struct matrix4f *projection, struct matrix4f *view) {
-    _shader_bind_uniform_matrix4f(shader->uniform_transformation, *transformation);
-    _shader_bind_uniform_matrix4f(shader->uniform_projection, *projection);
-    _shader_bind_uniform_matrix4f(shader->uniform_view, *view);
-
+void shader_bind_uniforms(struct shader *shader, struct matrix4f *projection, struct matrix4f *view) {
+    _shader_bind_uniform_matrix4f(shader->uniform_projection, projection);
+    _shader_bind_uniform_matrix4f(shader->uniform_view, view);
 }
 
 void shader_bind_uniforms_light(struct shader *shader, struct light *light) {
@@ -146,6 +137,20 @@ void shader_bind_uniforms_light(struct shader *shader, struct light *light) {
     // Light color
     struct vector3f *light_color = light_get_color(light);
     glUniform3f(shader->uniform_light_color, light_color->x, light_color->y, light_color->z);
+}
+
+void shader_bind_uniforms_entity(struct shader *shader, struct entity *entity) {
+    // Transformation
+    struct matrix4f transformation = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
+    _shader_bind_uniform_matrix4f(shader->uniform_transformation, &transformation);
+
+    // Specular
+    glUniform1f(shader->uniform_shine_damper, entity->shine_damper);
+    glUniform1f(shader->uniform_reflectivity, entity->reflectivity);
+}
+
+void shader_bind_uniforms_specular(struct shader *shader, float shine_damper, float reflectivity) {
+
 }
 
 void shader_validate(struct shader *shader) {

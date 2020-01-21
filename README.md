@@ -13,6 +13,7 @@ Just a simple project while I'm learning OpenGL.
 - Pan-tilt-zoom camera.
 - Wireframe toggleable mode.
 - Diffuse lighting.
+- Specular highlights.
 
 ### Short term
 
@@ -28,7 +29,6 @@ Just a simple project while I'm learning OpenGL.
 
 ### Long term
 
-- Specular highlights
 - Terrain
 - Transparency
 - Fog
