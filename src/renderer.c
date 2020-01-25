@@ -18,8 +18,6 @@ struct renderer {
     float fov;
     float near_plane;
     float far_plane;
-
-    bool wireframe;
 };
 
 atomic_uint renderer_count;
@@ -75,9 +73,6 @@ struct renderer *renderer_create(struct window *window, float fov, float near_pl
     renderer->fov = fov;
     renderer->near_plane = near_plane;
     renderer->far_plane = far_plane;
-    renderer->wireframe = false;
-
-    glEnable(GL_DEPTH_TEST);
 
     return renderer;
 }
@@ -93,20 +88,31 @@ void renderer_clear(struct renderer *renderer) {
     glClear(mask);
 }
 
-void renderer_set_wireframe(struct renderer *renderer, bool flag) {
-    renderer->wireframe = flag;
+void renderer_use(struct renderer *renderer) {
+    glEnable(GL_DEPTH_TEST);
+
+    // Back face culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 }
 
-void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity) {
+void renderer_unuse(struct renderer *renderer) {
+    TK_UNUSED(renderer);
+}
+
+void renderer_set_wireframe(struct renderer *renderer, bool flag) {
     TK_UNUSED(renderer);
 
-    if (renderer->wireframe) {
+    if (flag) {
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     } else {
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     }
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
 
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+}
+
+void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity) {
     model_use(entity->model);
     shader_use(entity->shader);
     texture_use(entity->texture);
@@ -132,16 +138,15 @@ void renderer_destroy(struct renderer *renderer) {
 
 struct matrix4f renderer_projection_matrix(struct renderer *renderer) {
     float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
-    float scale_y = (1.0f / tanf(renderer->fov)) * aspect_ratio;
-    float scale_x = scale_y / aspect_ratio;
-    float frustrum_length = renderer->far_plane - renderer->near_plane;
+    float near_plane_distance = renderer->far_plane - renderer->near_plane;
+    float far_plane_distance = renderer->far_plane + renderer->near_plane;
 
     struct matrix4f m = {
-        .x1 = scale_x,
-        .y2 = scale_y,
-        .z3 = -((renderer->far_plane + renderer->near_plane) / frustrum_length),
-        .z4 = -1,
-        .w3 = -((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
+        .x1 = (1.0f / tanf(renderer->fov)) / aspect_ratio,
+        .y2 = (1.0f / tanf(renderer->fov)),
+        .z3 = (far_plane_distance * -1.0f) / near_plane_distance,
+        .z4 = -1.0f,
+        .w3 = (2 * renderer->near_plane * renderer->far_plane * -1.0f) / far_plane_distance,
     };
 
     return m;

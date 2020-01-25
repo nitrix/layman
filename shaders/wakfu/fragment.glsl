@@ -13,13 +13,16 @@ uniform float shine_damper;
 uniform float reflectivity;
 
 void main(void) {
+    // Ambiant lighting
+    float ambient = 0.2;
+
     // Diffuse lighting
     vec3 normalized_transformed_normal = normalize(transformed_normal);
     vec3 normalized_to_light_vector = normalize(to_light_vector);
-    float brightness = max(dot(normalized_transformed_normal, normalized_to_light_vector), 0.0);
+    float brightness = max(dot(normalized_transformed_normal, normalized_to_light_vector), ambient);
     vec3 diffuse = brightness * light_color;
 
-    // Specular
+    // Specular lighting
     vec3 normalized_to_camera_vector = normalize(to_camera_vector);
     vec3 normalized_from_light_vector = -normalized_to_light_vector;
     vec3 reflected_light_vector = reflect(normalized_from_light_vector, normalized_transformed_normal);

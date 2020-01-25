@@ -12,8 +12,8 @@ Just a simple project while I'm learning OpenGL.
 - Support .obj file format.
 - Pan-tilt-zoom camera.
 - Wireframe toggleable mode.
-- Diffuse lighting.
-- Specular highlights.
+- Phong lighting (ambient + diffuse + specular).
+- Back-face culling.
 
 ### Short term
 
@@ -24,7 +24,6 @@ Just a simple project while I'm learning OpenGL.
 - Drop SOIL, use libpng directly
 - Optimizations
     - Turn obj module into loader module
-    - Meshes back-face culling
     - Batch rendering
 
 ### Long term

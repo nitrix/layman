@@ -124,8 +124,8 @@ struct model *obj_load_model(const char *filepath) {
     for (size_t i = 0; i < tk_collection_count(&faces); i++) {
         struct vector3i face = tk_collection_at(&faces, i);
         final_faces[i*3+0] = face.x - 1;
-        final_faces[i*3+1] = face.z - 1;
-        final_faces[i*3+2] = face.y - 1;
+        final_faces[i*3+1] = face.y - 1;
+        final_faces[i*3+2] = face.z - 1;
     }
 
     tk_collection_fini(&vertices);

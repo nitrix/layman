@@ -13,7 +13,9 @@ int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
     struct renderer *renderer = renderer_create(window, 0.610865f, 0.1f, 1000); // 70 FOV
 
+    renderer_use(renderer);
     main_loop(window, renderer);
+    renderer_unuse(renderer);
 
     renderer_destroy(renderer);
     window_destroy(window);

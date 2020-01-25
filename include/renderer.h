@@ -11,6 +11,9 @@ struct renderer;
 struct renderer *renderer_create(struct window *window, float fov, float near_plane, float far_plane);
 void renderer_destroy(struct renderer *renderer);
 
+void renderer_use(struct renderer *renderer);
+void renderer_unuse(struct renderer *renderer);
+
 void renderer_set_viewport(struct renderer *renderer, int width, int height);
 void renderer_match_viewport(struct renderer *renderer, struct window *window);
 void renderer_set_wireframe(struct renderer *renderer, bool flag);
