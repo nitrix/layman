@@ -8,7 +8,7 @@
 
 struct renderer;
 
-struct renderer *renderer_create(struct window *window, float fov, float near_plane, float far_plane);
+struct renderer *renderer_create(struct window *window);
 void renderer_destroy(struct renderer *renderer);
 
 void renderer_use(struct renderer *renderer);

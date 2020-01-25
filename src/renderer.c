@@ -56,7 +56,7 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window) {
     renderer_set_viewport(renderer, width, height);
 }
 
-struct renderer *renderer_create(struct window *window, float fov, float near_plane, float far_plane) {
+struct renderer *renderer_create(struct window *window) {
     window_switch_context(window);
     renderer_increment();
 
@@ -70,9 +70,9 @@ struct renderer *renderer_create(struct window *window, float fov, float near_pl
     renderer_match_viewport(renderer, window);
 
     renderer->window = window;
-    renderer->fov = fov;
-    renderer->near_plane = near_plane;
-    renderer->far_plane = far_plane;
+    renderer->fov = 0.610865f;
+    renderer->near_plane = 0.1f;
+    renderer->far_plane = 1000.0f;
 
     return renderer;
 }
@@ -139,15 +139,16 @@ void renderer_destroy(struct renderer *renderer) {
 
 struct matrix4f renderer_projection_matrix(struct renderer *renderer) {
     float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
-    float near_plane_distance = renderer->far_plane - renderer->near_plane;
-    float far_plane_distance = renderer->far_plane + renderer->near_plane;
+    float scale_y = (1.0f / tanf(renderer->fov)) * aspect_ratio;
+    float scale_x = scale_y / aspect_ratio;
+    float frustrum_length = renderer->far_plane - renderer->near_plane;
 
     struct matrix4f m = {
-        .x1 = (1.0f / tanf(renderer->fov)) / aspect_ratio,
-        .y2 = (1.0f / tanf(renderer->fov)),
-        .z3 = (far_plane_distance * -1.0f) / near_plane_distance,
-        .z4 = -1.0f,
-        .w3 = (2 * renderer->near_plane * renderer->far_plane * -1.0f) / far_plane_distance,
+        .x1 = scale_x,
+        .y2 = scale_y,
+        .z3 = -((renderer->far_plane + renderer->near_plane) / frustrum_length),
+        .z4 = -1,
+        .w3 = -((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
     };
 
     return m;

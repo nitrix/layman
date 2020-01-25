@@ -20,7 +20,6 @@ Just a simple project while I'm learning OpenGL.
 - Numerous code refactors
     - Window handling events with camera/renderer imports
     - Toolkit collection/dynarray
-    - Renderer pluggable/default perspective
 - Drop SOIL, use libpng directly
 - Optimizations
     - Turn obj module into loader module
