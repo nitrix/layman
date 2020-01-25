@@ -96,6 +96,9 @@ void window_switch_context(struct window *window) {
 
     // Attach the current context (on the new thread)
     glfwMakeContextCurrent(window->glfw_window);
+
+    // Disable swap interval (framerate limiter)
+    // glfwSwapInterval(0);
 }
 
 void window_refresh(struct window *window) {

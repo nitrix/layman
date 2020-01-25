@@ -57,7 +57,7 @@ void main_loop(struct window *window, struct renderer *renderer) {
         double current_time = glfwGetTime();
         nb_frames++;
         if (current_time - last_time >= 1.0) {
-            printf("%f ms/frame\n", 1000.0 / nb_frames);
+            printf("%zu FPS | %f ms/frame\n", nb_frames, 1000.0 / nb_frames);
             nb_frames = 0;
             last_time += 1.0;
         }

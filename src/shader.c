@@ -124,12 +124,15 @@ void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void shader_bind_uniforms(struct shader *shader, struct matrix4f *projection, struct matrix4f *view) {
+void shader_bind_uniform_projection(struct shader *shader, struct matrix4f *projection) {
     _shader_bind_uniform_matrix4f(shader->uniform_projection, projection);
+}
+
+void shader_bind_uniform_view(struct shader *shader, struct matrix4f *view) {
     _shader_bind_uniform_matrix4f(shader->uniform_view, view);
 }
 
-void shader_bind_uniforms_light(struct shader *shader, struct light *light) {
+void shader_bind_uniform_light(struct shader *shader, struct light *light) {
     // Light position
     struct vector3f *light_position = light_get_position(light);
     glUniform3f(shader->uniform_light_position, light_position->x, light_position->y, light_position->z);
@@ -139,7 +142,7 @@ void shader_bind_uniforms_light(struct shader *shader, struct light *light) {
     glUniform3f(shader->uniform_light_color, light_color->x, light_color->y, light_color->z);
 }
 
-void shader_bind_uniforms_entity(struct shader *shader, struct entity *entity) {
+void shader_bind_uniform_entity(struct shader *shader, struct entity *entity) {
     // Transformation
     struct matrix4f transformation = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
     _shader_bind_uniform_matrix4f(shader->uniform_transformation, &transformation);
@@ -147,10 +150,6 @@ void shader_bind_uniforms_entity(struct shader *shader, struct entity *entity) {
     // Specular
     glUniform1f(shader->uniform_shine_damper, entity->shine_damper);
     glUniform1f(shader->uniform_reflectivity, entity->reflectivity);
-}
-
-void shader_bind_uniforms_specular(struct shader *shader, float shine_damper, float reflectivity) {
-
 }
 
 void shader_validate(struct shader *shader) {

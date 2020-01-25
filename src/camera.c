@@ -8,6 +8,8 @@ struct camera {
     float pitch;
     float yaw;
     float roll;
+
+    struct matrix4f view_matrix;
 };
 
 struct camera *camera_create(void) {
@@ -32,23 +34,27 @@ void camera_destroy(struct camera *camera) {
     free(camera);
 }
 
-void camera_move(struct camera *camera, float dx, float dy, float dz) {
-    camera->position.x += dx;
-    camera->position.y += dy;
-    camera->position.z += dz;
-}
+void camera_update_view_matrix(struct camera *camera) {
+    camera->view_matrix = matrix_identity();
 
-struct matrix4f camera_view_matrix(struct camera *camera) {
-    struct matrix4f m = matrix_identity();
+    matrix_rotate_x(&camera->view_matrix, camera->pitch);
+    matrix_rotate_y(&camera->view_matrix, camera->yaw);
 
-    matrix_rotate_x(&m, camera->pitch);
-    matrix_rotate_y(&m, camera->yaw);
-
-    matrix_translate(&m, (struct vector3f) {
+    matrix_translate(&camera->view_matrix, (struct vector3f) {
         .x = -camera->position.x,
         .y = -camera->position.y,
         .z = -camera->position.z,
     });
+}
 
-    return m;
+void camera_move(struct camera *camera, float dx, float dy, float dz) {
+    camera->position.x += dx;
+    camera->position.y += dy;
+    camera->position.z += dz;
+
+    camera_update_view_matrix(camera);
+}
+
+struct matrix4f *camera_view_matrix(struct camera *camera) {
+    return &camera->view_matrix;
 }

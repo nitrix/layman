@@ -119,10 +119,11 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
 
     // Uniforms
     struct matrix4f projection = renderer_projection_matrix(renderer);
-    struct matrix4f view = camera_view_matrix(camera);
-    shader_bind_uniforms(entity->shader, &projection, &view);
-    shader_bind_uniforms_light(entity->shader, light);
-    shader_bind_uniforms_entity(entity->shader, entity);
+    struct matrix4f *view = camera_view_matrix(camera);
+    shader_bind_uniform_projection(entity->shader, &projection);
+    shader_bind_uniform_view(entity->shader, view);
+    shader_bind_uniform_light(entity->shader, light);
+    shader_bind_uniform_entity(entity->shader, entity);
 
     // This is for debugging
     // shader_validate(shader);
