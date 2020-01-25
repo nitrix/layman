@@ -1,4 +1,4 @@
-#include "matrix.h"
+#include "math/matrix.h"
 #include "math.h"
 
 struct matrix4f matrix_identity(void) {

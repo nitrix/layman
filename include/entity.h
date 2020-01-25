@@ -1,7 +1,7 @@
 #ifndef LEARNGL_ENTITY_H
 #define LEARNGL_ENTITY_H
 
-#include "vector.h"
+#include "math/vector.h"
 
 struct entity {
     struct model *model;

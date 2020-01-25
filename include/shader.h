@@ -1,8 +1,8 @@
 #ifndef LEARNGL_SHADER_H
 #define LEARNGL_SHADER_H
 
-#include "matrix.h"
-#include "vector.h"
+#include "math/matrix.h"
+#include "math/vector.h"
 #include "toolkit.h"
 #include "light.h"
 #include "entity.h"

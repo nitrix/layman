@@ -1,6 +1,6 @@
 #include "obj.h"
 #include "toolkit.h"
-#include "vector.h"
+#include "math/vector.h"
 #include "model.h"
 
 struct model *obj_load_model(const char *filepath) {

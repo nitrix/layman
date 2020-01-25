@@ -1,7 +1,7 @@
 #ifndef LEARNGL_LIGHT_H
 #define LEARNGL_LIGHT_H
 
-#include "vector.h"
+#include "math/vector.h"
 
 struct light;
 
