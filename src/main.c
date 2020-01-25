@@ -24,11 +24,13 @@ int main(int argc, char *argv[]) {
 }
 
 void main_loop(struct window *window, struct renderer *renderer) {
-    // Camera
+    // Prepare camera
     struct camera *camera = camera_create();
+    camera_move(camera, 0.0f, 0.0f, 8.0f);
 
-    // Light
+    // Prepare light
     struct light *light = light_create();
+    light_move(light, 0.0f, 0.0f, 15.0f);
 
     // Prepare example model, shader and texture
     struct model *example_model = obj_load_model("models/wakfu.obj");
@@ -44,12 +46,7 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->shine_damper = 50;
     example_entity->reflectivity = 0.5f;
 
-    // Zoom-out the camera from the origin
-    camera_move(camera, 0.0f, 0.0f, 8.0f);
-
-    // Move the light way back
-    light_move(light, 0.0f, 0.0f, 15.0f);
-
+    // FPS book-keeping
     double last_time = glfwGetTime();
     size_t nb_frames = 0;
 
