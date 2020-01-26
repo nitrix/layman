@@ -1,7 +1,7 @@
 #include "camera.h"
-#include "math/vector.h"
+#include "vector.h"
 #include "toolkit.h"
-#include "math/matrix.h"
+#include "matrix.h"
 
 struct camera {
     struct vector3f position;

@@ -1,7 +1,7 @@
-#include "math/matrix.h"
+#include "matrix.h"
 #include "model.h"
 #include "toolkit.h"
-#include "math/vector.h"
+#include "vector.h"
 #include "light.h"
 #include "entity.h"
 

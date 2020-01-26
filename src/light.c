@@ -1,5 +1,5 @@
 #include "light.h"
-#include "math/vector.h"
+#include "vector.h"
 #include "toolkit.h"
 
 struct light {
