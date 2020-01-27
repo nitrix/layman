@@ -6,6 +6,8 @@
 #include "window.h"
 #include "light.h"
 
+#include <GL/glew.h>
+
 struct renderer;
 
 struct renderer *renderer_create(struct window *window);
@@ -16,7 +18,7 @@ void renderer_unuse(struct renderer *renderer);
 
 void renderer_set_viewport(struct renderer *renderer, int width, int height);
 void renderer_match_viewport(struct renderer *renderer, struct window *window);
-void renderer_set_wireframe(struct renderer *renderer, bool flag);
+void renderer_set_wireframe(struct renderer *renderer, GLenum mode);
 
 void renderer_clear(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity);

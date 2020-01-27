@@ -39,6 +39,7 @@ void camera_update_view_matrix(struct camera *camera) {
 
     matrix_rotate_x(&camera->view_matrix, camera->pitch);
     matrix_rotate_y(&camera->view_matrix, camera->yaw);
+    matrix_rotate_z(&camera->view_matrix, camera->roll);
 
     matrix_translate(&camera->view_matrix, (struct vector3f) {
         .x = -camera->position.x,
@@ -51,6 +52,14 @@ void camera_move(struct camera *camera, float dx, float dy, float dz) {
     camera->position.x += dx;
     camera->position.y += dy;
     camera->position.z += dz;
+
+    camera_update_view_matrix(camera);
+}
+
+void camera_rotate(struct camera *camera, float dx, float dy, float dz) {
+    camera->pitch += dx;
+    camera->yaw += dy;
+    camera->roll += dz;
 
     camera_update_view_matrix(camera);
 }

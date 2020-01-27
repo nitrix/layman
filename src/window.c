@@ -78,11 +78,15 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_1) == GLFW_PRESS) {
-        renderer_set_wireframe(renderer, true);
+        renderer_set_wireframe(renderer, GL_POINT);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_2) == GLFW_PRESS) {
-        renderer_set_wireframe(renderer, false);
+        renderer_set_wireframe(renderer, GL_LINE);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_3) == GLFW_PRESS) {
+        renderer_set_wireframe(renderer, GL_FILL);
     }
 }
 

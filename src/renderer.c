@@ -100,16 +100,12 @@ void renderer_unuse(struct renderer *renderer) {
     TK_UNUSED(renderer);
 }
 
-void renderer_set_wireframe(struct renderer *renderer, bool flag) {
+
+void renderer_set_wireframe(struct renderer *renderer, GLenum mode) {
     TK_UNUSED(renderer);
 
-    if (flag) {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    } else {
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-    }
-
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_POINT );
+    // GL_POINT, GL_LINE or GL_FILL.
+    glPolygonMode(GL_FRONT_AND_BACK, mode);
 }
 
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity) {

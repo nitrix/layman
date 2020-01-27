@@ -40,6 +40,7 @@ void main_loop(struct window *window, struct renderer *renderer) {
     // Prepare example entity
     struct entity *example_entity = entity_create();
     example_entity->position = (struct vector3f) { 0.0f, 0.0f, 0.0f };
+    example_entity->rotation = (struct vector3f) { .y = 3.0f };
     example_entity->model = example_model;
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
