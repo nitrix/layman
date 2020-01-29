@@ -144,7 +144,7 @@ void shader_bind_uniform_light(struct shader *shader, struct light *light) {
 
 void shader_bind_uniform_entity(struct shader *shader, struct entity *entity) {
     // Transformation
-    struct matrix4f transformation = matrix_create_from_transformation(entity->position, entity->rotation, entity->scale);
+    struct matrix4f transformation = matrix_create_from_transformation(&entity->position, entity->rotation, entity->scale);
     _shader_bind_uniform_matrix4f(shader->uniform_transformation, &transformation);
 
     // Specular

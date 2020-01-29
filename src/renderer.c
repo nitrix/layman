@@ -121,8 +121,10 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     shader_bind_uniform_light(entity->shader, light);
     shader_bind_uniform_entity(entity->shader, entity);
 
-    // This is for debugging
-    // shader_validate(shader);
+    // This is to help debugging issues during development
+    if (tk_debug_is_enabled()) {
+        shader_validate(entity->shader);
+    }
 
     glDrawElements(GL_TRIANGLES, 3 * model_face_count(entity->model), GL_UNSIGNED_INT, 0);
     // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(entity->model));

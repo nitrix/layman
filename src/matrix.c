@@ -12,7 +12,7 @@ struct matrix4f matrix_identity(void) {
     return m;
 }
 
-struct matrix4f matrix_create_from_transformation(struct vector3f translation, struct vector3f rotation, float scale) {
+struct matrix4f matrix_create_from_transformation(struct vector3f *translation, struct vector3f rotation, float scale) {
     struct matrix4f m = matrix_identity();
 
     matrix_translate(&m, translation);
@@ -84,11 +84,12 @@ void matrix_rotate_z(struct matrix4f *m, float r) {
     matrix_dot_product(m, t);
 }
 
-void matrix_translate(struct matrix4f *m, struct vector3f v) {
+void matrix_translate(struct matrix4f *m, struct vector3f *v) {
     struct matrix4f t = matrix_identity();
-    t.w1 = v.x;
-    t.w2 = v.y;
-    t.w3 = v.z;
+
+    t.w1 = v->x;
+    t.w2 = v->y;
+    t.w3 = v->z;
 
     matrix_dot_product(m, t);
 }

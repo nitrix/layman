@@ -1,14 +1,10 @@
-#include "camera.h"
-#include "vector.h"
 #include "toolkit.h"
 #include "matrix.h"
+#include "vector.h"
 
 struct camera {
     struct vector3f position;
-    float pitch;
-    float yaw;
-    float roll;
-
+    struct vector3f rotation;
     struct matrix4f view_matrix;
 };
 
@@ -23,9 +19,9 @@ struct camera *camera_create(void) {
     camera->position.y = 0;
     camera->position.z = 0;
 
-    camera->pitch = 0;
-    camera->yaw = 0;
-    camera->roll = 0;
+    camera->rotation.x = 0;
+    camera->rotation.y = 0;
+    camera->rotation.z = 0;
 
     return camera;
 }
@@ -37,15 +33,17 @@ void camera_destroy(struct camera *camera) {
 void camera_update_view_matrix(struct camera *camera) {
     camera->view_matrix = matrix_identity();
 
-    matrix_rotate_x(&camera->view_matrix, camera->pitch);
-    matrix_rotate_y(&camera->view_matrix, camera->yaw);
-    matrix_rotate_z(&camera->view_matrix, camera->roll);
+    matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
+    matrix_rotate_y(&camera->view_matrix, camera->rotation.y);
+    matrix_rotate_z(&camera->view_matrix, camera->rotation.z);
 
-    matrix_translate(&camera->view_matrix, (struct vector3f) {
+    struct vector3f inverse_position = {
         .x = -camera->position.x,
         .y = -camera->position.y,
         .z = -camera->position.z,
-    });
+    };
+
+    matrix_translate(&camera->view_matrix, &inverse_position);
 }
 
 void camera_move(struct camera *camera, float dx, float dy, float dz) {
@@ -57,9 +55,9 @@ void camera_move(struct camera *camera, float dx, float dy, float dz) {
 }
 
 void camera_rotate(struct camera *camera, float dx, float dy, float dz) {
-    camera->pitch += dx;
-    camera->yaw += dy;
-    camera->roll += dz;
+    camera->rotation.x += dx;
+    camera->rotation.y += dy;
+    camera->rotation.z += dz;
 
     camera_update_view_matrix(camera);
 }
