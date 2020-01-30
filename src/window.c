@@ -4,6 +4,8 @@
 
 #include <GLFW/glfw3.h>
 
+// TODO: Switch to SDL2 instead of GLFW?
+
 struct window {
     GLFWwindow *glfw_window;
 };
@@ -49,7 +51,26 @@ struct window *window_create(int width, int height, const char *title) {
         return NULL;
     }
 
+    // Disable swap interval (framerate limiter)
+    // glfwSwapInterval(0);
+
     return window;
+}
+
+void window_use(struct window *window) {
+    GLFWwindow *current_window = glfwGetCurrentContext();
+
+    if (window->glfw_window != current_window) {
+        window_unuse(window);
+    }
+
+    glfwMakeContextCurrent(window->glfw_window);
+}
+
+void window_unuse(struct window *window) {
+    TK_UNUSED(window);
+
+    glfwMakeContextCurrent(NULL);
 }
 
 void window_destroy(struct window *window) {
@@ -92,17 +113,6 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
 
 void window_framebuffer_size(struct window *window, int *width, int *height) {
     glfwGetFramebufferSize(window->glfw_window, width, height);
-}
-
-void window_switch_context(struct window *window) {
-    // Detach the current context (on the old thread)
-    glfwMakeContextCurrent(NULL);
-
-    // Attach the current context (on the new thread)
-    glfwMakeContextCurrent(window->glfw_window);
-
-    // Disable swap interval (framerate limiter)
-    // glfwSwapInterval(0);
 }
 
 void window_refresh(struct window *window) {

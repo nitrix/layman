@@ -13,9 +13,13 @@ int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
     struct renderer *renderer = renderer_create(window);
 
+    window_use(window);
     renderer_use(renderer);
+
     main_loop(window, renderer);
+
     renderer_unuse(renderer);
+    window_unuse(window);
 
     renderer_destroy(renderer);
     window_destroy(window);

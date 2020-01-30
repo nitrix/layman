@@ -57,7 +57,7 @@ void renderer_match_viewport(struct renderer *renderer, struct window *window) {
 }
 
 struct renderer *renderer_create(struct window *window) {
-    window_switch_context(window);
+    window_use(window);
     renderer_increment();
 
     struct renderer *renderer = malloc(sizeof *renderer);
