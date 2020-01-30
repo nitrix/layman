@@ -11,7 +11,6 @@ struct matrix4f {
 };
 
 struct matrix4f matrix_identity(void);
-struct matrix4f matrix_create_from_transformation(struct vector3f *translation, struct vector3f rotation, float scale);
 void matrix_translate(struct matrix4f *m, struct vector3f *v);
 void matrix_dot_product(struct matrix4f *p, struct matrix4f o);
 void matrix_scale(struct matrix4f *m, float sx, float sy, float sz);

@@ -30,11 +30,12 @@ int main(int argc, char *argv[]) {
 void main_loop(struct window *window, struct renderer *renderer) {
     // Prepare camera
     struct camera *camera = camera_create();
-    camera_move(camera, 0.0f, 0.0f, 8.0f);
+    // camera_move(camera, 0.0f, 0.0f, 30.0f);
+    camera_move(camera, 0.0f, 0.0f, 15.0f);
 
     // Prepare light
     struct light *light = light_create();
-    light_move(light, 0.0f, 0.0f, 15.0f);
+    light_move(light, 0.0f, 0.0f, 50.0f);
 
     // Prepare example model, shader and texture
     struct model *example_model = obj_load_model("models/wakfu.obj");
@@ -43,13 +44,12 @@ void main_loop(struct window *window, struct renderer *renderer) {
 
     // Prepare example entity
     struct entity *example_entity = entity_create();
-    example_entity->position = (struct vector3f) { 0.0f, 0.0f, 0.0f };
-    example_entity->rotation = (struct vector3f) { .y = 3.0f };
     example_entity->model = example_model;
     example_entity->shader = example_shader;
     example_entity->texture = example_texture;
     example_entity->shine_damper = 50;
     example_entity->reflectivity = 0.5f;
+    entity_rotate(example_entity, 0, -3.0f, 0);
 
     // FPS book-keeping
     double last_time = glfwGetTime();
@@ -68,13 +68,20 @@ void main_loop(struct window *window, struct renderer *renderer) {
 
         // TODO: Temporary, the rotation currently is around the world origin instead of model origin, which is wrong.
         // entity_rotate(example_entity, 0.01f, 0.02f, 0.03f);
-        entity_rotate(example_entity, 0, 0.01f, 0);
+        // entity_rotate(example_entity, 0, 0.01f, 0);
+        // camera_rotate(camera, 0, 0.01f, 0);
         // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
         // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
         window_handle_events(window, renderer, camera);
 
         renderer_clear(renderer);
+
+        entity_set_position(example_entity, -5.0f, 0.0f, 0.0f);
+        renderer_render(renderer, camera, light, example_entity);
+        entity_set_position(example_entity, 0.0f, 0.0f, 10.0f);
+        renderer_render(renderer, camera, light, example_entity);
+        entity_set_position(example_entity, 5.0f, 0.0f, 0.0f);
         renderer_render(renderer, camera, light, example_entity);
 
         window_refresh(window);

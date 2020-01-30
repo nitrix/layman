@@ -54,6 +54,16 @@ struct window *window_create(int width, int height, const char *title) {
     // Disable swap interval (framerate limiter)
     // glfwSwapInterval(0);
 
+    // Disable cursor
+    glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // as opposed to GLFW_CURSOR_NORMAL
+
+    // Enable raw cursor motion
+    if (glfwRawMouseMotionSupported()) {
+        glfwSetInputMode(window->glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    }
+
+    glfwSetCursorPos(window->glfw_window, 0, 0);
+
     return window;
 }
 
@@ -83,19 +93,19 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
     glfwPollEvents();
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_move(camera, 0, 0, -0.02f);
+        camera_move(camera, 0, 0, -0.08f);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_move(camera, 0, 0, 0.02f);
+        camera_move(camera, 0, 0, 0.08f);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_move(camera, -0.02f, 0, 0);
+        camera_move(camera, -0.08f, 0, 0);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_move(camera, 0.02f, 0, 0);
+        camera_move(camera, 0.08f, 0, 0);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_1) == GLFW_PRESS) {
@@ -108,6 +118,17 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_3) == GLFW_PRESS) {
         renderer_set_wireframe(renderer, GL_FILL);
+    }
+
+    double x, y;
+    glfwGetCursorPos(window->glfw_window, &x, &y);
+    if (x != 0 || y != 0) {
+        camera_rotate(camera, y * -0.002f, x * -0.002f, 0);
+        glfwSetCursorPos(window->glfw_window, 0, 0);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window->glfw_window, GLFW_TRUE);
     }
 }
 

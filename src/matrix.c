@@ -12,18 +12,6 @@ struct matrix4f matrix_identity(void) {
     return m;
 }
 
-struct matrix4f matrix_create_from_transformation(struct vector3f *translation, struct vector3f rotation, float scale) {
-    struct matrix4f m = matrix_identity();
-
-    matrix_translate(&m, translation);
-    matrix_rotate_x(&m, rotation.x);
-    matrix_rotate_y(&m, rotation.y);
-    matrix_rotate_z(&m, rotation.z);
-    matrix_scale(&m, scale, scale, scale);
-
-    return m;
-}
-
 void matrix_rotate_x(struct matrix4f *m, float r) {
     struct matrix4f t = {
         .x1 = 1,

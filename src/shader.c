@@ -14,16 +14,17 @@ struct shader {
     GLuint vertex_shader_id;
     GLuint fragment_shader_id;
 
-    GLint uniform_transformation;
-    GLint uniform_projection;
+    GLint uniform_model;
     GLint uniform_view;
+    GLint uniform_projection;
+
     GLint uniform_light_position;
     GLint uniform_light_color;
     GLint uniform_shine_damper;
     GLint uniform_reflectivity;
 };
 
-GLuint _shader_load_one(const char *filepath, GLenum shader_type) {
+GLuint shader_load_one(const char *filepath, GLenum shader_type) {
     FILE *file = fopen(filepath, "rb");
     fseek(file, 0, SEEK_END);
     GLint length = ftell(file);
@@ -72,8 +73,8 @@ struct shader *shader_load_by_name(const char *name) {
     char fragment_path[size + 1];
     sprintf(fragment_path, "shaders/%s/fragment.glsl", name);
 
-    shader->vertex_shader_id = _shader_load_one(vertex_path, GL_VERTEX_SHADER);
-    shader->fragment_shader_id = _shader_load_one(fragment_path, GL_FRAGMENT_SHADER);
+    shader->vertex_shader_id = shader_load_one(vertex_path, GL_VERTEX_SHADER);
+    shader->fragment_shader_id = shader_load_one(fragment_path, GL_FRAGMENT_SHADER);
 
     // Create the shader program
     shader->program_id = glCreateProgram();
@@ -102,9 +103,9 @@ struct shader *shader_load_by_name(const char *name) {
     }
 
     // Find the uniforms
-    shader->uniform_transformation = glGetUniformLocation(shader->program_id, "transformation");
-    shader->uniform_projection = glGetUniformLocation(shader->program_id, "projection");
+    shader->uniform_model = glGetUniformLocation(shader->program_id, "model");
     shader->uniform_view = glGetUniformLocation(shader->program_id, "view");
+    shader->uniform_projection = glGetUniformLocation(shader->program_id, "projection");
     shader->uniform_light_position = glGetUniformLocation(shader->program_id, "light_position");
     shader->uniform_light_color = glGetUniformLocation(shader->program_id, "light_color");
     shader->uniform_shine_damper = glGetUniformLocation(shader->program_id, "shine_damper");
@@ -113,7 +114,7 @@ struct shader *shader_load_by_name(const char *name) {
     return shader;
 }
 
-void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
+void shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
     float buffer[16] = {
         m->x1, m->x2, m->x3, m->x4,
         m->y1, m->y2, m->y3, m->y4,
@@ -124,12 +125,16 @@ void _shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void shader_bind_uniform_projection(struct shader *shader, struct matrix4f *projection) {
-    _shader_bind_uniform_matrix4f(shader->uniform_projection, projection);
+void shader_bind_uniform_model(struct shader *shader, struct matrix4f *model) {
+    shader_bind_uniform_matrix4f(shader->uniform_model, model);
 }
 
 void shader_bind_uniform_view(struct shader *shader, struct matrix4f *view) {
-    _shader_bind_uniform_matrix4f(shader->uniform_view, view);
+    shader_bind_uniform_matrix4f(shader->uniform_view, view);
+}
+
+void shader_bind_uniform_projection(struct shader *shader, struct matrix4f *projection) {
+    shader_bind_uniform_matrix4f(shader->uniform_projection, projection);
 }
 
 void shader_bind_uniform_light(struct shader *shader, struct light *light) {
@@ -143,10 +148,6 @@ void shader_bind_uniform_light(struct shader *shader, struct light *light) {
 }
 
 void shader_bind_uniform_entity(struct shader *shader, struct entity *entity) {
-    // Transformation
-    struct matrix4f transformation = matrix_create_from_transformation(&entity->position, entity->rotation, entity->scale);
-    _shader_bind_uniform_matrix4f(shader->uniform_transformation, &transformation);
-
     // Specular
     glUniform1f(shader->uniform_shine_damper, entity->shine_damper);
     glUniform1f(shader->uniform_reflectivity, entity->reflectivity);

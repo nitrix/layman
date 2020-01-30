@@ -114,10 +114,15 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     texture_use(entity->texture);
 
     // Uniforms
-    struct matrix4f projection = renderer_projection_matrix(renderer);
+    struct matrix4f *model = entity_model_matrix(entity);
+    shader_bind_uniform_model(entity->shader, model);
+
     struct matrix4f *view = camera_view_matrix(camera);
-    shader_bind_uniform_projection(entity->shader, &projection);
     shader_bind_uniform_view(entity->shader, view);
+
+    struct matrix4f projection = renderer_projection_matrix(renderer);
+    shader_bind_uniform_projection(entity->shader, &projection);
+
     shader_bind_uniform_light(entity->shader, light);
     shader_bind_uniform_entity(entity->shader, entity);
 
