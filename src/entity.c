@@ -1,5 +1,10 @@
 #include "entity.h"
 #include "toolkit.h"
+#include "renderer.h"
+#include "math.h"
+
+#define ENTITY_MOVE_SPEED 300
+#define ENTITY_TURN_SPEED 300
 
 void entity_update_model_matrix(struct entity *entity);
 
@@ -23,6 +28,10 @@ struct entity *entity_create(void) {
     // Scale
     entity->scale = 1.0f;
 
+    // Motion
+    entity->move_speed = 0;
+    entity->turn_speed = 0;
+
     // Computed transformation matrix
     entity->model_matrix = matrix_identity();
 
@@ -31,6 +40,40 @@ struct entity *entity_create(void) {
 
 void entity_destroy(struct entity *entity) {
     free(entity);
+}
+
+// TODO: Proof of concept, fix this ugly shit.
+void entity_ugly_move(struct entity *entity, direction_mask direction, struct renderer *renderer) {
+    // Rotation
+    if (TK_MASK_IS_SET(direction, DIRECTION_LEFT)) {
+        entity->turn_speed = ENTITY_TURN_SPEED;
+    }
+    else if (TK_MASK_IS_SET(direction, DIRECTION_RIGHT)) {
+        entity->turn_speed = -ENTITY_TURN_SPEED;
+    }
+    else {
+        entity->turn_speed = 0;
+    }
+
+    entity_rotate(entity, 0, entity->turn_speed * (float) renderer_frame_time_delta(renderer), 0);
+
+    // Translation
+    if (TK_MASK_IS_SET(direction, DIRECTION_FORWARD)) {
+        entity->move_speed = ENTITY_MOVE_SPEED;
+    }
+    else if (TK_MASK_IS_SET(direction, DIRECTION_BACKWARD)) {
+        entity->move_speed = -ENTITY_MOVE_SPEED;
+    }
+    else {
+        entity->move_speed = 0;
+    }
+
+    float distance = entity->move_speed * (float) renderer_frame_time_delta(renderer);
+    float delta_x = distance * sinf(entity->rotation.y) * -1;
+    float delta_z = distance * cosf(entity->rotation.y);
+
+    // TODO: Doing model matrix updates twice
+    entity_move(entity, delta_x, 0, delta_z);
 }
 
 void entity_move(struct entity *entity, float dx, float dy, float dz) {

@@ -1,6 +1,8 @@
 #include "toolkit.h"
 #include "camera.h"
 #include "renderer.h"
+#include "direction.h"
+#include "entity.h"
 
 #include <GLFW/glfw3.h>
 
@@ -89,34 +91,36 @@ void window_destroy(struct window *window) {
     window_decrement();
 }
 
-void window_handle_events(struct window *window, struct renderer *renderer, struct camera *camera) {
+// TODO: Clean this shit up.
+void window_handle_events(struct window *window, struct renderer *renderer, struct entity *player, struct camera *camera) {
     glfwPollEvents();
 
+    direction_mask direction;
+
     if (glfwGetKey(window->glfw_window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_move(camera, 0, 0, -0.08f);
+        TK_MASK_SET(direction, DIRECTION_FORWARD);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_move(camera, 0, 0, 0.08f);
+        TK_MASK_SET(direction, DIRECTION_BACKWARD);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_move(camera, -0.08f, 0, 0);
+        TK_MASK_SET(direction, DIRECTION_LEFT);
     }
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_move(camera, 0.08f, 0, 0);
+        TK_MASK_SET(direction, DIRECTION_RIGHT);
     }
 
+    entity_ugly_move(player, direction, renderer);
+
+    // Polygon rendering modes
     if (glfwGetKey(window->glfw_window, GLFW_KEY_1) == GLFW_PRESS) {
         renderer_set_wireframe(renderer, GL_POINT);
-    }
-
-    if (glfwGetKey(window->glfw_window, GLFW_KEY_2) == GLFW_PRESS) {
+    } else if (glfwGetKey(window->glfw_window, GLFW_KEY_2) == GLFW_PRESS) {
         renderer_set_wireframe(renderer, GL_LINE);
-    }
-
-    if (glfwGetKey(window->glfw_window, GLFW_KEY_3) == GLFW_PRESS) {
+    } else if (glfwGetKey(window->glfw_window, GLFW_KEY_3) == GLFW_PRESS) {
         renderer_set_wireframe(renderer, GL_FILL);
     }
 
@@ -129,9 +133,16 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
     }
     */
 
+    // Closes the window with escape key
     if (glfwGetKey(window->glfw_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window->glfw_window, GLFW_TRUE);
     }
+}
+
+double window_current_time(struct window *window) {
+    TK_UNUSED(window);
+
+    return glfwGetTime();
 }
 
 void window_framebuffer_size(struct window *window, int *width, int *height) {

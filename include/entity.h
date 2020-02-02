@@ -3,6 +3,8 @@
 
 #include "vector.h"
 #include "matrix.h"
+#include "direction.h"
+#include "renderer.h"
 
 struct entity {
     struct model *model;
@@ -13,6 +15,9 @@ struct entity {
     struct vector3f rotation;
     float scale;
 
+    float move_speed;
+    float turn_speed;
+
     struct matrix4f model_matrix;
 
     float shine_damper;
@@ -22,9 +27,9 @@ struct entity {
 struct entity *entity_create(void);
 void entity_destroy(struct entity *entity);
 
+void entity_ugly_move(struct entity *entity, direction_mask direction, struct renderer *renderer);
 void entity_move(struct entity *entity, float dx, float dy, float dz);
 void entity_set_position(struct entity *entity, float x, float y, float z);
-
 void entity_rotate(struct entity *entity, float dx, float dy, float dz);
 
 struct matrix4f *entity_model_matrix(struct entity *entity);

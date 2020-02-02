@@ -1,7 +1,6 @@
 #ifndef LEARNGL_RENDERER_H
 #define LEARNGL_RENDERER_H
 
-#include "entity.h"
 #include "camera.h"
 #include "window.h"
 #include "light.h"
@@ -9,6 +8,7 @@
 #include <GL/glew.h>
 
 struct renderer;
+struct entity;
 
 struct renderer *renderer_create(struct window *window);
 void renderer_destroy(struct renderer *renderer);
@@ -23,6 +23,7 @@ void renderer_set_wireframe(struct renderer *renderer, GLenum mode);
 void renderer_clear(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity);
 
+double renderer_frame_time_delta(struct renderer *renderer);
 struct matrix4f renderer_projection_matrix(struct renderer *renderer);
 
 #endif

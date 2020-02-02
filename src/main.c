@@ -51,9 +51,21 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->reflectivity = 0.5f;
     entity_rotate(example_entity, 0, -3.0f, 0);
 
+    // Prepare example player
+    struct entity *example_player = entity_create();
+    example_player->model = example_model;
+    example_player->shader = example_shader;
+    example_player->texture = example_texture;
+    example_player->shine_damper = 50;
+    example_player->reflectivity = 0.5f;
+    entity_rotate(example_player, 0, -3.0f, 0);
+
     // FPS book-keeping
     double last_time = glfwGetTime();
     size_t nb_frames = 0;
+
+    entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
+    entity_set_position(example_player, 5.0f, 0.0f, 5.0f);
 
     while (!window_should_close(window)) {
         double current_time = glfwGetTime();
@@ -73,12 +85,13 @@ void main_loop(struct window *window, struct renderer *renderer) {
         // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
         // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
 
-        window_handle_events(window, renderer, camera);
+        window_handle_events(window, renderer, example_player, camera);
 
         renderer_clear(renderer);
 
-        entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
         renderer_render(renderer, camera, light, example_entity);
+        renderer_render(renderer, camera, light, example_player);
+
         /*
         entity_set_position(example_entity, -5.0f, 0.0f, 0.0f);
         renderer_render(renderer, camera, light, example_entity);

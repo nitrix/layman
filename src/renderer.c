@@ -18,6 +18,9 @@ struct renderer {
     float fov;
     float near_plane;
     float far_plane;
+
+    double last_frame_time;
+    double frame_time_delta;
 };
 
 atomic_uint renderer_count;
@@ -74,6 +77,9 @@ struct renderer *renderer_create(struct window *window) {
     renderer->near_plane = 0.1f;
     renderer->far_plane = 1000.0f;
 
+    renderer->last_frame_time = window_current_time(window);
+    renderer->frame_time_delta = 0;
+
     return renderer;
 }
 
@@ -101,6 +107,7 @@ void renderer_unuse(struct renderer *renderer) {
 }
 
 
+// TODO: Rename me or change type of argument.
 void renderer_set_wireframe(struct renderer *renderer, GLenum mode) {
     TK_UNUSED(renderer);
 
@@ -133,6 +140,15 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
 
     glDrawElements(GL_TRIANGLES, 3 * model_face_count(entity->model), GL_UNSIGNED_INT, 0);
     // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(entity->model));
+
+    // Book-keeping frame time
+    double current_time = window_current_time(renderer->window);
+    renderer->frame_time_delta = renderer->last_frame_time - current_time;
+    renderer->last_frame_time = current_time;
+}
+
+double renderer_frame_time_delta(struct renderer *renderer) {
+    return renderer->frame_time_delta;
 }
 
 void renderer_destroy(struct renderer *renderer) {
