@@ -77,12 +77,16 @@ void main_loop(struct window *window, struct renderer *renderer) {
 
         renderer_clear(renderer);
 
+        entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
+        renderer_render(renderer, camera, light, example_entity);
+        /*
         entity_set_position(example_entity, -5.0f, 0.0f, 0.0f);
         renderer_render(renderer, camera, light, example_entity);
         entity_set_position(example_entity, 0.0f, 0.0f, 10.0f);
         renderer_render(renderer, camera, light, example_entity);
         entity_set_position(example_entity, 5.0f, 0.0f, 0.0f);
         renderer_render(renderer, camera, light, example_entity);
+        */
 
         window_refresh(window);
     }

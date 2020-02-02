@@ -57,6 +57,9 @@ struct matrix4f *camera_view_matrix(struct camera *camera) {
 void camera_update_view_matrix(struct camera *camera) {
     camera->view_matrix = matrix_identity();
 
+    matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
+    matrix_rotate_y(&camera->view_matrix, camera->rotation.y);
+
     struct vector3f inverse_position = {
         .x = -camera->position.x,
         .y = -camera->position.y,
@@ -64,8 +67,4 @@ void camera_update_view_matrix(struct camera *camera) {
     };
 
     matrix_translate(&camera->view_matrix, &inverse_position);
-
-    matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
-    matrix_rotate_y(&camera->view_matrix, camera->rotation.y);
-    matrix_rotate_z(&camera->view_matrix, camera->rotation.z);
 }

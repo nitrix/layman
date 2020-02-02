@@ -120,12 +120,14 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
         renderer_set_wireframe(renderer, GL_FILL);
     }
 
+    /*
     double x, y;
     glfwGetCursorPos(window->glfw_window, &x, &y);
     if (x != 0 || y != 0) {
         camera_rotate(camera, y * -0.002f, x * -0.002f, 0);
         glfwSetCursorPos(window->glfw_window, 0, 0);
     }
+    */
 
     if (glfwGetKey(window->glfw_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window->glfw_window, GLFW_TRUE);
