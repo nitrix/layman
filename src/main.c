@@ -1,13 +1,10 @@
 #include "main.h"
-
 #include "camera.h"
 #include "model.h"
 #include "shader.h"
 #include "entity.h"
 #include "texture.h"
 #include "obj.h"
-
-#include <GLFW/glfw3.h>
 
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
@@ -42,6 +39,9 @@ void main_loop(struct window *window, struct renderer *renderer) {
     struct shader *example_shader = shader_load_by_name("wakfu");
     struct texture *example_texture = texture_load("textures/wakfu.png");
 
+    struct model *example_bunny_model = obj_load_model("models/bunny.obj");
+    struct texture *example_bunny_texture = texture_load("textures/bunny.png");
+
     // Prepare example entity
     struct entity *example_entity = entity_create();
     example_entity->model = example_model;
@@ -50,59 +50,33 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_entity->shine_damper = 50;
     example_entity->reflectivity = 0.5f;
     entity_rotate(example_entity, 0, -3.0f, 0);
+    entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
 
     // Prepare example player
     struct entity *example_player = entity_create();
-    example_player->model = example_model;
+    example_player->model = example_bunny_model;
     example_player->shader = example_shader;
-    example_player->texture = example_texture;
+    example_player->texture = example_bunny_texture;
     example_player->shine_damper = 50;
-    example_player->reflectivity = 0.5f;
+    example_player->reflectivity = 0.0f;
     entity_rotate(example_player, 0, -3.0f, 0);
-
-    // FPS book-keeping
-    double last_time = glfwGetTime();
-    size_t nb_frames = 0;
-
-    entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
+    entity_move(example_player, 0, -1.0f, 0);
     entity_set_position(example_player, 5.0f, 0.0f, 5.0f);
 
     while (!window_should_close(window)) {
-        double current_time = glfwGetTime();
-        nb_frames++;
-        if (current_time - last_time >= 1.0) {
-            printf("%zu FPS | %f ms/frame\n", nb_frames, 1000.0 / nb_frames);
-            nb_frames = 0;
-            last_time += 1.0;
-        }
-
-        // TODO: Use elapsed time frame time for smoother animations?
-
-        // TODO: Temporary, the rotation currently is around the world origin instead of model origin, which is wrong.
-        // entity_rotate(example_entity, 0.01f, 0.02f, 0.03f);
-        // entity_rotate(example_entity, 0, 0.01f, 0);
-        // camera_rotate(camera, 0, 0.01f, 0);
-        // entity_move(example_entity, 0.01f, 0.0f, 0.0f);
-        // entity_move(example_entity, 0.0f, 0.0f, -0.01f);
-
         window_handle_events(window, renderer, example_player, camera);
 
         renderer_clear(renderer);
 
+        camera_relative_to_entity(camera, example_player);
         renderer_render(renderer, camera, light, example_entity);
         renderer_render(renderer, camera, light, example_player);
 
-        /*
-        entity_set_position(example_entity, -5.0f, 0.0f, 0.0f);
-        renderer_render(renderer, camera, light, example_entity);
-        entity_set_position(example_entity, 0.0f, 0.0f, 10.0f);
-        renderer_render(renderer, camera, light, example_entity);
-        entity_set_position(example_entity, 5.0f, 0.0f, 0.0f);
-        renderer_render(renderer, camera, light, example_entity);
-        */
-
         window_refresh(window);
     }
+
+    model_destroy(example_bunny_model);
+    texture_destroy(example_bunny_texture);
 
     entity_destroy(example_entity);
     texture_destroy(example_texture);

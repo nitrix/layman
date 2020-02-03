@@ -7,6 +7,8 @@
 #include <GLFW/glfw3.h>
 
 // TODO: Switch to SDL2 instead of GLFW?
+// Yes. GLFW uses callbacks, impossible to poll for mouse wheel, callbacks aren't unique per window and dont allow
+// custom parameters.
 
 struct window {
     GLFWwindow *glfw_window;
@@ -63,7 +65,6 @@ struct window *window_create(int width, int height, const char *title) {
     if (glfwRawMouseMotionSupported()) {
         glfwSetInputMode(window->glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     }
-
     glfwSetCursorPos(window->glfw_window, 0, 0);
 
     return window;
@@ -124,14 +125,30 @@ void window_handle_events(struct window *window, struct renderer *renderer, stru
         renderer_set_wireframe(renderer, GL_FILL);
     }
 
-    /*
     double x, y;
     glfwGetCursorPos(window->glfw_window, &x, &y);
     if (x != 0 || y != 0) {
-        camera_rotate(camera, y * -0.002f, x * -0.002f, 0);
         glfwSetCursorPos(window->glfw_window, 0, 0);
+
+        if (glfwGetMouseButton(window->glfw_window, 0)) {
+            camera_change_pitch(camera, y * 0.002f);
+        }
+
+        if (glfwGetMouseButton(window->glfw_window, 1)) {
+            camera_change_angle_around_pivot(camera, x * 0.002f);
+        }
     }
-    */
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_PAGE_UP)) {
+        camera_change_zoom(camera, 0.2f);
+    }
+    else if (glfwGetKey(window->glfw_window, GLFW_KEY_PAGE_DOWN)) {
+        camera_change_zoom(camera, -0.2f);
+    }
+
+    if (glfwGetKey(window->glfw_window, GLFW_KEY_SPACE)) {
+        camera_rotate(camera, 0.01f, 0, 0);
+    }
 
     // Closes the window with escape key
     if (glfwGetKey(window->glfw_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

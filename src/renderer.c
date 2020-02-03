@@ -143,7 +143,7 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
 
     // Book-keeping frame time
     double current_time = window_current_time(renderer->window);
-    renderer->frame_time_delta = renderer->last_frame_time - current_time;
+    renderer->frame_time_delta = current_time - renderer->last_frame_time;
     renderer->last_frame_time = current_time;
 }
 

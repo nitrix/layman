@@ -3,7 +3,7 @@
 #include "renderer.h"
 #include "math.h"
 
-#define ENTITY_MOVE_SPEED 300
+#define ENTITY_MOVE_SPEED 1000
 #define ENTITY_TURN_SPEED 300
 
 void entity_update_model_matrix(struct entity *entity);
@@ -46,10 +46,10 @@ void entity_destroy(struct entity *entity) {
 void entity_ugly_move(struct entity *entity, direction_mask direction, struct renderer *renderer) {
     // Rotation
     if (TK_MASK_IS_SET(direction, DIRECTION_LEFT)) {
-        entity->turn_speed = ENTITY_TURN_SPEED;
+        entity->turn_speed = -ENTITY_TURN_SPEED;
     }
     else if (TK_MASK_IS_SET(direction, DIRECTION_RIGHT)) {
-        entity->turn_speed = -ENTITY_TURN_SPEED;
+        entity->turn_speed = ENTITY_TURN_SPEED;
     }
     else {
         entity->turn_speed = 0;
@@ -69,10 +69,10 @@ void entity_ugly_move(struct entity *entity, direction_mask direction, struct re
     }
 
     float distance = entity->move_speed * (float) renderer_frame_time_delta(renderer);
-    float delta_x = distance * sinf(entity->rotation.y) * -1;
-    float delta_z = distance * cosf(entity->rotation.y);
+    float delta_x = distance * sinf(entity->rotation.y * -1);
+    float delta_z = distance * cosf(entity->rotation.y * -1);
 
-    // TODO: Doing model matrix updates twice
+    // TODO: We're doing model matrix updates twice
     entity_move(entity, delta_x, 0, delta_z);
 }
 
