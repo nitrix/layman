@@ -51,19 +51,16 @@ void camera_destroy(struct camera *camera) {
 void camera_relative_to_entity(struct camera *camera, struct entity *entity) {
     float vertical_distance = camera->distance_from_pivot * sinf(camera->pitch);
     float horizontal_distance = camera->distance_from_pivot * cosf(camera->pitch);
-
-    camera->position.y = entity->position.y + vertical_distance;
-
     float theta = entity->rotation.y + camera->angle_around_pivot;
     float offset_x = horizontal_distance * sinf(theta);
     float offset_z = horizontal_distance * cosf(theta);
 
+    camera->position.y = entity->position.y + vertical_distance;
     camera->position.x = entity->position.x + offset_x;
     camera->position.z = entity->position.z - offset_z;
 
     camera->rotation.y = M_PI - theta;
-    // camera->rotation.x = M_PI - theta - (M_PI/2);
-    // camera->rotation.x += 0.01f;
+    camera->rotation.x = -camera->pitch;
 
     camera_update_view_matrix(camera);
 }
@@ -109,8 +106,6 @@ struct matrix4f *camera_view_matrix(struct camera *camera) {
 void camera_update_view_matrix(struct camera *camera) {
     camera->view_matrix = matrix_identity();
 
-    matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
-
     struct vector3f inverse_position = {
         .x = -camera->position.x,
         .y = -camera->position.y,
@@ -120,4 +115,5 @@ void camera_update_view_matrix(struct camera *camera) {
     matrix_translate(&camera->view_matrix, &inverse_position);
 
     matrix_rotate_y(&camera->view_matrix, camera->rotation.y);
+    matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
 }
