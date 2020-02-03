@@ -60,8 +60,7 @@ void main_loop(struct window *window, struct renderer *renderer) {
     example_player->shine_damper = 50;
     example_player->reflectivity = 0.0f;
     entity_rotate(example_player, 0, -3.0f, 0);
-    entity_move(example_player, 0, -1.0f, 0);
-    entity_set_position(example_player, 5.0f, 0.0f, 5.0f);
+    entity_set_position(example_player, 5.0f, -1.0f, 5.0f);
 
     while (!window_should_close(window)) {
         window_handle_events(window, renderer, example_player, camera);
