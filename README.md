@@ -10,20 +10,22 @@ Just a simple project while I'm learning OpenGL.
 - Entities have a model, texture, position, rotation and scale.
 - Matrix and vector math utilities.
 - Support .obj file format.
-- Pan-tilt-zoom camera.
-- Wireframe toggleable mode.
+- Wireframe toggleable modes for debugging.
 - Phong lighting (ambient + diffuse + specular).
-- Back-face culling.
+- Back-face culling optimization.
+- Entities time-based movement system.
+- Third person camera.
 
 ### Short term
 
 - Numerous code refactors
-    - Window handling events with camera/renderer imports
-    - Toolkit collection/dynarray
-- Drop SOIL, use libpng directly
+    - Spaghetti camera/renderer/entity.
+    - Toolkit collection/dynarray.
+- Drop SOIL, use libpng directly.
+- SDL for window events and OpenGL context.
 - Optimizations
-    - Turn obj module into loader module
-    - Batch rendering
+    - Convert obj module and move texture module into a loader module.
+    - Batch rendering using some kind of scene manager.
 
 ### Long term
 
@@ -31,8 +33,6 @@ Just a simple project while I'm learning OpenGL.
 - Transparency
 - Fog
 - Multi-texturing
-- Player movement
-- 3rd person camera
 - Mipmapping
 - Terrain collision
 - Texture atlases
