@@ -6,6 +6,10 @@
 #include "texture.h"
 #include "obj.h"
 
+#define MOVEMENT_SPEED_PER_SECOND 0.0015
+#define ROTATION_SPEED_PER_SECOND 0.0003
+#define SCROLL_SPEED 0.5f
+
 int main(int argc, char *argv[]) {
     struct window *window = window_create(1280, 720, "Learn OpenGL");
     struct renderer *renderer = renderer_create(window);
@@ -62,21 +66,93 @@ void main_loop(struct window *window, struct renderer *renderer) {
     entity_rotate(example_player, 0, -3.0f, 0);
     entity_set_position(example_player, 5.0f, -1.0f, 5.0f);
 
+    /*
+        camera_change_pitch(camera, y * 0.002f);
+        camera_change_angle_around_pivot(camera, x * 0.002f);
+        camera_rotate(camera, 0.01f, 0, 0);
+     */
+
+    direction_mask direction = TK_MASK_INITIALIZER;
+    bool left_button_active = false;
+    bool right_button_active = false;
+    int x, y;
+
     while (!window_should_close(window)) {
-        window_handle_events(window, renderer, example_player, camera);
+        tk_result result;
+
+        float elapsed_seconds = window_elapsed_seconds(window);
+
+        do {
+            result = window_poll_event(window);
+            if (TK_RESULT_IS_FAILURE(result)) break;
+
+            if (window_event_key_pressed(window, '\033')) {
+                window_close(window);
+            }
+            else if (window_event_key_pressed(window, '1')) {
+                renderer_set_wireframe(renderer, false);
+            }
+            else if (window_event_key_pressed(window, '2')) {
+                renderer_set_wireframe(renderer, true);
+            }
+            else if (window_event_key_pressed(window, 'w')) {
+                TK_MASK_SET(direction, DIRECTION_FORWARD);
+            }
+            else if (window_event_key_pressed(window, 's')) {
+                TK_MASK_SET(direction, DIRECTION_BACKWARD);
+            }
+            else if (window_event_key_pressed(window, 'a')) {
+                TK_MASK_SET(direction, DIRECTION_LEFT);
+            }
+            else if (window_event_key_pressed(window, 'd')) {
+                TK_MASK_SET(direction, DIRECTION_RIGHT);
+            }
+            else if (window_event_key_released(window, 'w')) {
+                TK_MASK_UNSET(direction, DIRECTION_FORWARD);
+            }
+            else if (window_event_key_released(window, 's')) {
+                TK_MASK_UNSET(direction, DIRECTION_BACKWARD);
+            }
+            else if (window_event_key_released(window, 'a')) {
+                TK_MASK_UNSET(direction, DIRECTION_LEFT);
+            }
+            else if (window_event_key_released(window, 'd')) {
+                TK_MASK_UNSET(direction, DIRECTION_RIGHT);
+            }
+            else if (window_event_mouse_wheel(window, &x, &y)) {
+                camera_change_zoom(camera, SCROLL_SPEED * y);
+            }
+            else if (window_event_mouse_button_pressed(window, 1)) {
+                left_button_active = true;
+            }
+            else if (window_event_mouse_button_pressed(window, 3)) {
+                right_button_active = true;
+            }
+            else if (window_event_mouse_button_released(window, 1)) {
+                left_button_active = false;
+            }
+            else if (window_event_mouse_button_released(window, 3)) {
+                right_button_active = false;
+            }
+            else if (left_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
+                camera_change_angle_around_pivot(camera, x * 0.02f);
+            }
+            else if (right_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
+                camera_change_pitch(camera, y * 0.02f);
+            }
+        } while (TK_RESULT_IS_SUCCESS(result));
+
+        entity_relative_move(example_player, direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
+        camera_relative_to_entity(camera, example_player);
 
         renderer_clear(renderer);
-
-        camera_relative_to_entity(camera, example_player);
         renderer_render(renderer, camera, light, example_entity);
         renderer_render(renderer, camera, light, example_player);
-
         window_refresh(window);
     }
 
     model_destroy(example_bunny_model);
     texture_destroy(example_bunny_texture);
-
     entity_destroy(example_entity);
     texture_destroy(example_texture);
     shader_destroy(example_shader);

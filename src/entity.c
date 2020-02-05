@@ -3,8 +3,8 @@
 #include "renderer.h"
 #include "math.h"
 
-#define ENTITY_MOVE_SPEED 1000
-#define ENTITY_TURN_SPEED 300
+#define ENTITY_MOVE_SPEED 3000
+#define ENTITY_TURN_SPEED 500
 
 void entity_update_model_matrix(struct entity *entity);
 
@@ -42,41 +42,39 @@ void entity_destroy(struct entity *entity) {
     free(entity);
 }
 
-// TODO: Proof of concept, fix this ugly shit.
-void entity_ugly_move(struct entity *entity, direction_mask direction, struct renderer *renderer) {
+void entity_relative_move(struct entity *entity, direction_mask direction, float move_amount, float turn_amount) {
     // Rotation
     if (TK_MASK_IS_SET(direction, DIRECTION_LEFT)) {
-        entity->turn_speed = -ENTITY_TURN_SPEED;
+        turn_amount = -turn_amount;
     }
     else if (TK_MASK_IS_SET(direction, DIRECTION_RIGHT)) {
-        entity->turn_speed = ENTITY_TURN_SPEED;
+        turn_amount = turn_amount;
     }
     else {
-        entity->turn_speed = 0;
+        turn_amount = 0;
     }
 
-    entity_rotate(entity, 0, entity->turn_speed * (float) renderer_frame_time_delta(renderer), 0);
+    entity_rotate(entity, 0, turn_amount, 0);
 
     // Translation
     if (TK_MASK_IS_SET(direction, DIRECTION_FORWARD)) {
-        entity->move_speed = ENTITY_MOVE_SPEED;
+        move_amount = move_amount;
     }
     else if (TK_MASK_IS_SET(direction, DIRECTION_BACKWARD)) {
-        entity->move_speed = -ENTITY_MOVE_SPEED;
+        move_amount = -move_amount;
     }
     else {
-        entity->move_speed = 0;
+        move_amount = 0;
     }
 
-    float distance = entity->move_speed * (float) renderer_frame_time_delta(renderer);
-    float delta_x = distance * sinf(entity->rotation.y * -1);
-    float delta_z = distance * cosf(entity->rotation.y * -1);
+    float delta_x = move_amount * sinf(entity->rotation.y * -1);
+    float delta_z = move_amount * cosf(entity->rotation.y * -1);
 
     // TODO: We're doing model matrix updates twice
-    entity_move(entity, delta_x, 0, delta_z);
+    entity_absolute_move(entity, delta_x, 0, delta_z);
 }
 
-void entity_move(struct entity *entity, float dx, float dy, float dz) {
+void entity_absolute_move(struct entity *entity, float dx, float dy, float dz) {
     entity->position.x += dx;
     entity->position.y += dy;
     entity->position.z += dz;

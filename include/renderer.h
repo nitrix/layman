@@ -5,8 +5,6 @@
 #include "window.h"
 #include "light.h"
 
-#include <GL/glew.h>
-
 struct renderer;
 struct entity;
 
@@ -18,12 +16,11 @@ void renderer_unuse(struct renderer *renderer);
 
 void renderer_set_viewport(struct renderer *renderer, int width, int height);
 void renderer_match_viewport(struct renderer *renderer, struct window *window);
-void renderer_set_wireframe(struct renderer *renderer, GLenum mode);
+void renderer_set_wireframe(struct renderer *renderer, bool b);
 
 void renderer_clear(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity);
 
-double renderer_frame_time_delta(struct renderer *renderer);
 struct matrix4f renderer_projection_matrix(struct renderer *renderer);
 
 #endif

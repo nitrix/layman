@@ -18,9 +18,6 @@ struct renderer {
     float fov;
     float near_plane;
     float far_plane;
-
-    double last_frame_time;
-    double frame_time_delta;
 };
 
 atomic_uint renderer_count;
@@ -77,9 +74,6 @@ struct renderer *renderer_create(struct window *window) {
     renderer->near_plane = 0.1f;
     renderer->far_plane = 1000.0f;
 
-    renderer->last_frame_time = window_current_time(window);
-    renderer->frame_time_delta = 0;
-
     return renderer;
 }
 
@@ -106,13 +100,10 @@ void renderer_unuse(struct renderer *renderer) {
     TK_UNUSED(renderer);
 }
 
-
-// TODO: Rename me or change type of argument.
-void renderer_set_wireframe(struct renderer *renderer, GLenum mode) {
+void renderer_set_wireframe(struct renderer *renderer, bool b) {
     TK_UNUSED(renderer);
 
-    // GL_POINT, GL_LINE or GL_FILL.
-    glPolygonMode(GL_FRONT_AND_BACK, mode);
+    glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
 }
 
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity) {
@@ -133,22 +124,11 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     shader_bind_uniform_light(entity->shader, light);
     shader_bind_uniform_entity(entity->shader, entity);
 
-    // This is to help debugging issues during development
     if (tk_debug_is_enabled()) {
         shader_validate(entity->shader);
     }
 
     glDrawElements(GL_TRIANGLES, 3 * model_face_count(entity->model), GL_UNSIGNED_INT, 0);
-    // glDrawArrays(GL_TRIANGLES, 0, model_vertex_count(entity->model));
-
-    // Book-keeping frame time
-    double current_time = window_current_time(renderer->window);
-    renderer->frame_time_delta = current_time - renderer->last_frame_time;
-    renderer->last_frame_time = current_time;
-}
-
-double renderer_frame_time_delta(struct renderer *renderer) {
-    return renderer->frame_time_delta;
 }
 
 void renderer_destroy(struct renderer *renderer) {

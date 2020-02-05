@@ -32,6 +32,9 @@ void entity_move(struct entity *entity, float dx, float dy, float dz);
 void entity_set_position(struct entity *entity, float x, float y, float z);
 void entity_rotate(struct entity *entity, float dx, float dy, float dz);
 
+void entity_absolute_move(struct entity *entity, float dx, float dy, float dz);
+void entity_relative_move(struct entity *entity, direction_mask direction, float move_amount, float turn_amount);
+
 struct matrix4f *entity_model_matrix(struct entity *entity);
 
 #endif
