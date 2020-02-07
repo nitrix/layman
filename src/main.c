@@ -6,8 +6,8 @@
 #include "texture.h"
 #include "obj.h"
 
-#define MOVEMENT_SPEED_PER_SECOND 0.0015
-#define ROTATION_SPEED_PER_SECOND 0.0003
+#define MOVEMENT_SPEED_PER_SECOND 7.0f
+#define ROTATION_SPEED_PER_SECOND 2.0f
 #define SCROLL_SPEED 0.5f
 
 int main(int argc, char *argv[]) {
@@ -66,12 +66,6 @@ void main_loop(struct window *window, struct renderer *renderer) {
     entity_rotate(example_player, 0, -3.0f, 0);
     entity_set_position(example_player, 5.0f, -1.0f, 5.0f);
 
-    /*
-        camera_change_pitch(camera, y * 0.002f);
-        camera_change_angle_around_pivot(camera, x * 0.002f);
-        camera_rotate(camera, 0.01f, 0, 0);
-     */
-
     direction_mask direction = TK_MASK_INITIALIZER;
     bool left_button_active = false;
     bool right_button_active = false;
@@ -79,8 +73,6 @@ void main_loop(struct window *window, struct renderer *renderer) {
 
     while (!window_should_close(window)) {
         tk_result result;
-
-        float elapsed_seconds = window_elapsed_seconds(window);
 
         do {
             result = window_poll_event(window);
@@ -141,6 +133,8 @@ void main_loop(struct window *window, struct renderer *renderer) {
                 camera_change_pitch(camera, y * 0.02f);
             }
         } while (TK_RESULT_IS_SUCCESS(result));
+
+        float elapsed_seconds = window_elapsed_seconds(window);
 
         entity_relative_move(example_player, direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
         camera_relative_to_entity(camera, example_player);

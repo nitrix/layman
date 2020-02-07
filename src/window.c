@@ -14,7 +14,7 @@ struct window {
     SDL_Window *sdl_window;
     SDL_GLContext sdl_gl_context;
     SDL_Event sdl_event;
-    uint32_t previous_ticks;
+    uint64_t previous_frame_time;
     bool should_close;
 };
 
@@ -49,6 +49,8 @@ struct window *window_create(int width, int height, const char *title) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+    SDL_GL_SetSwapInterval(1);
+
     window->sdl_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
     if (!window->sdl_window) {
         free(window);
@@ -64,7 +66,7 @@ struct window *window_create(int width, int height, const char *title) {
     }
 
     window->should_close = false;
-    window->previous_ticks = SDL_GetPerformanceCounter();
+    window->previous_frame_time = SDL_GetPerformanceCounter();
 
     return window;
 }
@@ -134,11 +136,11 @@ bool window_event_mouse_wheel(struct window *window, int *delta_x, int *delta_y)
     return false;
 }
 
-double window_elapsed_seconds(struct window *window) {
+float window_elapsed_seconds(struct window *window) {
     TK_UNUSED(window);
 
-    uint32_t current_ticks = SDL_GetPerformanceCounter();
-    return (float) (current_ticks - window->previous_ticks) / SDL_GetPerformanceFrequency();
+    uint64_t current_frame_time = SDL_GetPerformanceCounter();
+    return (current_frame_time - window->previous_frame_time) / (float) SDL_GetPerformanceFrequency();
 }
 
 void window_framebuffer_size(struct window *window, int *width, int *height) {
@@ -146,8 +148,8 @@ void window_framebuffer_size(struct window *window, int *width, int *height) {
 }
 
 void window_refresh(struct window *window) {
+    window->previous_frame_time = SDL_GetPerformanceCounter();
     SDL_GL_SwapWindow(window->sdl_window);
-    window->previous_ticks = SDL_GetTicks();
 }
 
 bool window_should_close(struct window *window) {

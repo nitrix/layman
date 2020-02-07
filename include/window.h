@@ -17,7 +17,7 @@ void window_refresh(struct window *window);
 void window_unuse(struct window *window);
 
 // Utilities
-double window_elapsed_seconds(struct window *window);
+float window_elapsed_seconds(struct window *window);
 void window_framebuffer_size(struct window *window, int *width, int *height);
 
 // Closing
