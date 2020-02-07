@@ -4,8 +4,7 @@
 #include "direction.h"
 #include "entity.h"
 
-#include <GLFW/glfw3.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 // TODO: Switch to SDL2 instead of GLFW?
 // Yes. GLFW uses callbacks, impossible to poll for mouse wheel, callbacks aren't unique per window and dont allow
@@ -45,17 +44,17 @@ struct window *window_create(int width, int height, const char *title) {
 
     window_refcount_increment();
 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
     window->sdl_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
     if (!window->sdl_window) {
         free(window);
         window_refcount_decrement();
         return NULL;
     }
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE | SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     window->sdl_gl_context = SDL_GL_CreateContext(window->sdl_window);
     if (!window->sdl_gl_context) {

@@ -7,3 +7,5 @@
 [submodule "lib/soil"]
 	path = lib/soil
 	url = https://github.com/paralin/soil
+[submodule "lib/SDL"]
+	url = https://github.com/SDL-mirror/SDL
