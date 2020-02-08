@@ -72,11 +72,11 @@ struct window *window_create(int width, int height, const char *title) {
     return window;
 }
 
-void window_use(struct window *window) {
+void window_use(const struct window *window) {
     SDL_GL_MakeCurrent(window->sdl_window, window->sdl_gl_context);
 }
 
-void window_unuse(struct window *window) {
+void window_unuse(const struct window *window) {
     TK_UNUSED(window);
 }
 
@@ -101,23 +101,23 @@ tk_result window_poll_event(struct window *window) {
     }
 }
 
-bool window_event_key_pressed(struct window *window, char key) {
+bool window_event_key_pressed(const struct window *window, char key) {
     return window->sdl_event.type == SDL_KEYDOWN && !window->sdl_event.key.repeat && window->sdl_event.key.keysym.sym == key;
 }
 
-bool window_event_key_released(struct window *window, char key) {
+bool window_event_key_released(const struct window *window, char key) {
     return window->sdl_event.type == SDL_KEYUP && !window->sdl_event.key.repeat && window->sdl_event.key.keysym.sym == key;
 }
 
-bool window_event_mouse_button_pressed(struct window *window, int button) {
+bool window_event_mouse_button_pressed(const struct window *window, int button) {
     return window->sdl_event.type == SDL_MOUSEBUTTONDOWN && button == window->sdl_event.button.button;
 }
 
-bool window_event_mouse_button_released(struct window *window, int button) {
+bool window_event_mouse_button_released(const struct window *window, int button) {
     return window->sdl_event.type == SDL_MOUSEBUTTONUP && button == window->sdl_event.button.button;
 }
 
-bool window_event_mouse_motion_relative(struct window *window, int *delta_x, int *delta_y) {
+bool window_event_mouse_motion_relative(const struct window *window, int *delta_x, int *delta_y) {
     if (window->sdl_event.type == SDL_MOUSEMOTION) {
         *delta_x = window->sdl_event.motion.xrel;
         *delta_y = window->sdl_event.motion.yrel;
@@ -127,7 +127,7 @@ bool window_event_mouse_motion_relative(struct window *window, int *delta_x, int
     return false;
 }
 
-bool window_event_mouse_wheel(struct window *window, int *delta_x, int *delta_y) {
+bool window_event_mouse_wheel(const struct window *window, int *delta_x, int *delta_y) {
     if (window->sdl_event.type == SDL_MOUSEWHEEL) {
         *delta_x = window->sdl_event.wheel.x;
         *delta_y = window->sdl_event.wheel.y;
@@ -150,11 +150,11 @@ void window_framebuffer_size(struct window *window, int *width, int *height) {
     SDL_GL_GetDrawableSize(window->sdl_window, width, height);
 }
 
-void window_refresh(struct window *window) {
+void window_refresh(const struct window *window) {
     SDL_GL_SwapWindow(window->sdl_window);
 }
 
-bool window_should_close(struct window *window) {
+bool window_should_close(const struct window *window) {
     return window->should_close;
 }
 

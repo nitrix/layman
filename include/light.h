@@ -10,7 +10,7 @@ void light_destroy(struct light *light);
 
 void light_move(struct light *light, float dx, float dy, float dz);
 
-struct vector3f *light_get_position(struct light *light);
-struct vector3f *light_get_color(struct light *light);
+const struct vector3f *light_get_position(const struct light *light);
+const struct vector3f *light_get_color(const struct light *light);
 
 #endif

@@ -29,7 +29,7 @@ void matrix_rotate_x(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, t);
+    matrix_dot_product(m, &t);
 }
 
 void matrix_rotate_y(struct matrix4f *m, float r) {
@@ -49,7 +49,7 @@ void matrix_rotate_y(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, t);
+    matrix_dot_product(m, &t);
 }
 
 void matrix_rotate_z(struct matrix4f *m, float r) {
@@ -69,17 +69,17 @@ void matrix_rotate_z(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, t);
+    matrix_dot_product(m, &t);
 }
 
-void matrix_translate(struct matrix4f *m, struct vector3f *v) {
+void matrix_translate(struct matrix4f *m, const struct vector3f *v) {
     struct matrix4f t = matrix_identity();
 
     t.w1 = v->x;
     t.w2 = v->y;
     t.w3 = v->z;
 
-    matrix_dot_product(m, t);
+    matrix_dot_product(m, &t);
 }
 
 void matrix_scale(struct matrix4f *m, float sx, float sy, float sz) {
@@ -89,33 +89,33 @@ void matrix_scale(struct matrix4f *m, float sx, float sy, float sz) {
     t.z3 = sz;
     t.w4 = 1;
 
-    matrix_dot_product(m, t);
+    matrix_dot_product(m, &t);
 }
 
 // TODO: Misnamed?
-void matrix_dot_product(struct matrix4f *p, struct matrix4f o) {
+void matrix_dot_product(struct matrix4f *p, const struct matrix4f *o) {
     struct matrix4f m = *p;
 
     struct matrix4f t = {
-        .x1 = (m.x1 * o.x1) + (m.x2 * o.y1) + (m.x3 * o.z1) + (m.x4 * o.w1),
-        .x2 = (m.x1 * o.x2) + (m.x2 * o.y2) + (m.x3 * o.z2) + (m.x4 * o.w2),
-        .x3 = (m.x1 * o.x3) + (m.x2 * o.y3) + (m.x3 * o.z3) + (m.x4 * o.w3),
-        .x4 = (m.x1 * o.x4) + (m.x2 * o.y4) + (m.x3 * o.z4) + (m.x4 * o.w4),
+        .x1 = (m.x1 * o->x1) + (m.x2 * o->y1) + (m.x3 * o->z1) + (m.x4 * o->w1),
+        .x2 = (m.x1 * o->x2) + (m.x2 * o->y2) + (m.x3 * o->z2) + (m.x4 * o->w2),
+        .x3 = (m.x1 * o->x3) + (m.x2 * o->y3) + (m.x3 * o->z3) + (m.x4 * o->w3),
+        .x4 = (m.x1 * o->x4) + (m.x2 * o->y4) + (m.x3 * o->z4) + (m.x4 * o->w4),
 
-        .y1 = (m.y1 * o.x1) + (m.y2 * o.y1) + (m.y3 * o.z1) + (m.y4 * o.w1),
-        .y2 = (m.y1 * o.x2) + (m.y2 * o.y2) + (m.y3 * o.z2) + (m.y4 * o.w2),
-        .y3 = (m.y1 * o.x3) + (m.y2 * o.y3) + (m.y3 * o.z3) + (m.y4 * o.w3),
-        .y4 = (m.y1 * o.x4) + (m.y2 * o.y4) + (m.y3 * o.z4) + (m.y4 * o.w4),
+        .y1 = (m.y1 * o->x1) + (m.y2 * o->y1) + (m.y3 * o->z1) + (m.y4 * o->w1),
+        .y2 = (m.y1 * o->x2) + (m.y2 * o->y2) + (m.y3 * o->z2) + (m.y4 * o->w2),
+        .y3 = (m.y1 * o->x3) + (m.y2 * o->y3) + (m.y3 * o->z3) + (m.y4 * o->w3),
+        .y4 = (m.y1 * o->x4) + (m.y2 * o->y4) + (m.y3 * o->z4) + (m.y4 * o->w4),
 
-        .z1 = (m.z1 * o.x1) + (m.z2 * o.y1) + (m.z3 * o.z1) + (m.z4 * o.w1),
-        .z2 = (m.z1 * o.x2) + (m.z2 * o.y2) + (m.z3 * o.z2) + (m.z4 * o.w2),
-        .z3 = (m.z1 * o.x3) + (m.z2 * o.y3) + (m.z3 * o.z3) + (m.z4 * o.w3),
-        .z4 = (m.z1 * o.x4) + (m.z2 * o.y4) + (m.z3 * o.z4) + (m.z4 * o.w4),
+        .z1 = (m.z1 * o->x1) + (m.z2 * o->y1) + (m.z3 * o->z1) + (m.z4 * o->w1),
+        .z2 = (m.z1 * o->x2) + (m.z2 * o->y2) + (m.z3 * o->z2) + (m.z4 * o->w2),
+        .z3 = (m.z1 * o->x3) + (m.z2 * o->y3) + (m.z3 * o->z3) + (m.z4 * o->w3),
+        .z4 = (m.z1 * o->x4) + (m.z2 * o->y4) + (m.z3 * o->z4) + (m.z4 * o->w4),
 
-        .w1 = (m.w1 * o.x1) + (m.w2 * o.y1) + (m.w3 * o.z1) + (m.w4 * o.w1),
-        .w2 = (m.w1 * o.x2) + (m.w2 * o.y2) + (m.w3 * o.z2) + (m.w4 * o.w2),
-        .w3 = (m.w1 * o.x3) + (m.w2 * o.y3) + (m.w3 * o.z3) + (m.w4 * o.w3),
-        .w4 = (m.w1 * o.x4) + (m.w2 * o.y4) + (m.w3 * o.z4) + (m.w4 * o.w4),
+        .w1 = (m.w1 * o->x1) + (m.w2 * o->y1) + (m.w3 * o->z1) + (m.w4 * o->w1),
+        .w2 = (m.w1 * o->x2) + (m.w2 * o->y2) + (m.w3 * o->z2) + (m.w4 * o->w2),
+        .w3 = (m.w1 * o->x3) + (m.w2 * o->y3) + (m.w3 * o->z3) + (m.w4 * o->w3),
+        .w4 = (m.w1 * o->x4) + (m.w2 * o->y4) + (m.w3 * o->z4) + (m.w4 * o->w4),
     };
 
     *p = t;

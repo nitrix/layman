@@ -7,7 +7,7 @@ struct texture {
     GLuint texture_id;
 };
 
-void texture_use(struct texture *texture) {
+void texture_use(const struct texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
 }
 

@@ -31,10 +31,10 @@ void light_move(struct light *light, float dx, float dy, float dz) {
     light->position.z += dz;
 }
 
-struct vector3f *light_get_position(struct light *light) {
+const struct vector3f *light_get_position(const struct light *light) {
     return &light->position;
 }
 
-struct vector3f *light_get_color(struct light *light) {
+const struct vector3f *light_get_color(const struct light *light) {
     return &light->color;
 }

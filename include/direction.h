@@ -4,10 +4,10 @@
 typedef unsigned int direction_mask;
 
 enum direction {
-    DIRECTION_FORWARD  = 1u,
-    DIRECTION_BACKWARD = 2u,
-    DIRECTION_LEFT     = 4u,
-    DIRECTION_RIGHT    = 8u,
+    DIRECTION_FORWARD  = 1,
+    DIRECTION_BACKWARD = 2,
+    DIRECTION_LEFT     = 4,
+    DIRECTION_RIGHT    = 8,
 };
 
 #endif

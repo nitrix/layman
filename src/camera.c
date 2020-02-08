@@ -8,11 +8,11 @@ struct camera {
     struct vector3f position;
     struct vector3f rotation;
     struct matrix4f view_matrix;
+    bool view_matrix_is_up_to_date;
 
-    struct vector3f pivot_position;
     float distance_from_pivot;
     float angle_around_pivot;
-    float pitch; // rotation.y ?
+    float pitch;
 };
 
 void camera_update_view_matrix(struct camera *camera);
@@ -33,7 +33,6 @@ struct camera *camera_create(void) {
     camera->rotation.z = 0;
 
     // 3rd person camera.
-    camera->pivot_position = camera->position;
     camera->distance_from_pivot = 10;
     camera->pitch = 0;
     camera->angle_around_pivot = 0;
@@ -47,7 +46,7 @@ void camera_destroy(struct camera *camera) {
     free(camera);
 }
 
-// TODO: rename
+// TODO: rename?
 void camera_relative_to_entity(struct camera *camera, struct entity *entity) {
     float vertical_distance = camera->distance_from_pivot * sinf(camera->pitch);
     float horizontal_distance = camera->distance_from_pivot * cosf(camera->pitch);
@@ -62,7 +61,7 @@ void camera_relative_to_entity(struct camera *camera, struct entity *entity) {
     camera->rotation.y = M_PI - theta;
     camera->rotation.x = -camera->pitch;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
 void camera_move(struct camera *camera, float dx, float dy, float dz) {
@@ -70,7 +69,7 @@ void camera_move(struct camera *camera, float dx, float dy, float dz) {
     camera->position.y += dy;
     camera->position.z += dz;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
 void camera_rotate(struct camera *camera, float dx, float dy, float dz) {
@@ -78,28 +77,32 @@ void camera_rotate(struct camera *camera, float dx, float dy, float dz) {
     camera->rotation.y += dy;
     camera->rotation.z += dz;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
 void camera_change_zoom(struct camera *camera, float zoom) {
     camera->distance_from_pivot -= zoom;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
 void camera_change_pitch(struct camera *camera, float delta) {
     camera->pitch += delta;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
 void camera_change_angle_around_pivot(struct camera *camera, float delta) {
     camera->angle_around_pivot += delta;
 
-    camera_update_view_matrix(camera);
+    camera->view_matrix_is_up_to_date = false;
 }
 
-struct matrix4f *camera_view_matrix(struct camera *camera) {
+const struct matrix4f *camera_view_matrix(struct camera *camera) {
+    if (!camera->view_matrix_is_up_to_date) {
+        camera_update_view_matrix(camera);
+    }
+
     return &camera->view_matrix;
 }
 
@@ -116,4 +119,6 @@ void camera_update_view_matrix(struct camera *camera) {
 
     matrix_rotate_y(&camera->view_matrix, camera->rotation.y);
     matrix_rotate_x(&camera->view_matrix, camera->rotation.x);
+
+    camera->view_matrix_is_up_to_date = true;
 }

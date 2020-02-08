@@ -11,11 +11,11 @@ enum model_attributes {
 
 struct model;
 
-struct model *model_create_from_raw(float *vertices, size_t vertex_count, unsigned int *edges, size_t edge_count, float *texture_uvs, float *normals);
+struct model *model_create_from_raw(const float *vertices, size_t vertex_count, const unsigned int *edges, size_t edge_count, const float *texture_uvs, const float *normals);
 void model_destroy(struct model *model);
 
-void model_use(struct model *model);
-size_t model_vertex_count(struct model *model);
-size_t model_face_count(struct model *model);
+void model_use(const struct model *model);
+size_t model_vertex_count(const struct model *model);
+size_t model_face_count(const struct model *model);
 
 #endif

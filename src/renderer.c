@@ -18,6 +18,8 @@ struct renderer {
     float fov;
     float near_plane;
     float far_plane;
+
+    struct matrix4f projection_matrix;
 };
 
 atomic_uint renderer_count;
@@ -74,6 +76,8 @@ struct renderer *renderer_create(struct window *window) {
     renderer->near_plane = 0.1f;
     renderer->far_plane = 1000.0f;
 
+    renderer_update_projection_matrix(renderer);
+
     return renderer;
 }
 
@@ -112,14 +116,14 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     texture_use(entity->texture);
 
     // Uniforms
-    struct matrix4f *model = entity_model_matrix(entity);
+    const struct matrix4f *model = entity_model_matrix(entity);
     shader_bind_uniform_model(entity->shader, model);
 
-    struct matrix4f *view = camera_view_matrix(camera);
+    const struct matrix4f *view = camera_view_matrix(camera);
     shader_bind_uniform_view(entity->shader, view);
 
-    struct matrix4f projection = renderer_projection_matrix(renderer);
-    shader_bind_uniform_projection(entity->shader, &projection);
+    const struct matrix4f *projection = renderer_projection_matrix(renderer);
+    shader_bind_uniform_projection(entity->shader, projection);
 
     shader_bind_uniform_light(entity->shader, light);
     shader_bind_uniform_entity(entity->shader, entity);
@@ -136,19 +140,21 @@ void renderer_destroy(struct renderer *renderer) {
     renderer_decrement();
 }
 
-struct matrix4f renderer_projection_matrix(struct renderer *renderer) {
+const struct matrix4f *renderer_projection_matrix(const struct renderer *renderer) {
+    return &renderer->projection_matrix;
+}
+
+void renderer_update_projection_matrix(struct renderer *renderer) {
     float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
     float scale_y = (1.0f / tanf(renderer->fov)) * aspect_ratio;
     float scale_x = scale_y / aspect_ratio;
     float frustrum_length = renderer->far_plane - renderer->near_plane;
 
-    struct matrix4f m = {
+    renderer->projection_matrix = (struct matrix4f) {
         .x1 = scale_x,
         .y2 = scale_y,
         .z3 = -((renderer->far_plane + renderer->near_plane) / frustrum_length),
         .z4 = -1,
         .w3 = -((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
     };
-
-    return m;
 }

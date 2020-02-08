@@ -21,6 +21,7 @@ void renderer_set_wireframe(struct renderer *renderer, bool b);
 void renderer_clear(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, struct camera *camera, struct light *light, struct entity *entity);
 
-struct matrix4f renderer_projection_matrix(struct renderer *renderer);
+const struct matrix4f *renderer_projection_matrix(const struct renderer *renderer);
+void renderer_update_projection_matrix(struct renderer *renderer);
 
 #endif

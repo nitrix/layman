@@ -88,31 +88,31 @@ void main_loop(struct window *window, struct renderer *renderer) {
                 renderer_set_wireframe(renderer, true);
             }
             else if (window_event_key_pressed(window, 'w')) {
-                TK_MASK_SET(direction, DIRECTION_FORWARD);
+                TK_MASK_SET(direction, DIRECTION_FORWARD * 1u);
             }
             else if (window_event_key_pressed(window, 's')) {
-                TK_MASK_SET(direction, DIRECTION_BACKWARD);
+                TK_MASK_SET(direction, DIRECTION_BACKWARD * 1u);
             }
             else if (window_event_key_pressed(window, 'a')) {
-                TK_MASK_SET(direction, DIRECTION_LEFT);
+                TK_MASK_SET(direction, DIRECTION_LEFT * 1u);
             }
             else if (window_event_key_pressed(window, 'd')) {
-                TK_MASK_SET(direction, DIRECTION_RIGHT);
+                TK_MASK_SET(direction, DIRECTION_RIGHT * 1u);
             }
             else if (window_event_key_released(window, 'w')) {
-                TK_MASK_UNSET(direction, DIRECTION_FORWARD);
+                TK_MASK_UNSET(direction, DIRECTION_FORWARD * 1u);
             }
             else if (window_event_key_released(window, 's')) {
-                TK_MASK_UNSET(direction, DIRECTION_BACKWARD);
+                TK_MASK_UNSET(direction, DIRECTION_BACKWARD * 1u);
             }
             else if (window_event_key_released(window, 'a')) {
-                TK_MASK_UNSET(direction, DIRECTION_LEFT);
+                TK_MASK_UNSET(direction, DIRECTION_LEFT * 1u);
             }
             else if (window_event_key_released(window, 'd')) {
-                TK_MASK_UNSET(direction, DIRECTION_RIGHT);
+                TK_MASK_UNSET(direction, DIRECTION_RIGHT * 1u);
             }
             else if (window_event_mouse_wheel(window, &x, &y)) {
-                camera_change_zoom(camera, SCROLL_SPEED * y);
+                camera_change_zoom(camera, (float) y * SCROLL_SPEED);
             }
             else if (window_event_mouse_button_pressed(window, 1)) {
                 left_button_active = true;
@@ -127,10 +127,10 @@ void main_loop(struct window *window, struct renderer *renderer) {
                 right_button_active = false;
             }
             else if (left_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
-                camera_change_angle_around_pivot(camera, x * 0.02f);
+                camera_change_angle_around_pivot(camera, (float) x * 0.02f);
             }
             else if (right_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
-                camera_change_pitch(camera, y * 0.02f);
+                camera_change_pitch(camera, (float) y * 0.02f);
             }
         } while (TK_RESULT_IS_SUCCESS(result));
 

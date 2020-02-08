@@ -114,7 +114,7 @@ struct shader *shader_load_by_name(const char *name) {
     return shader;
 }
 
-void shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
+void shader_bind_uniform_matrix4f(GLint location, const struct matrix4f *m) {
     float buffer[16] = {
         m->x1, m->x2, m->x3, m->x4,
         m->y1, m->y2, m->y3, m->y4,
@@ -125,29 +125,29 @@ void shader_bind_uniform_matrix4f(GLint location, struct matrix4f *m) {
     glUniformMatrix4fv(location, 1, false, buffer);
 }
 
-void shader_bind_uniform_model(struct shader *shader, struct matrix4f *model) {
+void shader_bind_uniform_model(struct shader *shader, const struct matrix4f *model) {
     shader_bind_uniform_matrix4f(shader->uniform_model, model);
 }
 
-void shader_bind_uniform_view(struct shader *shader, struct matrix4f *view) {
+void shader_bind_uniform_view(struct shader *shader, const struct matrix4f *view) {
     shader_bind_uniform_matrix4f(shader->uniform_view, view);
 }
 
-void shader_bind_uniform_projection(struct shader *shader, struct matrix4f *projection) {
+void shader_bind_uniform_projection(struct shader *shader, const struct matrix4f *projection) {
     shader_bind_uniform_matrix4f(shader->uniform_projection, projection);
 }
 
-void shader_bind_uniform_light(struct shader *shader, struct light *light) {
+void shader_bind_uniform_light(struct shader *shader, const struct light *light) {
     // Light position
-    struct vector3f *light_position = light_get_position(light);
+    const struct vector3f *light_position = light_get_position(light);
     glUniform3f(shader->uniform_light_position, light_position->x, light_position->y, light_position->z);
 
     // Light color
-    struct vector3f *light_color = light_get_color(light);
+    const struct vector3f *light_color = light_get_color(light);
     glUniform3f(shader->uniform_light_color, light_color->x, light_color->y, light_color->z);
 }
 
-void shader_bind_uniform_entity(struct shader *shader, struct entity *entity) {
+void shader_bind_uniform_entity(struct shader *shader, const struct entity *entity) {
     // Specular
     glUniform1f(shader->uniform_shine_damper, entity->shine_damper);
     glUniform1f(shader->uniform_reflectivity, entity->reflectivity);

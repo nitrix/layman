@@ -8,6 +8,6 @@ struct texture;
 struct texture *texture_load(const char *filepath);
 void texture_destroy(struct texture *texture);
 
-void texture_use(struct texture *texture);
+void texture_use(const struct texture *texture);
 
 #endif

@@ -15,7 +15,7 @@ struct model {
     size_t face_count;
 };
 
-void model_use(struct model *model) {
+void model_use(const struct model *model) {
     glBindVertexArray(model->vertex_array_id);
 
     // Vertices
@@ -34,15 +34,15 @@ void model_use(struct model *model) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->faces_buffer_id);
 }
 
-size_t model_vertex_count(struct model *model) {
+size_t model_vertex_count(const struct model *model) {
     return model->vertex_count;
 }
 
-size_t model_face_count(struct model *model) {
+size_t model_face_count(const struct model *model) {
     return model->face_count;
 }
 
-struct model *model_create_from_raw(float *vertices, size_t vertex_count, unsigned int *faces, size_t face_count, float *texture_uvs, float *normals) {
+struct model *model_create_from_raw(const float *vertices, size_t vertex_count, const unsigned int *faces, size_t face_count, const float *texture_uvs, const float *normals) {
     struct model *model = malloc(sizeof *model);
 
     if (!model) {
