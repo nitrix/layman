@@ -29,15 +29,27 @@ void window_set_custom(struct window *window, void *ptr);
 // Event polling
 void window_poll_events(const struct window *window);
 
-// Key events
-enum window_key_action {
-    WINDOW_KEY_ACTION_PRESS   = 1,
-    WINDOW_KEY_ACTION_RELEASE = 2,
-    WINDOW_KEY_ACTION_REPEAT  = 3,
+// Event actions
+enum window_action {
+    WINDOW_ACTION_PRESS   = 1,
+    WINDOW_ACTION_RELEASE = 2,
+    WINDOW_ACTION_REPEAT  = 3,
 };
-typedef void (window_on_key_func)(struct window *window, int key, enum window_key_action action);
+
+// Key events
+typedef void (window_on_key_func)(struct window *window, int key, enum window_action action);
 void window_set_key_callback(struct window *window, window_on_key_func *on_key_func);
 
-// Mouse events
+// Mouse button events
+typedef void (window_on_mouse_button_func)(struct window *window, int button, enum window_action action);
+void window_set_mouse_button_callback(struct window *window, window_on_mouse_button_func *on_mouse_button_func);
+
+// Mouse position events
+typedef void (window_on_mouse_position_func)(struct window *window, double x, double y);
+void window_set_mouse_position_callback(struct window *window, window_on_mouse_position_func *on_mouse_position_func);
+
+// Mouse wheel events
+typedef void (window_on_mouse_wheel_func)(struct window *window, double delta);
+void window_set_mouse_wheel_callback(struct window *window, window_on_mouse_wheel_func *on_mouse_wheel_func);
 
 #endif

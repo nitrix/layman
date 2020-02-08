@@ -6,6 +6,9 @@
 struct window {
     GLFWwindow *glfw_window;
     window_on_key_func *on_key_func;
+    window_on_mouse_button_func *on_mouse_button_func;
+    window_on_mouse_position_func *on_mouse_position_func;
+    window_on_mouse_wheel_func *on_mouse_wheel_func;
     void *custom;
 };
 
@@ -80,17 +83,25 @@ void window_poll_events(const struct window *window) {
     glfwPollEvents();
 }
 
-void window_key_relay(GLFWwindow *glfw_window, int key, int scan_code, int action, int mods) {
-    struct window *window = glfwGetWindowUserPointer(glfw_window);
-
-    enum window_key_action converted_action;
+enum window_action window_convert_glfw_action(int action) {
     switch (action) {
-        case GLFW_PRESS: converted_action = WINDOW_KEY_ACTION_PRESS; break;
-        case GLFW_RELEASE: converted_action = WINDOW_KEY_ACTION_RELEASE; break;
-        case GLFW_REPEAT: converted_action = WINDOW_KEY_ACTION_REPEAT; break;
+        case GLFW_PRESS:
+            return WINDOW_ACTION_PRESS;
+        case GLFW_RELEASE:
+            return WINDOW_ACTION_RELEASE;
+        case GLFW_REPEAT:
+            return WINDOW_ACTION_REPEAT;
         default:
-            converted_action = 0;
+            return 0;
     }
+}
+
+void window_key_relay(GLFWwindow *glfw_window, int key, int scan_code, int action, int mods) {
+    TK_UNUSED(scan_code);
+    TK_UNUSED(mods);
+
+    struct window *window = glfwGetWindowUserPointer(glfw_window);
+    enum window_action converted_action = window_convert_glfw_action(action);
 
     window->on_key_func(window, key, converted_action);
 }
@@ -98,6 +109,42 @@ void window_key_relay(GLFWwindow *glfw_window, int key, int scan_code, int actio
 void window_set_key_callback(struct window *window, window_on_key_func *on_key_func) {
     window->on_key_func = on_key_func;
     glfwSetKeyCallback(window->glfw_window, window_key_relay);
+}
+
+void window_mouse_button_relay(GLFWwindow *glfw_window, int button, int action, int mods) {
+    struct window *window = glfwGetWindowUserPointer(glfw_window);
+
+    enum window_action converted_action = window_convert_glfw_action(action);
+    window->on_mouse_button_func(window, button, converted_action);
+}
+
+void window_set_mouse_button_callback(struct window *window, window_on_mouse_button_func *on_mouse_button_func) {
+    window->on_mouse_button_func = on_mouse_button_func;
+    glfwSetMouseButtonCallback(window->glfw_window, window_mouse_button_relay);
+}
+
+void window_mouse_position_relay(GLFWwindow *glfw_window, double x, double y) {
+    struct window *window = glfwGetWindowUserPointer(glfw_window);
+
+    window->on_mouse_position_func(window, x, y);
+}
+
+void window_set_mouse_position_callback(struct window *window, window_on_mouse_position_func *on_mouse_position_func) {
+    window->on_mouse_position_func = on_mouse_position_func;
+    glfwSetCursorPosCallback(window->glfw_window, window_mouse_position_relay);
+}
+
+void window_mouse_wheel_relay(GLFWwindow *glfw_window, double delta_x, double delta_y) {
+    TK_UNUSED(delta_x);
+
+    struct window *window = glfwGetWindowUserPointer(glfw_window);
+
+    window->on_mouse_wheel_func(window, delta_y);
+}
+
+void window_set_mouse_wheel_callback(struct window *window, window_on_mouse_wheel_func *on_mouse_wheel_func) {
+    window->on_mouse_wheel_func = on_mouse_wheel_func;
+    glfwSetScrollCallback(window->glfw_window, window_mouse_wheel_relay);
 }
 
 double window_elapsed_seconds(const struct window *window) {

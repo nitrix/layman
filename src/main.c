@@ -9,6 +9,7 @@
 #define MOVEMENT_SPEED_PER_SECOND 7.0f
 #define ROTATION_SPEED_PER_SECOND 2.0f
 #define SCROLL_SPEED 0.5f
+#define DRAG_SPEED 0.05f
 
 // TODO: Clang format
 
@@ -89,18 +90,18 @@ void after_loop(struct game_state *state) {
 
 void main_loop(struct game_state *state) {
     window_set_custom(state->window, state);
-    window_set_key_callback(state->window, on_key_func);
+    window_set_key_callback(state->window, on_key_callback);
+    window_set_mouse_button_callback(state->window, on_mouse_button_callback);
+    window_set_mouse_position_callback(state->window, on_mouse_position_callback);
+    window_set_mouse_wheel_callback(state->window, on_mouse_wheel_callback);
 
     while (!window_should_close(state->window)) {
         window_poll_events(state->window);
 
-        // camera_change_zoom(camera, (float) y * SCROLL_SPEED);
-        // camera_change_angle_around_pivot(camera, (float) x * 0.02f);
-        // camera_change_pitch(camera, (float) y * 0.02f);
-
         float elapsed_seconds = window_elapsed_seconds(state->window);
+
         entity_relative_move(state->example_bunny_entity, state->player_direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
-        // camera_relative_to_entity(camera, example_player);
+        camera_relative_to_entity(state->camera, state->example_bunny_entity);
 
         renderer_clear(state->renderer);
 
@@ -113,42 +114,80 @@ void main_loop(struct game_state *state) {
     }
 }
 
-void on_key_func(struct window *window, int key, enum window_key_action action) {
+void on_key_callback(struct window *window, int key, enum window_action action) {
     struct game_state *state = window_custom(window);
 
     // Escape key closes the window
-    if (key == 256 && action == WINDOW_KEY_ACTION_PRESS) {
+    if (key == 256 && action == WINDOW_ACTION_PRESS) {
         window_close(window);
     }
 
     // Digit 1 and 2 controls the wireframe mode
-    else if ((key == 49 || key == 50) && action == WINDOW_KEY_ACTION_PRESS) {
+    else if ((key == 49 || key == 50) && action == WINDOW_ACTION_PRESS) {
         renderer_set_wireframe(state->renderer, key == 50);
     }
 
     // W,A,S,D
-    else if (key == 'W' && action == WINDOW_KEY_ACTION_PRESS) {
+    else if (key == 'W' && action == WINDOW_ACTION_PRESS) {
         TK_MASK_SET(state->player_direction, DIRECTION_FORWARD * 1u);
     }
-    else if (key == 'W' && action == WINDOW_KEY_ACTION_RELEASE) {
+    else if (key == 'W' && action == WINDOW_ACTION_RELEASE) {
         TK_MASK_UNSET(state->player_direction, DIRECTION_FORWARD * 1u);
     }
-    else if (key == 'S' && action == WINDOW_KEY_ACTION_PRESS) {
+    else if (key == 'S' && action == WINDOW_ACTION_PRESS) {
         TK_MASK_SET(state->player_direction, DIRECTION_BACKWARD * 1u);
     }
-    else if (key == 'S' && action == WINDOW_KEY_ACTION_RELEASE) {
+    else if (key == 'S' && action == WINDOW_ACTION_RELEASE) {
         TK_MASK_UNSET(state->player_direction, DIRECTION_BACKWARD * 1u);
     }
-    else if (key == 'A' && action == WINDOW_KEY_ACTION_PRESS) {
+    else if (key == 'A' && action == WINDOW_ACTION_PRESS) {
         TK_MASK_SET(state->player_direction, DIRECTION_LEFT * 1u);
     }
-    else if (key == 'A' && action == WINDOW_KEY_ACTION_RELEASE) {
+    else if (key == 'A' && action == WINDOW_ACTION_RELEASE) {
         TK_MASK_UNSET(state->player_direction, DIRECTION_LEFT * 1u);
     }
-    else if (key == 'D' && action == WINDOW_KEY_ACTION_PRESS) {
+    else if (key == 'D' && action == WINDOW_ACTION_PRESS) {
         TK_MASK_SET(state->player_direction, DIRECTION_RIGHT * 1u);
     }
-    else if (key == 'D' && action == WINDOW_KEY_ACTION_RELEASE) {
+    else if (key == 'D' && action == WINDOW_ACTION_RELEASE) {
         TK_MASK_UNSET(state->player_direction, DIRECTION_RIGHT * 1u);
     }
+}
+
+void on_mouse_position_callback(struct window *window, double x, double y) {
+    struct game_state *state = window_custom(window);
+
+    if (state->dragging_horizontally) {
+        camera_change_angle_around_pivot(state->camera, (x - state->last_cursor.x) * DRAG_SPEED);
+    }
+
+    if (state->dragging_vertically) {
+        camera_change_pitch(state->camera, (y - state->last_cursor.y) * DRAG_SPEED);
+    }
+
+    state->last_cursor.x = x;
+    state->last_cursor.y = y;
+}
+
+void on_mouse_button_callback(struct window *window, int button, enum window_action action) {
+    struct game_state *state = window_custom(window);
+
+    if (button == 0 && action == WINDOW_ACTION_PRESS) {
+        state->dragging_horizontally = true;
+    }
+    else if (button == 0 && action == WINDOW_ACTION_RELEASE) {
+        state->dragging_horizontally = false;
+    }
+    else if (button == 1 && action == WINDOW_ACTION_PRESS) {
+        state->dragging_vertically = true;
+    }
+    else if (button == 1 && action == WINDOW_ACTION_RELEASE) {
+        state->dragging_vertically = false;
+    }
+}
+
+void on_mouse_wheel_callback(struct window *window, double delta) {
+    struct game_state *state = window_custom(window);
+
+    camera_change_zoom(state->camera, delta * SCROLL_SPEED);
 }

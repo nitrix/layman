@@ -16,6 +16,10 @@ struct game_state {
 
     direction_mask player_direction;
 
+    bool dragging_horizontally;
+    bool dragging_vertically;
+    struct { double x, y; } last_cursor;
+
     // TODO: These should not be needed and can entirely be represented by some ID from some kind of scene manager.
     struct entity *example_wakfu_entity;
     struct entity *example_bunny_entity;
@@ -27,6 +31,9 @@ void before_loop(struct game_state *state);
 void main_loop( struct game_state *state);
 void after_loop(struct game_state *state);
 
-void on_key_func(struct window *window, int key, enum window_key_action action);
+void on_key_callback(struct window *window, int key, enum window_action action);
+void on_mouse_button_callback(struct window *window, int button, enum window_action action);
+void on_mouse_position_callback(struct window *window, double x, double y);
+void on_mouse_wheel_callback(struct window *window, double delta);
 
 #endif
