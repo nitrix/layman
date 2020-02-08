@@ -49,6 +49,7 @@ struct window *window_create(int width, int height, const char *title) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+    //V-Sync
     SDL_GL_SetSwapInterval(1);
 
     window->sdl_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
@@ -140,7 +141,9 @@ float window_elapsed_seconds(struct window *window) {
     TK_UNUSED(window);
 
     uint64_t current_frame_time = SDL_GetPerformanceCounter();
-    return (current_frame_time - window->previous_frame_time) / (float) SDL_GetPerformanceFrequency();
+    float elapsed_time = (current_frame_time - window->previous_frame_time) / (float) SDL_GetPerformanceFrequency();
+    window->previous_frame_time = current_frame_time;
+    return elapsed_time;
 }
 
 void window_framebuffer_size(struct window *window, int *width, int *height) {
@@ -148,7 +151,6 @@ void window_framebuffer_size(struct window *window, int *width, int *height) {
 }
 
 void window_refresh(struct window *window) {
-    window->previous_frame_time = SDL_GetPerformanceCounter();
     SDL_GL_SwapWindow(window->sdl_window);
 }
 
