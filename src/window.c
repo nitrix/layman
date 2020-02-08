@@ -1,21 +1,12 @@
 #include "toolkit.h"
-#include "camera.h"
 #include "renderer.h"
-#include "direction.h"
-#include "entity.h"
 
-#include <SDL.h>
-
-// TODO: Switch to SDL2 instead of GLFW?
-// Yes. GLFW uses callbacks, impossible to poll for mouse wheel, callbacks aren't unique per window and dont allow
-// custom parameters.
+#include <GLFW/glfw3.h>
 
 struct window {
-    SDL_Window *sdl_window;
-    SDL_GLContext sdl_gl_context;
-    SDL_Event sdl_event;
-    uint64_t previous_frame_time;
-    bool should_close;
+    GLFWwindow *glfw_window;
+    window_on_key_func *on_key_func;
+    void *custom;
 };
 
 atomic_uint window_refcount;
@@ -24,7 +15,7 @@ void window_refcount_increment(void) {
     unsigned int previous_count = atomic_fetch_add(&window_refcount, 1);
 
     if (previous_count == 0) {
-        SDL_Init(SDL_INIT_VIDEO);
+        glfwInit();
     }
 }
 
@@ -32,7 +23,7 @@ void window_refcount_decrement(void) {
     unsigned int previous_count = atomic_fetch_sub(&window_refcount, 1);
 
     if (previous_count == 1) {
-        SDL_Quit();
+        glfwTerminate();
     }
 }
 
@@ -44,120 +35,99 @@ struct window *window_create(int width, int height, const char *title) {
 
     window_refcount_increment();
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    // This will give us a context for the highest version of OpenGL greater than or equal to 3.2 that is supported by
+    // the OS and GPU. This works because no features were deprecated between OpenGL 3.2 and 4.1, making
+    // forward-compatible OpenGL 4.1 backwards-compatible with 3.2. If the requested version is not supported, window
+    // creation will fail. The only OpenGL 3.x and 4.x contexts currently supported by macOS are forward-compatible,
+    // core profile contexts (3.2 on 10.7 Lion, 3.3 or 4.1 on 10.9 Mavericks).
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    //V-Sync
-    SDL_GL_SetSwapInterval(1);
-
-    window->sdl_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
-    if (!window->sdl_window) {
+    GLFWmonitor *monitor = NULL; // Windowed mode
+    window->glfw_window = glfwCreateWindow(width, height, title, monitor, NULL);
+    if (!window->glfw_window) {
         free(window);
         window_refcount_decrement();
         return NULL;
     }
 
-    window->sdl_gl_context = SDL_GL_CreateContext(window->sdl_window);
-    if (!window->sdl_gl_context) {
-        SDL_DestroyWindow(window->sdl_window);
-        window_refcount_decrement();
-        return NULL;
-    }
-
-    window->should_close = false;
-    window->previous_frame_time = SDL_GetPerformanceCounter();
+    glfwSetWindowUserPointer(window->glfw_window, window);
+    glfwSetTime(0);
 
     return window;
 }
 
 void window_use(const struct window *window) {
-    SDL_GL_MakeCurrent(window->sdl_window, window->sdl_gl_context);
+    glfwMakeContextCurrent(window->glfw_window);
 }
 
 void window_unuse(const struct window *window) {
     TK_UNUSED(window);
+    glfwMakeContextCurrent(NULL);
 }
 
 void window_destroy(struct window *window) {
-    SDL_GL_DeleteContext(window->sdl_gl_context);
-    SDL_DestroyWindow(window->sdl_window);
+    glfwDestroyWindow(window->glfw_window);
     free(window);
     window_refcount_decrement();
 }
 
-tk_result window_poll_event(struct window *window) {
-    int r = SDL_PollEvent(&window->sdl_event);
-
-    if (r == 1) {
-        if (window->sdl_event.type == SDL_QUIT) {
-            window->should_close = true;
-        }
-
-        return TK_RESULT_SUCCESS;
-    } else {
-        return TK_RESULT_FAILURE;
-    }
-}
-
-bool window_event_key_pressed(const struct window *window, char key) {
-    return window->sdl_event.type == SDL_KEYDOWN && !window->sdl_event.key.repeat && window->sdl_event.key.keysym.sym == key;
-}
-
-bool window_event_key_released(const struct window *window, char key) {
-    return window->sdl_event.type == SDL_KEYUP && !window->sdl_event.key.repeat && window->sdl_event.key.keysym.sym == key;
-}
-
-bool window_event_mouse_button_pressed(const struct window *window, int button) {
-    return window->sdl_event.type == SDL_MOUSEBUTTONDOWN && button == window->sdl_event.button.button;
-}
-
-bool window_event_mouse_button_released(const struct window *window, int button) {
-    return window->sdl_event.type == SDL_MOUSEBUTTONUP && button == window->sdl_event.button.button;
-}
-
-bool window_event_mouse_motion_relative(const struct window *window, int *delta_x, int *delta_y) {
-    if (window->sdl_event.type == SDL_MOUSEMOTION) {
-        *delta_x = window->sdl_event.motion.xrel;
-        *delta_y = window->sdl_event.motion.yrel;
-        return true;
-    }
-
-    return false;
-}
-
-bool window_event_mouse_wheel(const struct window *window, int *delta_x, int *delta_y) {
-    if (window->sdl_event.type == SDL_MOUSEWHEEL) {
-        *delta_x = window->sdl_event.wheel.x;
-        *delta_y = window->sdl_event.wheel.y;
-        return true;
-    }
-
-    return false;
-}
-
-float window_elapsed_seconds(struct window *window) {
+void window_poll_events(const struct window *window) {
     TK_UNUSED(window);
 
-    uint64_t current_frame_time = SDL_GetPerformanceCounter();
-    float elapsed_time = (current_frame_time - window->previous_frame_time) / (float) SDL_GetPerformanceFrequency();
-    window->previous_frame_time = current_frame_time;
-    return elapsed_time;
+    glfwPollEvents();
 }
 
-void window_framebuffer_size(struct window *window, int *width, int *height) {
-    SDL_GL_GetDrawableSize(window->sdl_window, width, height);
+void window_key_relay(GLFWwindow *glfw_window, int key, int scan_code, int action, int mods) {
+    struct window *window = glfwGetWindowUserPointer(glfw_window);
+
+    enum window_key_action converted_action;
+    switch (action) {
+        case GLFW_PRESS: converted_action = WINDOW_KEY_ACTION_PRESS; break;
+        case GLFW_RELEASE: converted_action = WINDOW_KEY_ACTION_RELEASE; break;
+        case GLFW_REPEAT: converted_action = WINDOW_KEY_ACTION_REPEAT; break;
+        default:
+            converted_action = 0;
+    }
+
+    window->on_key_func(window, key, converted_action);
+}
+
+void window_set_key_callback(struct window *window, window_on_key_func *on_key_func) {
+    window->on_key_func = on_key_func;
+    glfwSetKeyCallback(window->glfw_window, window_key_relay);
+}
+
+double window_elapsed_seconds(const struct window *window) {
+    TK_UNUSED(window);
+
+    double elapsed_seconds = glfwGetTime();
+    glfwSetTime(0);
+    return elapsed_seconds;
+}
+
+void window_framebuffer_size(const struct window *window, int *width, int *height) {
+    glfwGetFramebufferSize(window->glfw_window, width, height);
 }
 
 void window_refresh(const struct window *window) {
-    SDL_GL_SwapWindow(window->sdl_window);
+    glfwSwapBuffers(window->glfw_window);
 }
 
 bool window_should_close(const struct window *window) {
-    return window->should_close;
+    return glfwWindowShouldClose(window->glfw_window);
 }
 
-void window_close(struct window *window) {
-    window->should_close = true;
+void window_close(const struct window *window) {
+    glfwSetWindowShouldClose(window->glfw_window, GLFW_TRUE);
+}
+
+void *window_custom(const struct window *window) {
+    return window->custom;
+}
+
+void window_set_custom(struct window *window, void *ptr) {
+    window->custom = ptr;
 }

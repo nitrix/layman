@@ -15,20 +15,29 @@ void window_refresh(const struct window *window);
 void window_unuse(const struct window *window);
 
 // Utilities
-float window_elapsed_seconds(struct window *window);
-void window_framebuffer_size(struct window *window, int *width, int *height);
+double window_elapsed_seconds(const struct window *window);
+void window_framebuffer_size(const struct window *window, int *width, int *height);
 
 // Closing
-void window_close(struct window *window);
+void window_close(const struct window *window);
 bool window_should_close(const struct window *window);
 
-// Events
-tk_result window_poll_event(struct window *window);
-bool window_event_key_pressed(const struct window *window, char key);
-bool window_event_key_released(const struct window *window, char key);
-bool window_event_mouse_button_pressed(const struct window *window, int button);
-bool window_event_mouse_button_released(const struct window *window, int button);
-bool window_event_mouse_motion_relative(const struct window *window, int *delta_x, int *delta_y);
-bool window_event_mouse_wheel(const struct window *window, int *delta_x, int *delta_y);
+// Custom pointer
+void *window_custom(const struct window *window);
+void window_set_custom(struct window *window, void *ptr);
+
+// Event polling
+void window_poll_events(const struct window *window);
+
+// Key events
+enum window_key_action {
+    WINDOW_KEY_ACTION_PRESS   = 1,
+    WINDOW_KEY_ACTION_RELEASE = 2,
+    WINDOW_KEY_ACTION_REPEAT  = 3,
+};
+typedef void (window_on_key_func)(struct window *window, int key, enum window_key_action action);
+void window_set_key_callback(struct window *window, window_on_key_func *on_key_func);
+
+// Mouse events
 
 #endif

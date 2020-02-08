@@ -10,147 +10,145 @@
 #define ROTATION_SPEED_PER_SECOND 2.0f
 #define SCROLL_SPEED 0.5f
 
+// TODO: Clang format
+
 int main(int argc, char *argv[]) {
-    struct window *window = window_create(1280, 720, "Learn OpenGL");
-    struct renderer *renderer = renderer_create(window);
+    struct game_state state;
 
-    window_use(window);
-    renderer_use(renderer);
+    state.window = window_create(1280, 720, "Learn OpenGL");
+    state.renderer = renderer_create(state.window);
 
-    main_loop(window, renderer);
+    window_use(state.window);
+    renderer_use(state.renderer);
 
-    renderer_unuse(renderer);
-    window_unuse(window);
+    before_loop(&state);
+    main_loop(&state);
+    after_loop(&state);
 
-    renderer_destroy(renderer);
-    window_destroy(window);
+    renderer_unuse(state.renderer);
+    window_unuse(state.window);
+
+    renderer_destroy(state.renderer);
+    window_destroy(state.window);
 
     return EXIT_SUCCESS;
 }
 
-void main_loop(struct window *window, struct renderer *renderer) {
+void before_loop(struct game_state *state) {
     // Prepare camera
-    struct camera *camera = camera_create();
-    // camera_move(camera, 0.0f, 0.0f, 30.0f);
-    camera_move(camera, 0.0f, 0.0f, 15.0f);
+    state->camera = camera_create();
+    camera_move(state->camera, 0.0f, 0.0f, 15.0f);
 
     // Prepare light
-    struct light *light = light_create();
-    light_move(light, 0.0f, 0.0f, 50.0f);
+    state->light = light_create();
+    light_move(state->light, 0.0f, 0.0f, 50.0f);
+
+    // Prepare player direction
+    state->player_direction = TK_MASK_INITIALIZER;
 
     // Prepare example model, shader and texture
-    struct model *example_model = obj_load_model("models/wakfu.obj");
-    struct shader *example_shader = shader_load_by_name("wakfu");
-    struct texture *example_texture = texture_load("textures/wakfu.png");
+    state->model_shader = shader_load_by_name("model");
 
-    struct model *example_bunny_model = obj_load_model("models/bunny.obj");
-    struct texture *example_bunny_texture = texture_load("textures/bunny.png");
+    // Prepare example wakfu entity
+    state->example_wakfu_entity = entity_create();
+    state->example_wakfu_entity->model = obj_load_model("models/wakfu.obj");
+    state->example_wakfu_entity->texture = texture_load("textures/wakfu.png");
+    state->example_wakfu_entity->shader = state->model_shader;
+    state->example_wakfu_entity->shine_damper = 50;
+    state->example_wakfu_entity->reflectivity = 0.5f;
+    entity_rotate(state->example_wakfu_entity, 0, -3.0f, 0);
+    entity_set_position(state->example_wakfu_entity, 0.0f, 0.0f, 0.0f);
 
-    // Prepare example entity
-    struct entity *example_entity = entity_create();
-    example_entity->model = example_model;
-    example_entity->shader = example_shader;
-    example_entity->texture = example_texture;
-    example_entity->shine_damper = 50;
-    example_entity->reflectivity = 0.5f;
-    entity_rotate(example_entity, 0, -3.0f, 0);
-    entity_set_position(example_entity, 0.0f, 0.0f, 0.0f);
+    // Prepare example bunny entity
+    state->example_bunny_entity = entity_create();
+    state->example_bunny_entity->shader = state->model_shader;
+    state->example_bunny_entity->model = obj_load_model("models/bunny.obj");
+    state->example_bunny_entity->texture = texture_load("textures/bunny.png");
+    state->example_bunny_entity->shine_damper = 50;
+    state->example_bunny_entity->reflectivity = 0.0f;
+    entity_rotate(state->example_bunny_entity, 0, -3.0f, 0);
+    entity_set_position(state->example_bunny_entity, 5.0f, -1.0f, 5.0f);
+}
 
-    // Prepare example player
-    struct entity *example_player = entity_create();
-    example_player->model = example_bunny_model;
-    example_player->shader = example_shader;
-    example_player->texture = example_bunny_texture;
-    example_player->shine_damper = 50;
-    example_player->reflectivity = 0.0f;
-    entity_rotate(example_player, 0, -3.0f, 0);
-    entity_set_position(example_player, 5.0f, -1.0f, 5.0f);
+void after_loop(struct game_state *state) {
+    // Cleanups
+    light_destroy(state->light);
+    camera_destroy(state->camera);
+    shader_destroy(state->model_shader);
 
-    direction_mask direction = TK_MASK_INITIALIZER;
-    bool left_button_active = false;
-    bool right_button_active = false;
-    int x, y;
+    // Wakfu entity
+    model_destroy(state->example_wakfu_entity->model);
+    texture_destroy(state->example_wakfu_entity->texture);
+    entity_destroy(state->example_wakfu_entity);
 
-    while (!window_should_close(window)) {
-        tk_result result;
+    // Bunny entity
+    model_destroy(state->example_bunny_entity->model);
+    texture_destroy(state->example_bunny_entity->texture);
+    entity_destroy(state->example_bunny_entity);
+}
 
-        do {
-            result = window_poll_event(window);
-            if (TK_RESULT_IS_FAILURE(result)) break;
+void main_loop(struct game_state *state) {
+    window_set_custom(state->window, state);
+    window_set_key_callback(state->window, on_key_func);
 
-            if (window_event_key_pressed(window, '\033')) {
-                window_close(window);
-            }
-            else if (window_event_key_pressed(window, '1')) {
-                renderer_set_wireframe(renderer, false);
-            }
-            else if (window_event_key_pressed(window, '2')) {
-                renderer_set_wireframe(renderer, true);
-            }
-            else if (window_event_key_pressed(window, 'w')) {
-                TK_MASK_SET(direction, DIRECTION_FORWARD * 1u);
-            }
-            else if (window_event_key_pressed(window, 's')) {
-                TK_MASK_SET(direction, DIRECTION_BACKWARD * 1u);
-            }
-            else if (window_event_key_pressed(window, 'a')) {
-                TK_MASK_SET(direction, DIRECTION_LEFT * 1u);
-            }
-            else if (window_event_key_pressed(window, 'd')) {
-                TK_MASK_SET(direction, DIRECTION_RIGHT * 1u);
-            }
-            else if (window_event_key_released(window, 'w')) {
-                TK_MASK_UNSET(direction, DIRECTION_FORWARD * 1u);
-            }
-            else if (window_event_key_released(window, 's')) {
-                TK_MASK_UNSET(direction, DIRECTION_BACKWARD * 1u);
-            }
-            else if (window_event_key_released(window, 'a')) {
-                TK_MASK_UNSET(direction, DIRECTION_LEFT * 1u);
-            }
-            else if (window_event_key_released(window, 'd')) {
-                TK_MASK_UNSET(direction, DIRECTION_RIGHT * 1u);
-            }
-            else if (window_event_mouse_wheel(window, &x, &y)) {
-                camera_change_zoom(camera, (float) y * SCROLL_SPEED);
-            }
-            else if (window_event_mouse_button_pressed(window, 1)) {
-                left_button_active = true;
-            }
-            else if (window_event_mouse_button_pressed(window, 3)) {
-                right_button_active = true;
-            }
-            else if (window_event_mouse_button_released(window, 1)) {
-                left_button_active = false;
-            }
-            else if (window_event_mouse_button_released(window, 3)) {
-                right_button_active = false;
-            }
-            else if (left_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
-                camera_change_angle_around_pivot(camera, (float) x * 0.02f);
-            }
-            else if (right_button_active && window_event_mouse_motion_relative(window, &x, &y)) {
-                camera_change_pitch(camera, (float) y * 0.02f);
-            }
-        } while (TK_RESULT_IS_SUCCESS(result));
+    while (!window_should_close(state->window)) {
+        window_poll_events(state->window);
 
-        float elapsed_seconds = window_elapsed_seconds(window);
+        // camera_change_zoom(camera, (float) y * SCROLL_SPEED);
+        // camera_change_angle_around_pivot(camera, (float) x * 0.02f);
+        // camera_change_pitch(camera, (float) y * 0.02f);
 
-        entity_relative_move(example_player, direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
-        camera_relative_to_entity(camera, example_player);
+        float elapsed_seconds = window_elapsed_seconds(state->window);
+        entity_relative_move(state->example_bunny_entity, state->player_direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
+        // camera_relative_to_entity(camera, example_player);
 
-        renderer_clear(renderer);
-        renderer_render(renderer, camera, light, example_entity);
-        renderer_render(renderer, camera, light, example_player);
-        window_refresh(window);
+        renderer_clear(state->renderer);
+
+        // TODO: Iterate entities
+        // TODO: Should do grouping to avoid a ton of model_use and shader_use inside that renderer_render.
+        renderer_render(state->renderer, state->camera, state->light, state->example_wakfu_entity);
+        renderer_render(state->renderer, state->camera, state->light, state->example_bunny_entity);
+
+        window_refresh(state->window);
+    }
+}
+
+void on_key_func(struct window *window, int key, enum window_key_action action) {
+    struct game_state *state = window_custom(window);
+
+    // Escape key closes the window
+    if (key == 256 && action == WINDOW_KEY_ACTION_PRESS) {
+        window_close(window);
     }
 
-    model_destroy(example_bunny_model);
-    texture_destroy(example_bunny_texture);
-    entity_destroy(example_entity);
-    texture_destroy(example_texture);
-    shader_destroy(example_shader);
-    model_destroy(example_model);
-    light_destroy(light);
-    camera_destroy(camera);
+    // Digit 1 and 2 controls the wireframe mode
+    else if ((key == 49 || key == 50) && action == WINDOW_KEY_ACTION_PRESS) {
+        renderer_set_wireframe(state->renderer, key == 50);
+    }
+
+    // W,A,S,D
+    else if (key == 'W' && action == WINDOW_KEY_ACTION_PRESS) {
+        TK_MASK_SET(state->player_direction, DIRECTION_FORWARD * 1u);
+    }
+    else if (key == 'W' && action == WINDOW_KEY_ACTION_RELEASE) {
+        TK_MASK_UNSET(state->player_direction, DIRECTION_FORWARD * 1u);
+    }
+    else if (key == 'S' && action == WINDOW_KEY_ACTION_PRESS) {
+        TK_MASK_SET(state->player_direction, DIRECTION_BACKWARD * 1u);
+    }
+    else if (key == 'S' && action == WINDOW_KEY_ACTION_RELEASE) {
+        TK_MASK_UNSET(state->player_direction, DIRECTION_BACKWARD * 1u);
+    }
+    else if (key == 'A' && action == WINDOW_KEY_ACTION_PRESS) {
+        TK_MASK_SET(state->player_direction, DIRECTION_LEFT * 1u);
+    }
+    else if (key == 'A' && action == WINDOW_KEY_ACTION_RELEASE) {
+        TK_MASK_UNSET(state->player_direction, DIRECTION_LEFT * 1u);
+    }
+    else if (key == 'D' && action == WINDOW_KEY_ACTION_PRESS) {
+        TK_MASK_SET(state->player_direction, DIRECTION_RIGHT * 1u);
+    }
+    else if (key == 'D' && action == WINDOW_KEY_ACTION_RELEASE) {
+        TK_MASK_UNSET(state->player_direction, DIRECTION_RIGHT * 1u);
+    }
 }
