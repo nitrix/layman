@@ -7,7 +7,7 @@
 #include "math.h"
 #include "renderer.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 struct renderer {
     struct window *window;
@@ -28,12 +28,8 @@ void renderer_increment(void) {
     unsigned int previous_count = atomic_fetch_add(&renderer_count, 1);
 
     if (previous_count == 0) {
-        // Ask glew to use a more modern approach for obtaining the OpenGL function pointers.
-        glewExperimental = GL_TRUE;
-
-        GLenum err = glewInit();
-        if (err != GLEW_OK) {
-            fprintf(stderr, "glewInit failed: %s\n", glewGetErrorString(err));
+        if (!gladLoadGL()) {
+            fprintf(stderr, "gladLoadGL() failed\n");
             exit(EXIT_FAILURE);
         }
     }

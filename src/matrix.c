@@ -29,7 +29,7 @@ void matrix_rotate_x(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, &t);
+    matrix_multiply(m, &t);
 }
 
 void matrix_rotate_y(struct matrix4f *m, float r) {
@@ -49,7 +49,7 @@ void matrix_rotate_y(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, &t);
+    matrix_multiply(m, &t);
 }
 
 void matrix_rotate_z(struct matrix4f *m, float r) {
@@ -69,7 +69,7 @@ void matrix_rotate_z(struct matrix4f *m, float r) {
         .w4 = 1,
     };
 
-    matrix_dot_product(m, &t);
+    matrix_multiply(m, &t);
 }
 
 void matrix_translate(struct matrix4f *m, const struct vector3f *v) {
@@ -79,7 +79,7 @@ void matrix_translate(struct matrix4f *m, const struct vector3f *v) {
     t.w2 = v->y;
     t.w3 = v->z;
 
-    matrix_dot_product(m, &t);
+    matrix_multiply(m, &t);
 }
 
 void matrix_scale(struct matrix4f *m, float sx, float sy, float sz) {
@@ -89,11 +89,10 @@ void matrix_scale(struct matrix4f *m, float sx, float sy, float sz) {
     t.z3 = sz;
     t.w4 = 1;
 
-    matrix_dot_product(m, &t);
+    matrix_multiply(m, &t);
 }
 
-// TODO: Misnamed?
-void matrix_dot_product(struct matrix4f *p, const struct matrix4f *o) {
+void matrix_multiply(struct matrix4f *p, const struct matrix4f *o) {
     struct matrix4f m = *p;
 
     struct matrix4f t = {

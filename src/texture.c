@@ -1,7 +1,9 @@
 #include "toolkit.h"
 
-#include <GL/glew.h>
-#include <SOIL/SOIL.h>
+#include <glad/glad.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 struct texture {
     GLuint texture_id;
@@ -21,10 +23,10 @@ struct texture *texture_load(const char *filepath) {
     glGenTextures(1, &texture->texture_id);
     glBindTexture(GL_TEXTURE_2D, texture->texture_id);
 
-    int width, height;
-    unsigned char *image = SOIL_load_image(filepath, &width, &height, 0, SOIL_LOAD_RGB);
+    int width, height, comp;
+    unsigned char *image = stbi_load(filepath, &width, &height, &comp, STBI_rgb);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    SOIL_free_image_data(image);
+    stbi_image_free(image);
 
     // Clamping pixels that are out of bound.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

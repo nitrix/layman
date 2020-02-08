@@ -1,7 +1,7 @@
 #include "model.h"
 #include "toolkit.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 struct model {
     GLuint vertex_array_id;
@@ -47,10 +47,6 @@ struct model *model_create_from_raw(const float *vertices, size_t vertex_count, 
 
     if (!model) {
         return NULL;
-    }
-
-    if (glGenVertexArrays == NULL) {
-        fprintf(stderr, "missing function pointer\n");
     }
 
     // Create the VAO on the GPU, then use it.

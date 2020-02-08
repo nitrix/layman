@@ -1,12 +1,9 @@
-[submodule "lib/glew-cmake"]
-	path = lib/glew-cmake
-	url = https://github.com/Perlmint/glew-cmake
 [submodule "lib/toolkit"]
 	path = lib/toolkit
 	url = https://github.com/nitrix/toolkit
-[submodule "lib/soil"]
-	path = lib/soil
-	url = https://github.com/paralin/soil
 [submodule "lib/glfw"]
 	path = lib/glfw
 	url = https://github.com/glfw/glfw
+[submodule "lib/stb"]
+	path = lib/stb
+	url = https://github.com/nothings/stb

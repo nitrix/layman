@@ -30,6 +30,6 @@ void main(void) {
     float damped_specular = pow(pre_specular, shine_damper);
     vec3 specular = damped_specular * reflectivity * light_color;
 
-    // Output
+    // Phong output (ambiant + diffuse + specular)
     out_Color = vec4(diffuse, 0.0) * texture(texture_sampler, pass_texture_coords) + vec4(specular, 1.0);
 }

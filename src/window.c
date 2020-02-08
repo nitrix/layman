@@ -1,6 +1,7 @@
 #include "toolkit.h"
 #include "renderer.h"
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 struct window {

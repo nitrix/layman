@@ -13,23 +13,22 @@ Just a simple project while I'm learning OpenGL.
 - Wireframe toggleable modes for debugging.
 - Phong lighting (ambient + diffuse + specular).
 - Back-face culling optimization.
-- Entities time-based movement system.
+- Elapsed-time interpolation system.
 - Third person camera.
 
 ### Short term
 
-- Numerous code refactors
-    - Spaghetti camera/renderer/entity.
-    - Toolkit collection/dynarray.
-- Drop SOIL, use libpng directly.
-- SDL for window events and OpenGL context.
-- Optimizations
-    - Convert obj module and move texture module into a loader module.
-    - Batch rendering using some kind of scene manager.
+- Terrain
+
+### On the side
+
+- Isolate the spaghetti between camera, renderer & entity.
+- Toolkit collection/dynarray.
+- Batch rendering using some kind of scene manager.
+- Convert obj module and move texture module into a loader module.
 
 ### Long term
 
-- Terrain
 - Transparency
 - Fog
 - Multi-texturing

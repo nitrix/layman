@@ -5,7 +5,7 @@
 #include "light.h"
 #include "entity.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 struct shader {
     char *name;

@@ -12,7 +12,7 @@ struct matrix4f {
 
 struct matrix4f matrix_identity(void);
 void matrix_translate(struct matrix4f *m, const struct vector3f *v);
-void matrix_dot_product(struct matrix4f *p, const struct matrix4f *o);
+void matrix_multiply(struct matrix4f *p, const struct matrix4f *o);
 void matrix_scale(struct matrix4f *m, float sx, float sy, float sz);
 void matrix_rotate_x(struct matrix4f *m, float r);
 void matrix_rotate_y(struct matrix4f *m, float r);
