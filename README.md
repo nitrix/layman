@@ -26,6 +26,7 @@ Just a simple project while I'm learning OpenGL.
 - Toolkit collection/dynarray.
 - Batch rendering using some kind of scene manager.
 - Convert obj module and move texture module into a loader module.
+- Runtime keybinding system to map actions to GLFW key constants.
 
 ### Long term
 
