@@ -1,19 +1,4 @@
-#include "toolkit.h"
-#include "matrix.h"
-#include "vector.h"
-#include "entity.h"
-#include "math.h"
-
-struct camera {
-    struct vector3f position;
-    struct vector3f rotation;
-    struct matrix4f view_matrix;
-    bool view_matrix_is_up_to_date;
-
-    float distance_from_pivot;
-    float angle_around_pivot;
-    float pitch;
-};
+#include "camera.h"
 
 void camera_update_view_matrix(struct camera *camera);
 
@@ -46,17 +31,16 @@ void camera_destroy(struct camera *camera) {
     free(camera);
 }
 
-// TODO: rename?
-void camera_relative_to_entity(struct camera *camera, struct entity *entity) {
+void camera_relative_to_pivot(struct camera *camera, const struct vector3f *pivot_position, const struct vector3f *pivot_rotation) {
     float vertical_distance = camera->distance_from_pivot * sinf(camera->pitch);
     float horizontal_distance = camera->distance_from_pivot * cosf(camera->pitch);
-    float theta = entity->rotation.y + camera->angle_around_pivot;
+    float theta = pivot_rotation->y + camera->angle_around_pivot;
     float offset_x = horizontal_distance * sinf(theta);
     float offset_z = horizontal_distance * cosf(theta);
 
-    camera->position.y = entity->position.y + vertical_distance;
-    camera->position.x = entity->position.x + offset_x;
-    camera->position.z = entity->position.z - offset_z;
+    camera->position.y = pivot_position->y + vertical_distance;
+    camera->position.x = pivot_position->x + offset_x;
+    camera->position.z = pivot_position->z - offset_z;
 
     camera->rotation.y = M_PI - theta;
     camera->rotation.x = -camera->pitch;

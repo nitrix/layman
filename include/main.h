@@ -5,6 +5,12 @@
 #include "toolkit.h"
 #include "window.h"
 #include "direction.h"
+#include "camera.h"
+#include "model.h"
+#include "shader.h"
+#include "entity.h"
+#include "texture.h"
+#include "loader.h"
 
 struct game_state {
     struct window *window;

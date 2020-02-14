@@ -1,17 +1,4 @@
-#include "toolkit.h"
-#include "renderer.h"
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-struct window {
-    GLFWwindow *glfw_window;
-    window_on_key_func *on_key_func;
-    window_on_mouse_button_func *on_mouse_button_func;
-    window_on_mouse_position_func *on_mouse_position_func;
-    window_on_mouse_wheel_func *on_mouse_wheel_func;
-    void *custom;
-};
+#include "window.h"
 
 atomic_uint window_refcount;
 

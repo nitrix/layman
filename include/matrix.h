@@ -3,6 +3,8 @@
 
 #include "vector.h"
 
+#include <math.h>
+
 struct matrix4f {
     float x1, x2, x3, x4;
     float y1, y2, y3, y4;

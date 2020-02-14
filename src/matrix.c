@@ -1,5 +1,4 @@
 #include "matrix.h"
-#include "math.h"
 
 struct matrix4f matrix_identity(void) {
     struct matrix4f m = {

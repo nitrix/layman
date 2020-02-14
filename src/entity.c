@@ -1,6 +1,4 @@
 #include "entity.h"
-#include "toolkit.h"
-#include "math.h"
 
 void entity_update_model_matrix(struct entity *entity) {
     entity->model_matrix = matrix_identity();

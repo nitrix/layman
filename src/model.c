@@ -1,19 +1,4 @@
 #include "model.h"
-#include "toolkit.h"
-
-#include <glad/glad.h>
-
-struct model {
-    GLuint vertex_array_id;
-
-    GLuint vertices_buffer_id;
-    GLuint faces_buffer_id;
-    GLuint texture_uvs_buffer_id;
-    GLuint normals_buffer_id;
-
-    size_t vertex_count;
-    size_t face_count;
-};
 
 void model_use(const struct model *model) {
     glBindVertexArray(model->vertex_array_id);
@@ -32,14 +17,6 @@ void model_use(const struct model *model) {
 
     // Faces
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->faces_buffer_id);
-}
-
-size_t model_vertex_count(const struct model *model) {
-    return model->vertex_count;
-}
-
-size_t model_face_count(const struct model *model) {
-    return model->face_count;
 }
 
 struct model *model_create_from_raw(const float *vertices, size_t vertex_count, const unsigned int *faces, size_t face_count, const float *texture_uvs, const float *normals) {

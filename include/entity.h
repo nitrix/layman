@@ -4,7 +4,12 @@
 #include "vector.h"
 #include "matrix.h"
 #include "direction.h"
-#include "renderer.h"
+#include "toolkit.h"
+#include "model.h"
+#include "texture.h"
+#include "shader.h"
+
+#include <math.h>
 
 struct entity {
     struct model *model;

@@ -5,11 +5,27 @@
 #include "vector.h"
 #include "toolkit.h"
 #include "light.h"
-#include "entity.h"
+#include "model.h"
 
-struct shader;
+#include <glad/glad.h>
 
-struct shader *shader_load_by_name(const char *name);
+struct shader {
+    char *name;
+
+    GLuint program_id;
+    GLuint vertex_shader_id;
+    GLuint fragment_shader_id;
+
+    GLint uniform_model;
+    GLint uniform_view;
+    GLint uniform_projection;
+
+    GLint uniform_light_position;
+    GLint uniform_light_color;
+    GLint uniform_shine_damper;
+    GLint uniform_reflectivity;
+};
+
 void shader_destroy(struct shader *shader);
 
 void shader_use(struct shader *shader);
@@ -19,6 +35,6 @@ void shader_bind_uniform_model(struct shader *shader, const struct matrix4f *mod
 void shader_bind_uniform_view(struct shader *shader, const struct matrix4f *view);
 void shader_bind_uniform_projection(struct shader *shader, const struct matrix4f *projection);
 void shader_bind_uniform_light(struct shader *shader, const struct light *light);
-void shader_bind_uniform_entity(struct shader *shader, const struct entity *entity);
+void shader_bind_uniform_specular(struct shader *shader, float shine_damper, float reflectivity);
 
 #endif

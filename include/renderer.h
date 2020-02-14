@@ -3,10 +3,30 @@
 
 #include "camera.h"
 #include "window.h"
+#include "entity.h"
 #include "light.h"
+#include "entity.h"
+#include "model.h"
+#include "shader.h"
+#include "texture.h"
+#include "toolkit.h"
+#include "window.h"
+#include "math.h"
 
-struct renderer;
-struct entity;
+#include <glad/glad.h>
+
+struct renderer {
+    struct window *window;
+
+    size_t viewport_width;
+    size_t viewport_height;
+
+    float fov;
+    float near_plane;
+    float far_plane;
+
+    struct matrix4f projection_matrix;
+};
 
 struct renderer *renderer_create(struct window *window);
 void renderer_destroy(struct renderer *renderer);

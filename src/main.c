@@ -1,10 +1,4 @@
 #include "main.h"
-#include "camera.h"
-#include "model.h"
-#include "shader.h"
-#include "entity.h"
-#include "texture.h"
-#include "obj.h"
 
 #define MOVEMENT_SPEED_PER_SECOND 7.0f
 #define ROTATION_SPEED_PER_SECOND 2.0f
@@ -48,12 +42,12 @@ void before_loop(struct game_state *state) {
     state->player_direction = TK_MASK_INITIALIZER;
 
     // Prepare example model, shader and texture
-    state->model_shader = shader_load_by_name("model");
+    state->model_shader = loader_load_shader("model");
 
     // Prepare example wakfu entity
     state->example_wakfu_entity = entity_create();
-    state->example_wakfu_entity->model = obj_load_model("models/wakfu.obj");
-    state->example_wakfu_entity->texture = texture_load("textures/wakfu.png");
+    state->example_wakfu_entity->model = loader_load_model("models/wakfu.obj");
+    state->example_wakfu_entity->texture = loader_load_texture("textures/wakfu.png");
     state->example_wakfu_entity->shader = state->model_shader;
     state->example_wakfu_entity->shine_damper = 50;
     state->example_wakfu_entity->reflectivity = 0.5f;
@@ -63,8 +57,8 @@ void before_loop(struct game_state *state) {
     // Prepare example bunny entity
     state->example_bunny_entity = entity_create();
     state->example_bunny_entity->shader = state->model_shader;
-    state->example_bunny_entity->model = obj_load_model("models/bunny.obj");
-    state->example_bunny_entity->texture = texture_load("textures/bunny.png");
+    state->example_bunny_entity->model = loader_load_model("models/bunny.obj");
+    state->example_bunny_entity->texture = loader_load_texture("textures/bunny.png");
     state->example_bunny_entity->shine_damper = 50;
     state->example_bunny_entity->reflectivity = 0.0f;
     entity_rotate(state->example_bunny_entity, 0, -3.0f, 0);
@@ -101,7 +95,7 @@ void main_loop(struct game_state *state) {
         float elapsed_seconds = window_elapsed_seconds(state->window);
 
         entity_relative_move(state->example_bunny_entity, state->player_direction, elapsed_seconds * MOVEMENT_SPEED_PER_SECOND, elapsed_seconds * ROTATION_SPEED_PER_SECOND);
-        camera_relative_to_entity(state->camera, state->example_bunny_entity);
+        camera_relative_to_pivot(state->camera, &state->example_bunny_entity->position, &state->example_bunny_entity->rotation);
 
         renderer_clear(state->renderer);
 

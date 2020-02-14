@@ -22,11 +22,10 @@ Just a simple project while I'm learning OpenGL.
 
 ### On the side
 
-- Isolate the spaghetti between camera, renderer & entity.
 - Toolkit collection/dynarray.
 - Batch rendering using some kind of scene manager.
-- Convert obj module and move texture module into a loader module.
 - Runtime keybinding system to map actions to GLFW key constants.
+- Move includes back to .c files to hide impl details.
 
 ### Long term
 

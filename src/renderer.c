@@ -1,26 +1,4 @@
-#include "entity.h"
-#include "model.h"
-#include "shader.h"
-#include "texture.h"
-#include "toolkit.h"
-#include "window.h"
-#include "math.h"
 #include "renderer.h"
-
-#include <glad/glad.h>
-
-struct renderer {
-    struct window *window;
-
-    size_t viewport_width;
-    size_t viewport_height;
-
-    float fov;
-    float near_plane;
-    float far_plane;
-
-    struct matrix4f projection_matrix;
-};
 
 atomic_uint renderer_count;
 
@@ -122,13 +100,13 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     shader_bind_uniform_projection(entity->shader, projection);
 
     shader_bind_uniform_light(entity->shader, light);
-    shader_bind_uniform_entity(entity->shader, entity);
+    shader_bind_uniform_specular(entity->shader, entity->shine_damper, entity->reflectivity);
 
     if (tk_debug_is_enabled()) {
         shader_validate(entity->shader);
     }
 
-    glDrawElements(GL_TRIANGLES, 3 * model_face_count(entity->model), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 3 * entity->model->face_count, GL_UNSIGNED_INT, 0);
 }
 
 void renderer_destroy(struct renderer *renderer) {
