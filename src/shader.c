@@ -31,6 +31,8 @@ void shader_bind_uniform_light(struct shader *shader, const struct light *light)
     glUniform3f(shader->uniform_light_color, light->color.x, light->color.y, light->color.z);
 }
 
+// TODO: Ambiant (Ka), Diffuse (Kd), Specular (Ks) and Shininess.
+// See http://www.cs.toronto.edu/~jacobson/phong-demo/
 void shader_bind_uniform_specular(struct shader *shader, float shine_damper, float reflectivity) {
     glUniform1f(shader->uniform_shine_damper, shine_damper);
     glUniform1f(shader->uniform_reflectivity, reflectivity);
