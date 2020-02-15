@@ -2,7 +2,9 @@
 
 Just a simple project while I'm learning OpenGL.
 
-![Wakfu example character](docs/screenshot.png)
+![solid example](docs/screenshot1.png)
+
+![wireframe example](docs/screenshot2.png)
 
 ### Currently implemented
 
