@@ -12,6 +12,7 @@
 #include "toolkit.h"
 #include "window.h"
 #include "math.h"
+#include "terrain.h"
 
 #include <glad/glad.h>
 

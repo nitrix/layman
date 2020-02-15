@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 void before_loop(struct game_state *state) {
     // Prepare camera
     state->camera = camera_create();
-    camera_move(state->camera, 0.0f, 0.0f, 15.0f);
+    // camera_move(state->camera, 0.0f, 0.0f, 15.0f);
 
     // Prepare light
     state->light = light_create();
@@ -53,8 +53,9 @@ void before_loop(struct game_state *state) {
     // Prepare player direction
     state->player_direction = TK_MASK_INITIALIZER;
 
-    // Prepare example model, shader and texture
+    // Prepare shaders
     state->model_shader = loader_load_shader("model");
+    state->terrain_shader = loader_load_shader("terrain");
 
     // Prepare example wakfu entity
     state->example_wakfu_entity = entity_create();
@@ -63,7 +64,7 @@ void before_loop(struct game_state *state) {
     state->example_wakfu_entity->shader = state->model_shader;
     state->example_wakfu_entity->material = state->material;
     entity_rotate(state->example_wakfu_entity, 0, -3.0f, 0);
-    entity_set_position(state->example_wakfu_entity, 0.0f, 0.0f, 0.0f);
+    entity_set_position(state->example_wakfu_entity, 0.0f, 2.35f, 0.0f);
 
     // Prepare example bunny entity
     state->example_bunny_entity = entity_create();
@@ -72,7 +73,14 @@ void before_loop(struct game_state *state) {
     state->example_bunny_entity->shader = state->model_shader;
     state->example_bunny_entity->material = state->material;
     entity_rotate(state->example_bunny_entity, 0, -3.0f, 0);
-    entity_set_position(state->example_bunny_entity, 5.0f, -1.0f, 5.0f);
+    entity_set_position(state->example_bunny_entity, 5.0f, 1.0f, 5.0f);
+
+    // Prepare example terrain entity
+    state->example_terrain_entity = entity_create();
+    state->example_terrain_entity->model = terrain_generate_model();
+    state->example_terrain_entity->texture = loader_load_texture("textures/bunny.png");
+    state->example_terrain_entity->shader = state->terrain_shader;
+    state->example_terrain_entity->material = state->material;
 }
 
 void after_loop(struct game_state *state) {
@@ -80,6 +88,7 @@ void after_loop(struct game_state *state) {
     light_destroy(state->light);
     camera_destroy(state->camera);
     shader_destroy(state->model_shader);
+    shader_destroy(state->terrain_shader);
 
     // Wakfu entity
     model_destroy(state->example_wakfu_entity->model);
@@ -90,6 +99,11 @@ void after_loop(struct game_state *state) {
     model_destroy(state->example_bunny_entity->model);
     texture_destroy(state->example_bunny_entity->texture);
     entity_destroy(state->example_bunny_entity);
+
+    // Terrain entity
+    model_destroy(state->example_terrain_entity->model);
+    texture_destroy(state->example_terrain_entity->texture);
+    entity_destroy(state->example_terrain_entity);
 }
 
 void main_loop(struct game_state *state) {
@@ -113,6 +127,15 @@ void main_loop(struct game_state *state) {
         // TODO: Should do grouping to avoid a ton of model_use and shader_use inside that renderer_render.
         renderer_render(state->renderer, state->camera, state->light, state->example_wakfu_entity);
         renderer_render(state->renderer, state->camera, state->light, state->example_bunny_entity);
+
+        entity_set_position(state->example_terrain_entity, 0.0f, 0.0f, 0.0f);
+        renderer_render(state->renderer, state->camera, state->light, state->example_terrain_entity);
+        entity_set_position(state->example_terrain_entity, -640.0f, 0.0f, 0.0f);
+        renderer_render(state->renderer, state->camera, state->light, state->example_terrain_entity);
+        entity_set_position(state->example_terrain_entity, -640.0f, 0.0f, -640.0f);
+        renderer_render(state->renderer, state->camera, state->light, state->example_terrain_entity);
+        entity_set_position(state->example_terrain_entity, 0.0f, 0.0f, -640.0f);
+        renderer_render(state->renderer, state->camera, state->light, state->example_terrain_entity);
 
         window_refresh(state->window);
     }

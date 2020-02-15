@@ -12,6 +12,7 @@
 #include "texture.h"
 #include "loader.h"
 #include "material.h"
+#include "terrain.h"
 
 struct game_state {
     struct window *window;
@@ -19,8 +20,9 @@ struct game_state {
 
     struct camera *camera;
     struct light *light;
-    struct shader *model_shader;
     struct material *material;
+    struct shader *model_shader;
+    struct shader *terrain_shader;
 
     direction_mask player_direction;
 
@@ -31,6 +33,7 @@ struct game_state {
     // TODO: These should not be needed and can entirely be represented by some ID from some kind of scene manager.
     struct entity *example_wakfu_entity;
     struct entity *example_bunny_entity;
+    struct entity *example_terrain_entity;
 };
 
 int main(int argc, char *argv[]);
