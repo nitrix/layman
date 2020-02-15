@@ -13,17 +13,19 @@ Just a simple project while I'm learning OpenGL.
 - Wireframe toggleable modes for debugging.
 - Phong lighting (ambient + diffuse + specular).
 - Back-face culling optimization.
-- Elapsed-time interpolation system.
-- Third person camera.
-- Colored light.
-- Materials.
+- High-resolution clock for elapsed-time calculation.
+- Third person camera with tilt-pan-zoom offsets.
+- Colored light (ambient + diffuse + specular).
+- Materials (ambient + diffuse + specular + shininess).
+- Flat terrain.
 
 ### Short term
 
-- Terrain
+- Transparency
 
 ### On the side
 
+- Material emission.
 - Toolkit collection/dynarray.
 - Batch rendering using some kind of scene manager.
 - Runtime keybinding system to map actions to GLFW key constants.
@@ -33,7 +35,6 @@ Just a simple project while I'm learning OpenGL.
 
 ### Long term
 
-- Transparency
 - Fog
 - Multi-texturing
 - Mipmapping

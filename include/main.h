@@ -20,7 +20,8 @@ struct game_state {
 
     struct camera *camera;
     struct light *light;
-    struct material *material;
+    struct material *model_material;
+    struct material *terrain_material;
     struct shader *model_shader;
     struct shader *terrain_shader;
 

@@ -22,7 +22,7 @@ void main(void) {
     gl_Position = projection * view * world_position;
 
     // Outputs for fragment shader
-    pass_texture_coords = texture_coords;
+    pass_texture_coords = texture_coords * 128; // FIXME Seems like a hack, relying on GL_REPEAT.
     normal_in_model_space = (model * vec4(normal, 0.0)).xyz;
     to_light_vector = light_position - world_position.xyz;
     to_camera_vector = (inverse(view) * vec4(0, 0, 0, 1.0)).xyz - world_position.xyz;

@@ -33,21 +33,30 @@ void before_loop(struct game_state *state) {
     // Prepare camera
     state->camera = camera_create();
     // camera_move(state->camera, 0.0f, 0.0f, 15.0f);
+    camera_change_pitch(state->camera, 0.05f);
 
     // Prepare light
     state->light = light_create();
-    state->light->ambient = (struct vector3f) { .x = 0.2f, .y = 0.2f, .z = 0.2f };
+    state->light->ambient = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
     state->light->diffuse = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
     state->light->specular = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
-    light_move(state->light, 0.0f, 0.0f, 50.0f);
+    light_move(state->light, 0.0f, 0.0f, 640.0f);
 
-    // Prepare material
-    state->material = material_create();
-    *state->material = (struct material) {
+    // Prepare materials
+    state->model_material = material_create();
+    *state->model_material = (struct material) {
         .ambient = (struct vector3f) { 0.1f, 0.1f, 0.1f },
-        .diffuse = (struct vector3f) { 0.9f, 0.9f, 0.9f },
+        .diffuse = (struct vector3f) { 1.0f, 1.0f, 1.0f },
         .specular = (struct vector3f) { 1.0f, 1.0f, 1.0f },
         .shininess = 50.0f,
+    };
+
+    state->terrain_material = material_create();
+    *state->terrain_material = (struct material) {
+        .ambient = (struct vector3f) { 0.7f, 0.7f, 0.7f },
+        .diffuse = (struct vector3f) { 1.0f, 1.0f, 1.0f },
+        .specular = (struct vector3f) { 0.5f, 0.5f, 0.5f },
+        .shininess = 5.0f,
     };
 
     // Prepare player direction
@@ -62,7 +71,7 @@ void before_loop(struct game_state *state) {
     state->example_wakfu_entity->model = loader_load_model("models/wakfu.obj");
     state->example_wakfu_entity->texture = loader_load_texture("textures/wakfu.png");
     state->example_wakfu_entity->shader = state->model_shader;
-    state->example_wakfu_entity->material = state->material;
+    state->example_wakfu_entity->material = state->model_material;
     entity_rotate(state->example_wakfu_entity, 0, -3.0f, 0);
     entity_set_position(state->example_wakfu_entity, 0.0f, 2.35f, 0.0f);
 
@@ -71,22 +80,26 @@ void before_loop(struct game_state *state) {
     state->example_bunny_entity->model = loader_load_model("models/bunny.obj");
     state->example_bunny_entity->texture = loader_load_texture("textures/bunny.png");
     state->example_bunny_entity->shader = state->model_shader;
-    state->example_bunny_entity->material = state->material;
+    state->example_bunny_entity->material = state->model_material;
     entity_rotate(state->example_bunny_entity, 0, -3.0f, 0);
     entity_set_position(state->example_bunny_entity, 5.0f, 1.0f, 5.0f);
 
     // Prepare example terrain entity
     state->example_terrain_entity = entity_create();
     state->example_terrain_entity->model = terrain_generate_model();
-    state->example_terrain_entity->texture = loader_load_texture("textures/bunny.png");
+    state->example_terrain_entity->texture = loader_load_texture("textures/grass.png");
     state->example_terrain_entity->shader = state->terrain_shader;
-    state->example_terrain_entity->material = state->material;
+    state->example_terrain_entity->material = state->terrain_material;
 }
 
 void after_loop(struct game_state *state) {
     // Cleanups
     light_destroy(state->light);
     camera_destroy(state->camera);
+
+    // Shared stuff between entities
+    material_destroy(state->model_material);
+    material_destroy(state->terrain_material);
     shader_destroy(state->model_shader);
     shader_destroy(state->terrain_shader);
 
