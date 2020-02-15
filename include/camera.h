@@ -1,11 +1,10 @@
 #ifndef LEARNGL_CAMERA_H
 #define LEARNGL_CAMERA_H
 
-#include "entity.h"
+#include "vector.h"
 #include "toolkit.h"
 #include "matrix.h"
 #include "vector.h"
-#include "math.h"
 
 struct camera {
     struct vector3f position;
@@ -31,5 +30,6 @@ void camera_change_zoom(struct camera *camera, float delta);
 void camera_relative_to_pivot(struct camera *camera, const struct vector3f *pivot_position, const struct vector3f *pivot_rotation);
 
 const struct matrix4f *camera_view_matrix(struct camera *camera);
+void camera_recalculate_view_matrix(struct camera *camera);
 
 #endif

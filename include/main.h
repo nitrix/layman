@@ -11,6 +11,7 @@
 #include "entity.h"
 #include "texture.h"
 #include "loader.h"
+#include "material.h"
 
 struct game_state {
     struct window *window;
@@ -19,6 +20,7 @@ struct game_state {
     struct camera *camera;
     struct light *light;
     struct shader *model_shader;
+    struct material *material;
 
     direction_mask player_direction;
 

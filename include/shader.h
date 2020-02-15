@@ -6,6 +6,7 @@
 #include "toolkit.h"
 #include "light.h"
 #include "model.h"
+#include "material.h"
 
 #include <glad/glad.h>
 
@@ -21,9 +22,14 @@ struct shader {
     GLint uniform_projection;
 
     GLint uniform_light_position;
-    GLint uniform_light_color;
-    GLint uniform_shine_damper;
-    GLint uniform_reflectivity;
+    GLint uniform_light_ambient;
+    GLint uniform_light_diffuse;
+    GLint uniform_light_specular;
+
+    GLint uniform_material_ambient;
+    GLint uniform_material_diffuse;
+    GLint uniform_material_specular;
+    GLint uniform_material_shininess;
 };
 
 void shader_destroy(struct shader *shader);
@@ -35,6 +41,6 @@ void shader_bind_uniform_model(struct shader *shader, const struct matrix4f *mod
 void shader_bind_uniform_view(struct shader *shader, const struct matrix4f *view);
 void shader_bind_uniform_projection(struct shader *shader, const struct matrix4f *projection);
 void shader_bind_uniform_light(struct shader *shader, const struct light *light);
-void shader_bind_uniform_specular(struct shader *shader, float shine_damper, float reflectivity);
+void shader_bind_uniform_material(struct shader *shader, const struct material *material);
 
 #endif

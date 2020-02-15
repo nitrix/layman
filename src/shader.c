@@ -28,14 +28,16 @@ void shader_bind_uniform_light(struct shader *shader, const struct light *light)
     glUniform3f(shader->uniform_light_position, light->position.x, light->position.y, light->position.z);
 
     // Light color
-    glUniform3f(shader->uniform_light_color, light->color.x, light->color.y, light->color.z);
+    glUniform3f(shader->uniform_light_ambient, light->ambient.x, light->ambient.y, light->ambient.z);
+    glUniform3f(shader->uniform_light_diffuse, light->diffuse.x, light->diffuse.y, light->diffuse.z);
+    glUniform3f(shader->uniform_light_specular, light->specular.x, light->specular.y, light->specular.z);
 }
 
-// TODO: Ambiant (Ka), Diffuse (Kd), Specular (Ks) and Shininess.
-// See http://www.cs.toronto.edu/~jacobson/phong-demo/
-void shader_bind_uniform_specular(struct shader *shader, float shine_damper, float reflectivity) {
-    glUniform1f(shader->uniform_shine_damper, shine_damper);
-    glUniform1f(shader->uniform_reflectivity, reflectivity);
+void shader_bind_uniform_material(struct shader *shader, const struct material *material) {
+    glUniform3f(shader->uniform_material_ambient, material->ambient.x, material->ambient.y, material->ambient.z);
+    glUniform3f(shader->uniform_material_diffuse, material->diffuse.x, material->diffuse.y, material->diffuse.z);
+    glUniform3f(shader->uniform_material_specular, material->specular.x, material->specular.y, material->specular.z);
+    glUniform1f(shader->uniform_material_shininess, material->shininess);
 }
 
 void shader_validate(struct shader *shader) {

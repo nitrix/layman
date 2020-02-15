@@ -36,7 +36,19 @@ void before_loop(struct game_state *state) {
 
     // Prepare light
     state->light = light_create();
+    state->light->ambient = (struct vector3f) { .x = 0.2f, .y = 0.2f, .z = 0.2f };
+    state->light->diffuse = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+    state->light->specular = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
     light_move(state->light, 0.0f, 0.0f, 50.0f);
+
+    // Prepare material
+    state->material = material_create();
+    *state->material = (struct material) {
+        .ambient = (struct vector3f) { 0.1f, 0.1f, 0.1f },
+        .diffuse = (struct vector3f) { 0.9f, 0.9f, 0.9f },
+        .specular = (struct vector3f) { 1.0f, 1.0f, 1.0f },
+        .shininess = 50.0f,
+    };
 
     // Prepare player direction
     state->player_direction = TK_MASK_INITIALIZER;
@@ -49,18 +61,16 @@ void before_loop(struct game_state *state) {
     state->example_wakfu_entity->model = loader_load_model("models/wakfu.obj");
     state->example_wakfu_entity->texture = loader_load_texture("textures/wakfu.png");
     state->example_wakfu_entity->shader = state->model_shader;
-    state->example_wakfu_entity->shine_damper = 50;
-    state->example_wakfu_entity->reflectivity = 0.5f;
+    state->example_wakfu_entity->material = state->material;
     entity_rotate(state->example_wakfu_entity, 0, -3.0f, 0);
     entity_set_position(state->example_wakfu_entity, 0.0f, 0.0f, 0.0f);
 
     // Prepare example bunny entity
     state->example_bunny_entity = entity_create();
-    state->example_bunny_entity->shader = state->model_shader;
     state->example_bunny_entity->model = loader_load_model("models/bunny.obj");
     state->example_bunny_entity->texture = loader_load_texture("textures/bunny.png");
-    state->example_bunny_entity->shine_damper = 50;
-    state->example_bunny_entity->reflectivity = 0.0f;
+    state->example_bunny_entity->shader = state->model_shader;
+    state->example_bunny_entity->material = state->material;
     entity_rotate(state->example_bunny_entity, 0, -3.0f, 0);
     entity_set_position(state->example_bunny_entity, 5.0f, -1.0f, 5.0f);
 }

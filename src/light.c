@@ -7,9 +7,10 @@ struct light *light_create(void) {
         return NULL;
     }
 
-    // TODO
     light->position = (struct vector3f) { .x = 0.0f, .y = 0.0f, .z = 0.0f };
-    light->color = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+    light->ambient = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+    light->diffuse = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
+    light->specular = (struct vector3f) { .x = 1.0f, .y = 1.0f, .z = 1.0f };
 
     return light;
 }

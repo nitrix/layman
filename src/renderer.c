@@ -100,7 +100,7 @@ void renderer_render(struct renderer *renderer, struct camera *camera, struct li
     shader_bind_uniform_projection(entity->shader, projection);
 
     shader_bind_uniform_light(entity->shader, light);
-    shader_bind_uniform_specular(entity->shader, entity->shine_damper, entity->reflectivity);
+    shader_bind_uniform_material(entity->shader, entity->material);
 
     if (tk_debug_is_enabled()) {
         shader_validate(entity->shader);

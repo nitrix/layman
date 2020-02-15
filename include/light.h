@@ -6,7 +6,10 @@
 
 struct light {
     struct vector3f position;
-    struct vector3f color;
+
+    struct vector3f ambient;
+    struct vector3f diffuse;
+    struct vector3f specular;
 };
 
 struct light *light_create(void);

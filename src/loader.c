@@ -247,9 +247,13 @@ struct shader *loader_load_shader(const char *name) {
     shader->uniform_view = glGetUniformLocation(shader->program_id, "view");
     shader->uniform_projection = glGetUniformLocation(shader->program_id, "projection");
     shader->uniform_light_position = glGetUniformLocation(shader->program_id, "light_position");
-    shader->uniform_light_color = glGetUniformLocation(shader->program_id, "light_color");
-    shader->uniform_shine_damper = glGetUniformLocation(shader->program_id, "shine_damper");
-    shader->uniform_reflectivity = glGetUniformLocation(shader->program_id, "reflectivity");
+    shader->uniform_light_ambient = glGetUniformLocation(shader->program_id, "light_ambient");
+    shader->uniform_light_diffuse = glGetUniformLocation(shader->program_id, "light_diffuse");
+    shader->uniform_light_specular = glGetUniformLocation(shader->program_id, "light_specular");
+    shader->uniform_material_ambient = glGetUniformLocation(shader->program_id, "material_ambient");
+    shader->uniform_material_diffuse = glGetUniformLocation(shader->program_id, "material_diffuse");
+    shader->uniform_material_specular = glGetUniformLocation(shader->program_id, "material_specular");
+    shader->uniform_material_shininess = glGetUniformLocation(shader->program_id, "material_shininess");
 
     return shader;
 }

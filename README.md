@@ -15,6 +15,8 @@ Just a simple project while I'm learning OpenGL.
 - Back-face culling optimization.
 - Elapsed-time interpolation system.
 - Third person camera.
+- Colored light.
+- Materials.
 
 ### Short term
 
@@ -26,6 +28,8 @@ Just a simple project while I'm learning OpenGL.
 - Batch rendering using some kind of scene manager.
 - Runtime keybinding system to map actions to GLFW key constants.
 - Move includes back to .c files to hide impl details.
+- Loading materials from files.
+- Associating different materials to different mesh parts of a model.
 
 ### Long term
 

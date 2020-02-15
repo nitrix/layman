@@ -1,22 +1,5 @@
 #include "entity.h"
 
-void entity_update_model_matrix(struct entity *entity) {
-    entity->model_matrix = matrix_identity();
-
-    // Important: the ordering matters!
-    // It must be the scaling FIRST, and THEN rotation, and THEN the translation.
-
-    matrix_scale(&entity->model_matrix, entity->scale, entity->scale, entity->scale);
-
-    matrix_rotate_x(&entity->model_matrix, entity->rotation.x);
-    matrix_rotate_y(&entity->model_matrix, entity->rotation.y);
-    matrix_rotate_z(&entity->model_matrix, entity->rotation.z);
-
-    matrix_translate(&entity->model_matrix, &entity->position);
-
-    entity->model_matrix_up_to_date = true;
-}
-
 struct entity *entity_create(void) {
     struct entity *entity = malloc(sizeof *entity);
 
@@ -37,8 +20,8 @@ struct entity *entity_create(void) {
     // Scale
     entity->scale = 1.0f;
 
-    // Computed transformation matrix
-    entity_update_model_matrix(entity);
+    // Model matrix
+    entity->model_matrix_up_to_date = false;
 
     return entity;
 }
@@ -104,8 +87,25 @@ void entity_rotate(struct entity *entity, float dx, float dy, float dz) {
 
 const struct matrix4f *entity_model_matrix(struct entity *entity) {
     if (!entity->model_matrix_up_to_date) {
-        entity_update_model_matrix(entity);
+        entity_recalculate_model_matrix(entity);
     }
 
     return &entity->model_matrix;
+}
+
+void entity_recalculate_model_matrix(struct entity *entity) {
+    entity->model_matrix = matrix_identity();
+
+    // Important: the ordering matters!
+    // It must be the scaling FIRST, and THEN rotation, and THEN the translation.
+
+    matrix_scale(&entity->model_matrix, entity->scale, entity->scale, entity->scale);
+
+    matrix_rotate_x(&entity->model_matrix, entity->rotation.x);
+    matrix_rotate_y(&entity->model_matrix, entity->rotation.y);
+    matrix_rotate_z(&entity->model_matrix, entity->rotation.z);
+
+    matrix_translate(&entity->model_matrix, &entity->position);
+
+    entity->model_matrix_up_to_date = true;
 }

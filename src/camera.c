@@ -1,7 +1,5 @@
 #include "camera.h"
 
-void camera_update_view_matrix(struct camera *camera);
-
 struct camera *camera_create(void) {
     struct camera *camera = malloc(sizeof *camera);
 
@@ -17,12 +15,11 @@ struct camera *camera_create(void) {
     camera->rotation.y = 0;
     camera->rotation.z = 0;
 
-    // 3rd person camera.
     camera->distance_from_pivot = 10;
-    camera->pitch = 0;
     camera->angle_around_pivot = 0;
+    camera->pitch = 0;
 
-    camera_update_view_matrix(camera);
+    camera_recalculate_view_matrix(camera);
 
     return camera;
 }
@@ -84,13 +81,13 @@ void camera_change_angle_around_pivot(struct camera *camera, float delta) {
 
 const struct matrix4f *camera_view_matrix(struct camera *camera) {
     if (!camera->view_matrix_is_up_to_date) {
-        camera_update_view_matrix(camera);
+        camera_recalculate_view_matrix(camera);
     }
 
     return &camera->view_matrix;
 }
 
-void camera_update_view_matrix(struct camera *camera) {
+void camera_recalculate_view_matrix(struct camera *camera) {
     camera->view_matrix = matrix_identity();
 
     struct vector3f inverse_position = {
