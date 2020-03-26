@@ -69,3 +69,8 @@ Just a simple project while I'm learning OpenGL.
 - Lens flare
 - Occlusion queries
 - Water
+
+## License
+
+This is free and unencumbered software released into the public domain.
+For more information, please refer to [UNLICENSE](UNLICENSE).
