@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-gl/mathgl/mgl32"
 	"learngl/engine"
-
 	"log"
 )
 
