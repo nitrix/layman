@@ -45,23 +45,24 @@ func main() {
 
 	// Create light
 	light := &engine.Light{
-		Position: mgl32.Vec3{0, 10, 3},
-		Ambient: mgl32.Vec3{0.25, 0.25, 0.25},
-		Diffuse: mgl32.Vec3{0.5, 0.5, 0.5},
-		Specular: mgl32.Vec3{0.6, 0.6, 0.6},
+		Position: mgl32.Vec3{5.0, -0.3, 5.0},
+		Ambient: mgl32.Vec3{0.2, 0.2, 0.2},
+		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
+		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
 	}
 
 	// Create material
 	material := &engine.Material{
-		Ambient: mgl32.Vec3{1, 1, 1},
-		Diffuse: mgl32.Vec3{1, 1, 1},
-		Specular: mgl32.Vec3{1, 1, 1},
+		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
+		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
+		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
 		Shininess: 100,
 	}
 
 	// Render!
-	renderer.SetupRender(shader)
 	for !window.ShouldClose() {
+		window.PollEvents()
+
 		renderer.Render(shader, texture, camera, light, material, model)
 		window.Refresh()
 	}

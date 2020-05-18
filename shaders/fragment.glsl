@@ -19,27 +19,26 @@ uniform float material_shininess;
 out vec4 out_Color;
 
 void main(void) {
-    // Normalized
+    // Constants
     vec3 N = normalize(normal_in_model_space); // Normal
     vec3 Li = normalize(to_light_vector); // Light inverse
     vec3 Ei = normalize(to_camera_vector); // Eye inverse
     vec3 L = -Li; // Light
-
-    // Not normalized
-    vec3 RL = reflect(L, N); // Reflected light
+    vec3 RL = normalize(reflect(L, N)); // Reflected light
 
     // Ambient lighting
-    vec3 ambient = light_ambient * material_ambient;
+    vec3 ambient = material_ambient * light_ambient;
 
     // Diffuse lighting
-    float brightness = max(dot(N, Li), 0.0);
-    vec3 diffuse = light_diffuse * material_diffuse * brightness;
+    float diffuseBrightness = clamp(dot(Li, N), 0, 1);
+    vec3 diffuse = (diffuseBrightness * material_diffuse) * light_diffuse;
 
     // Specular lighting
-    float specular_angle = max(dot(RL, Ei), 0.0);
-    vec3 specular = light_specular * material_specular * pow(specular_angle, material_shininess);
+    float specularAngle = clamp(dot(RL, Ei), 0, 1);
+    float specularBrightness = pow(specularAngle, material_shininess);
+    vec3 specular = (specularBrightness * material_specular) * light_specular;
 
     // Phong output (ambiant + diffuse + specular)
-    // out_Color = vec4(ambient + diffuse + specular, 1.0);
-    out_Color = vec4(texture(texture_sampler, pass_texture_coords).xyz * (ambient + diffuse) + specular, 1.0);
+    out_Color = texture(texture_sampler, pass_texture_coords) *
+        (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
 }

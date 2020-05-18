@@ -21,15 +21,13 @@ func NewRenderer(w *Window) (*Renderer, error) {
 	width, height := w.Dimensions()
 	renderer.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width) / float32(height), 0.1, 10.0)
 
-	return renderer, nil
-}
-
-func (r *Renderer) SetupRender(shader *Shader) {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	r.previousTime = glfw.GetTime()
+	renderer.previousTime = glfw.GetTime()
+
+	return renderer, nil
 }
 
 func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, light *Light, material *Material, model *Model) {
@@ -71,7 +69,4 @@ func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, ligh
 
 	// Render
 	gl.DrawElements(gl.TRIANGLES, int32(len(model.indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
-
-	// Maintenance
-	glfw.PollEvents()
 }

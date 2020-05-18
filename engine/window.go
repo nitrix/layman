@@ -89,6 +89,10 @@ func (w *Window) Destroy() {
 	decrementGlfw()
 }
 
+func (w *Window) PollEvents() {
+	glfw.PollEvents()
+}
+
 func (w *Window) Refresh() {
 	w.glfwWindow.SwapBuffers()
 }
