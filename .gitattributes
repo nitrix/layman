@@ -1,7 +1,0 @@
-# Forcefully mark all source and header files as C to avoid false positives.
-*.c linguist-language=C
-*.h linguist-language=C
-
-# Explicitly block CMake and GLSL detection.
-CMakeLists.txt linguist-detectable=false
-*.glsl linguist-detectable=false
