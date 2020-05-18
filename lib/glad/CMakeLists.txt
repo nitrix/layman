@@ -1,4 +1,0 @@
-PROJECT(glad)
-
-ADD_LIBRARY(glad src/glad.c)
-TARGET_INCLUDE_DIRECTORIES(glad PRIVATE include)
