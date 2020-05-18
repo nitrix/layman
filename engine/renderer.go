@@ -4,7 +4,6 @@ import (
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-	"log"
 )
 
 type Renderer struct {
@@ -25,9 +24,21 @@ func NewRenderer(w *Window) (*Renderer, error) {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
+	gl.Enable(gl.CULL_FACE)
+	gl.CullFace(gl.BACK)
+
 	renderer.previousTime = glfw.GetTime()
 
 	return renderer, nil
+}
+
+func (r *Renderer) Wireframe(enabled bool) {
+	if enabled {
+		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+		// gl.PolygonMode(gl.FRONT_AND_BACK, gl.POINT)
+	} else {
+		gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
+	}
 }
 
 func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, light *Light, material *Material, model *Model) {
@@ -56,16 +67,6 @@ func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, ligh
 	// r.angle = 4
 	model.transform = mgl32.HomogRotate3D(float32(r.angle), mgl32.Vec3{0, 1, 0})
 	shader.BindUniformTransform(model.transform)
-
-	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.POINT)
-	// gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-
-	var x int32
-	gl.ValidateProgram(shader.programId)
-	gl.GetProgramiv(shader.programId, gl.VALIDATE_STATUS, &x)
-	if x == 0 {
-		log.Fatalln("Validation failed")
-	}
 
 	// Render
 	gl.DrawElements(gl.TRIANGLES, int32(len(model.indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
