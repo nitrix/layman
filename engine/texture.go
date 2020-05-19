@@ -13,10 +13,14 @@ type Texture struct {
 	textureId uint32
 }
 
-// TODO: Allow using more than one texture at a time.
 func (t *Texture) Use() {
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, t.textureId)
+}
+
+func (t *Texture) Unuse() {
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, 0)
 }
 
 func LoadTexture(filepath string) (*Texture, error) {

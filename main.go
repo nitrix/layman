@@ -1,15 +1,17 @@
 package main
 
 import (
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"learngl/engine"
 	"log"
+	"math"
 )
 
 func main() {
 	// Create a window.
-	// window, err := engine.NewFullScreenWindow("Learn OpenGL")
-	window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
+	window, err := engine.NewFullScreenWindow("Learn OpenGL")
+	// window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -23,6 +25,8 @@ func main() {
 
 	// Create the camera.
 	camera := engine.NewCamera()
+	camera.Move(mgl32.Vec3{0, -0.3, 7})
+	camera.LookAt(mgl32.Vec3{0, -0.3, 0})
 
 	// Load shader
 	shader, err := engine.LoadShader("shaders/vertex.glsl", "shaders/fragment.glsl")
@@ -41,6 +45,8 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	// FIXME: This particular model isn't facing the right way.
+	model.RotateY(math.Pi)
 
 	// Create light
 	light := &engine.Light{
@@ -58,10 +64,20 @@ func main() {
 		Shininess: 100,
 	}
 
-	// Render!
+	previousTime := glfw.GetTime()
+
+	// Main loop
 	for !window.ShouldClose() {
 		window.PollEvents()
 
+		// Update
+		t := glfw.GetTime()
+		elapsed := t - previousTime
+		previousTime = t
+		model.RotateY(float32(elapsed))
+		//camera.RotateZ(float32(elapsed))
+
+		// Render
 		renderer.Render(shader, texture, camera, light, material, model)
 		window.Refresh()
 	}

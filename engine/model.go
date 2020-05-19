@@ -1,14 +1,10 @@
 package engine
 
-import "github.com/go-gl/mathgl/mgl32"
+import (
+	"github.com/go-gl/mathgl/mgl32"
+)
 import "github.com/go-gl/gl/v4.1-core/gl"
 import "github.com/udhos/gwob"
-
-const (
-	ModelAttributeVertexCoords = iota
-	ModelAttributeTextureCoords
-	ModelAttributeNormals
-)
 
 type Model struct {
 	transform mgl32.Mat4
@@ -55,19 +51,22 @@ func LoadModel(filepath string) (*Model, error) {
 	//gl.GenBuffers(1, &model.vertexCoordsBufferId)
 	//gl.BindBuffer(gl.ARRAY_BUFFER, model.vertexCoordsBufferId)
 	//gl.BufferData(gl.ARRAY_BUFFER, len(model.obj.Coord) * 4, gl.Ptr(model.obj.Coord), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(ModelAttributeVertexCoords, 3, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetPosition))
+	gl.EnableVertexAttribArray(ShaderAttributeVertexCoords)
+	gl.VertexAttribPointer(ShaderAttributeVertexCoords, 3, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetPosition))
 
 	// Texture UVs.
 	//gl.GenBuffers(1, &model.textureCoordsBufferId)
 	//gl.BindBuffer(gl.ARRAY_BUFFER, model.textureCoordsBufferId)
 	//gl.BufferData(gl.ARRAY_BUFFER, len(model.obj.Coord) * 4, gl.Ptr(model.obj.Coord), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(ModelAttributeTextureCoords, 2, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetTexture))
+	gl.EnableVertexAttribArray(ShaderAttributeTextureCoords)
+	gl.VertexAttribPointer(ShaderAttributeTextureCoords, 2, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetTexture))
 
 	// Normals.
 	//gl.GenBuffers(1, &model.normalsBufferId)
 	//gl.BindBuffer(gl.ARRAY_BUFFER, model.normalsBufferId)
 	//gl.BufferData(gl.ARRAY_BUFFER, len(model.obj.Coord) * 4, gl.Ptr(model.obj.Coord), gl.STATIC_DRAW)
-	gl.VertexAttribPointer(ModelAttributeNormals, 3, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetNormal))
+	gl.EnableVertexAttribArray(ShaderAttributeNormals)
+	gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, int32(model.obj.StrideSize), gl.PtrOffset(model.obj.StrideOffsetNormal))
 
 	// FIXME: Write my own .obj parser.
 	// The obj reader produces indices that are `int` instead of the `int32` that OpenGL expects.
@@ -89,17 +88,31 @@ func (m *Model) Use() {
 	gl.BindVertexArray(m.verticesVao)
 
 	// Vertices
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
-	gl.EnableVertexAttribArray(ModelAttributeVertexCoords)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
 
 	// Texture uvs
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
-	gl.EnableVertexAttribArray(ModelAttributeTextureCoords)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
 
 	// Normals
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
-	gl.EnableVertexAttribArray(ModelAttributeNormals)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexTextureNormalBufferId)
 
 	// Faces
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.facesBufferId)
+	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.facesBufferId)
+}
+
+func (m *Model) Unuse() {
+	gl.BindVertexArray(0)
+}
+
+// Using radians, so a complete rotation is 2*Pi.
+func (m *Model) RotateX(angle float32) {
+	m.transform = m.transform.Mul4(mgl32.HomogRotate3DX(angle))
+}
+
+func (m *Model) RotateY(angle float32) {
+	m.transform = m.transform.Mul4(mgl32.HomogRotate3DY(angle))
+}
+
+func (m *Model) RotateZ(angle float32) {
+	m.transform = m.transform.Mul4(mgl32.HomogRotate3DZ(angle))
 }

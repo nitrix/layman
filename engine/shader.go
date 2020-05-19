@@ -27,9 +27,20 @@ type Shader struct {
 	uniformMaterialShininess int32
 }
 
+
+const (
+	ShaderAttributeVertexCoords = iota
+	ShaderAttributeTextureCoords
+	ShaderAttributeNormals
+)
+
 func (s *Shader) Use() {
-	s.bindAttributes()
 	gl.UseProgram(s.programId)
+	s.bindAttributes()
+}
+
+func (s *Shader) Unuse() {
+	gl.UseProgram(0)
 }
 
 func LoadShader(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, error) {
@@ -84,9 +95,9 @@ func LoadShader(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, e
 }
 
 func (s *Shader) bindAttributes() {
-	s.bindAttribute(ModelAttributeVertexCoords, "position")
-	s.bindAttribute(ModelAttributeTextureCoords, "texture_coords")
-	s.bindAttribute(ModelAttributeNormals, "normal")
+	s.bindAttribute(ShaderAttributeVertexCoords, "position")
+	s.bindAttribute(ShaderAttributeTextureCoords, "texture_coords")
+	s.bindAttribute(ShaderAttributeNormals, "normal")
 }
 
 func (s *Shader) findUniforms() {
@@ -116,12 +127,12 @@ func (s *Shader) BindUniformProjection(projection mgl32.Mat4) {
 	gl.UniformMatrix4fv(s.uniformProjection, 1, false, &projection[0])
 }
 
-func (s *Shader) BindUniformView(view mgl32.Mat4) {
-	gl.UniformMatrix4fv(s.uniformView, 1, false, &view[0])
+func (s *Shader) BindUniformCamera(camera *Camera) {
+	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.view[0])
 }
 
-func (s *Shader) BindUniformTransform(transform mgl32.Mat4) {
-	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &transform[0])
+func (s *Shader) BindUniformModel(model *Model) {
+	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &model.transform[0])
 }
 
 func (s *Shader) BindUniformLight(light *Light) {
