@@ -50,7 +50,7 @@ func main() {
 
 	// Create light
 	light := &engine.Light{
-		Position: mgl32.Vec3{5.0, -0.3, 5.0},
+		Position: mgl32.Vec3{0.0, -0.3, 10.0},
 		Ambient: mgl32.Vec3{0.2, 0.2, 0.2},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
 		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
