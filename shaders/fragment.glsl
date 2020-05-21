@@ -24,7 +24,7 @@ void main(void) {
     vec3 Li = normalize(to_light_vector); // Light inverse
     vec3 Ei = normalize(to_camera_vector); // Eye inverse
     vec3 L = -Li; // Light
-    vec3 RL = normalize(reflect(L, N)); // Reflected light
+    vec3 R = normalize(reflect(L, N)); // Reflected light
 
     // Ambient lighting
     vec3 ambient = material_ambient * light_ambient;
@@ -34,7 +34,7 @@ void main(void) {
     vec3 diffuse = (diffuseBrightness * material_diffuse) * light_diffuse;
 
     // Specular lighting
-    float specularAngle = clamp(dot(RL, Ei), 0, 1);
+    float specularAngle = clamp(dot(R, Ei), 0, 1);
     float specularBrightness = pow(specularAngle, material_shininess);
     vec3 specular = (specularBrightness * material_specular) * light_specular;
 
