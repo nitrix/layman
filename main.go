@@ -6,6 +6,7 @@ import (
 	"learngl/engine"
 	"log"
 	"math"
+	"runtime/debug"
 )
 
 func main() {
@@ -65,6 +66,9 @@ func main() {
 	}
 
 	previousTime := glfw.GetTime()
+
+	// Reduce the memory residency after loading assets into GPU memory.
+	debug.FreeOSMemory()
 
 	// Main loop
 	for !window.ShouldClose() {

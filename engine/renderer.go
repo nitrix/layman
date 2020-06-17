@@ -47,7 +47,7 @@ func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, ligh
 	shader.BindUniformMaterial(material)
 	shader.BindUniformTextureSampler()
 
-	gl.DrawElements(gl.TRIANGLES, int32(len(model.indices)), gl.UNSIGNED_INT, gl.PtrOffset(0))
+	gl.DrawElements(gl.TRIANGLES, model.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 	shader.Unuse()
 	texture.Unuse()
