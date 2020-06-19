@@ -25,6 +25,7 @@ func (c *Camera) LookAt(direction mgl32.Vec3) {
 }
 
 // FIXME: Very ugly.
+/*
 func (c *Camera) RotateX(angle float32) {
 	c.view = c.view.Mul4(mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()))
 	c.view = c.view.Mul4(mgl32.Rotate3DX(angle).Mat4())
@@ -36,6 +37,7 @@ func (c *Camera) RotateY(angle float32) {
 	c.view = c.view.Mul4(mgl32.Rotate3DY(angle).Mat4())
 	c.view = c.view.Mul4(mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()))
 }
+*/
 
 func (c *Camera) updateView() {
 	c.view = mgl32.LookAtV(

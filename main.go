@@ -36,13 +36,13 @@ func main() {
 	}
 
 	// Load texture
-	texture, err := engine.LoadTexture("assets/textures/wakfu.png")
+	texture, err := engine.LoadTexture("assets/textures/yugo_albedo.jpg")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Load model
-	model, err := engine.LoadModel("assets/models/wakfu.obj")
+	model, err := engine.LoadModel("assets/models/yugo.obj")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -79,7 +79,7 @@ func main() {
 		elapsed := t - previousTime
 		previousTime = t
 		model.RotateY(float32(elapsed))
-		//camera.RotateZ(float32(elapsed))
+		// camera.RotateZ(float32(elapsed))
 
 		// Render
 		renderer.Render(shader, texture, camera, light, material, model)
