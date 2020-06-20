@@ -11,20 +11,29 @@ import (
 
 type Texture struct {
 	textureId uint32
+	kind      TextureKind
 }
 
+type TextureKind int
+const (
+	TextureAlbedo TextureKind = iota
+	TextureNormalMap
+)
+
 func (t *Texture) Use() {
-	gl.ActiveTexture(gl.TEXTURE0)
+	gl.ActiveTexture(gl.TEXTURE0 + uint32(t.kind))
 	gl.BindTexture(gl.TEXTURE_2D, t.textureId)
 }
 
 func (t *Texture) Unuse() {
-	gl.ActiveTexture(gl.TEXTURE0)
+	gl.ActiveTexture(gl.TEXTURE0 + uint32(t.kind))
 	gl.BindTexture(gl.TEXTURE_2D, 0)
 }
 
-func LoadTexture(filepath string) (*Texture, error) {
-	texture := &Texture{}
+func LoadTexture(kind TextureKind, filepath string) (*Texture, error) {
+	texture := &Texture{
+		kind: kind,
+	}
 
 	imgFile, err := os.Open(filepath)
 	if err != nil {
@@ -45,12 +54,14 @@ func LoadTexture(filepath string) (*Texture, error) {
 
 	gl.GenTextures(1, &texture.textureId)
 	gl.BindTexture(gl.TEXTURE_2D, texture.textureId)
+
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+	gl.BindTexture(gl.TEXTURE_2D, 0)
 
 	return texture, nil
 }

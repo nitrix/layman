@@ -15,9 +15,10 @@ func NewRenderer(w *Window) (*Renderer, error) {
 	width, height := w.Dimensions()
 	renderer.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width) / float32(height), 0.1, 50.0)
 
+	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	gl.Enable(gl.CULL_FACE)
 	gl.CullFace(gl.BACK)
@@ -33,11 +34,12 @@ func (r *Renderer) Wireframe(enabled bool) {
 	}
 }
 
-func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, light *Light, material *Material, model *Model) {
+func (r *Renderer) Render(shader *Shader, textureAlbedo *Texture, textureNormalMap *Texture, camera *Camera, light *Light, material *Material, model *Model) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	shader.Use()
-	texture.Use()
+	textureAlbedo.Use()
+	textureNormalMap.Use()
 	model.Use()
 
 	shader.BindUniformProjection(r.projection)
@@ -45,11 +47,12 @@ func (r *Renderer) Render(shader *Shader, texture *Texture, camera *Camera, ligh
 	shader.BindUniformModel(model)
 	shader.BindUniformLight(light)
 	shader.BindUniformMaterial(material)
-	shader.BindUniformTextureSampler()
+	shader.BindUniformTextureSamplers()
 
 	gl.DrawElements(gl.TRIANGLES, model.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 	shader.Unuse()
-	texture.Unuse()
+	textureAlbedo.Unuse()
+	textureNormalMap.Unuse()
 	model.Unuse()
 }

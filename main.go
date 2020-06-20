@@ -11,8 +11,8 @@ import (
 
 func main() {
 	// Create a window.
-	window, err := engine.NewFullScreenWindow("Learn OpenGL")
-	// window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
+	// window, err := engine.NewFullScreenWindow("Learn OpenGL")
+	window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -35,8 +35,14 @@ func main() {
 		log.Fatalln("Unable to load shader:", err)
 	}
 
-	// Load texture
-	texture, err := engine.LoadTexture("assets/textures/yugo_albedo.jpg")
+	// Load albedo texture
+	textureAlbedo, err := engine.LoadTexture(engine.TextureAlbedo, "assets/textures/yugo_albedo.jpg")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Load normal map texture
+	textureNormalMap, err := engine.LoadTexture(engine.TextureNormalMap, "assets/textures/yugo_normal.jpg")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -82,7 +88,7 @@ func main() {
 		// camera.RotateZ(float32(elapsed))
 
 		// Render
-		renderer.Render(shader, texture, camera, light, material, model)
+		renderer.Render(shader, textureAlbedo, textureNormalMap, camera, light, material, model)
 		window.Refresh()
 	}
 }

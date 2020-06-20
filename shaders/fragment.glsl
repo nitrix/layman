@@ -5,7 +5,8 @@ in vec3 normal_in_model_space;
 in vec3 to_light_vector;
 in vec3 to_camera_vector;
 
-uniform sampler2D texture_sampler;
+uniform sampler2D texture_albedo_sampler;
+uniform sampler2D texture_normal_map_sampler;
 
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
@@ -39,6 +40,6 @@ void main(void) {
     vec3 specular = (specularBrightness * material_specular) * light_specular;
 
     // Phong output (ambiant + diffuse + specular)
-    out_Color = texture(texture_sampler, pass_texture_coords) *
+    out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
         (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
 }
