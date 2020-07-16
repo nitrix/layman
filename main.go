@@ -53,6 +53,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Load glow map texture
+	textureGlowMap, err := engine.LoadTexture(engine.TextureGlowMap, "assets/textures/yugo_glow.jpg")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Load model
 	model, err := engine.LoadModel("assets/models/yugo.obj")
 	if err != nil {
@@ -90,11 +96,11 @@ func main() {
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
-		model.RotateY(float32(elapsed))
+		model.RotateY(float32(elapsed) * 0.25)
 		// camera.RotateZ(float32(elapsed))
 
 		// Render
-		renderer.Render(shader, textureAlbedo, textureNormalMap, textureRoughnessMap, camera, light, material, model)
+		renderer.Render(shader, textureAlbedo, textureNormalMap, textureRoughnessMap, textureGlowMap, camera, light, material, model)
 		window.Refresh()
 	}
 }

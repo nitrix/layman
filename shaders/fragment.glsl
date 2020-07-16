@@ -8,6 +8,7 @@ in vec3 to_camera_vector;
 uniform sampler2D texture_albedo_sampler;
 uniform sampler2D texture_normal_map_sampler;
 uniform sampler2D texture_roughness_map_sampler;
+uniform sampler2D texture_glow_map_sampler;
 
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
@@ -47,6 +48,12 @@ void main(void) {
     // Roughness from the roughness map
     vec3 roughness = texture(texture_roughness_map_sampler, pass_texture_coords).rgb;
     specular *= 1 - roughness;
+
+    // Glow map
+    vec3 glow = texture(texture_glow_map_sampler, pass_texture_coords).rgb;
+    if (glow.r > 0.5) {
+        diffuse = vec3(1.0);
+    }
 
     // Phong output (ambiant + diffuse + specular)
     out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
