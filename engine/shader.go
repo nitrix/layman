@@ -15,8 +15,9 @@ type Shader struct {
 	uniformView              int32
 	uniformTransform         int32
 
-	uniformTextureAlbedoSampler    int32
-	uniformTextureNormalMapSampler int32
+	uniformTextureAlbedoSampler       int32
+	uniformTextureNormalMapSampler    int32
+	uniformTextureRoughnessMapSampler int32
 
 	uniformLightPosition     int32
 	uniformLightAmbient      int32
@@ -110,6 +111,7 @@ func (s *Shader) findUniforms() {
 	s.uniformTransform = s.findUniformByName("transform")
 	s.uniformTextureAlbedoSampler = s.findUniformByName("texture_albedo_sampler")
 	s.uniformTextureNormalMapSampler = s.findUniformByName("texture_normal_map_sampler")
+	s.uniformTextureRoughnessMapSampler = s.findUniformByName("texture_roughness_map_sampler")
 	s.uniformLightPosition = s.findUniformByName("light_position")
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
@@ -158,6 +160,7 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 func (s *Shader) BindUniformTextureSamplers() {
 	gl.Uniform1i(s.uniformTextureAlbedoSampler, int32(TextureAlbedo))
 	gl.Uniform1i(s.uniformTextureNormalMapSampler, int32(TextureNormalMap))
+	gl.Uniform1i(s.uniformTextureRoughnessMapSampler, int32(TextureRoughnessMap))
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {

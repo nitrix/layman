@@ -18,6 +18,7 @@ type TextureKind int
 const (
 	TextureAlbedo TextureKind = iota
 	TextureNormalMap
+	TextureRoughnessMap
 )
 
 func (t *Texture) Use() {

@@ -47,6 +47,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Load roughness map texture
+	textureRoughnessMap, err := engine.LoadTexture(engine.TextureRoughnessMap, "assets/textures/yugo_roughness.jpg")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Load model
 	model, err := engine.LoadModel("assets/models/yugo.obj")
 	if err != nil {
@@ -67,8 +73,8 @@ func main() {
 	material := &engine.Material{
 		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-		Specular: mgl32.Vec3{0.5, 0.5, 0.5},
-		Shininess: 100,
+		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
+		Shininess: 5,
 	}
 
 	previousTime := glfw.GetTime()
@@ -84,11 +90,11 @@ func main() {
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
-		model.RotateY(float32(elapsed) * 0.25)
+		model.RotateY(float32(elapsed))
 		// camera.RotateZ(float32(elapsed))
 
 		// Render
-		renderer.Render(shader, textureAlbedo, textureNormalMap, camera, light, material, model)
+		renderer.Render(shader, textureAlbedo, textureNormalMap, textureRoughnessMap, camera, light, material, model)
 		window.Refresh()
 	}
 }

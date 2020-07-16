@@ -36,12 +36,13 @@ func (r *Renderer) Wireframe(enabled bool) {
 	}
 }
 
-func (r *Renderer) Render(shader *Shader, textureAlbedo *Texture, textureNormalMap *Texture, camera *Camera, light *Light, material *Material, model *Model) {
+func (r *Renderer) Render(shader *Shader, textureAlbedo *Texture, textureNormalMap *Texture, textureRoughnessMap *Texture, camera *Camera, light *Light, material *Material, model *Model) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	shader.Use()
 	textureAlbedo.Use()
 	textureNormalMap.Use()
+	textureRoughnessMap.Use()
 	model.Use()
 
 	shader.BindUniformProjection(r.projection)
@@ -56,5 +57,6 @@ func (r *Renderer) Render(shader *Shader, textureAlbedo *Texture, textureNormalM
 	shader.Unuse()
 	textureAlbedo.Unuse()
 	textureNormalMap.Unuse()
+	textureRoughnessMap.Unuse()
 	model.Unuse()
 }

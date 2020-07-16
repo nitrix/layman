@@ -7,6 +7,7 @@ in vec3 to_camera_vector;
 
 uniform sampler2D texture_albedo_sampler;
 uniform sampler2D texture_normal_map_sampler;
+uniform sampler2D texture_roughness_map_sampler;
 
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
@@ -21,7 +22,7 @@ out vec4 out_Color;
 
 void main(void) {
     // Normal from the normal map
-    vec3 N = texture(texture_normal_map_sampler, pass_texture_coords).xyz;
+    vec3 N = texture(texture_normal_map_sampler, pass_texture_coords).rgb;
     N = N * 2 - 1;
 
     // Constants
@@ -43,9 +44,13 @@ void main(void) {
     float specularBrightness = pow(specularAngle, material_shininess);
     vec3 specular = (specularBrightness * material_specular) * light_specular;
 
+    // Roughness from the roughness map
+    vec3 roughness = texture(texture_roughness_map_sampler, pass_texture_coords).rgb;
+    specular *= 1 - roughness;
+
     // Phong output (ambiant + diffuse + specular)
     out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
         (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
 
-    // out_Color = vec4(N, 1);
+    // out_Color = vec4(roughness, 1.0);
 }
