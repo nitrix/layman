@@ -34,6 +34,7 @@ const (
 	ShaderAttributeVertexCoords = iota
 	ShaderAttributeTextureCoords
 	ShaderAttributeNormals
+	ShaderAttributeTangents
 )
 
 func (s *Shader) Use() {
@@ -100,6 +101,7 @@ func (s *Shader) bindAttributes() {
 	s.bindAttribute(ShaderAttributeVertexCoords, "position")
 	s.bindAttribute(ShaderAttributeTextureCoords, "texture_coords")
 	s.bindAttribute(ShaderAttributeNormals, "normal")
+	s.bindAttribute(ShaderAttributeTangents, "tangent")
 }
 
 func (s *Shader) findUniforms() {
