@@ -175,3 +175,7 @@ func (m *Model) RotateY(angle float32) {
 func (m *Model) RotateZ(angle float32) {
 	m.transform = m.transform.Mul4(mgl32.HomogRotate3DZ(angle))
 }
+
+func (m *Model) Scale(factor float32) {
+	m.transform = m.transform.Mul4(mgl32.Scale3D(factor, factor, factor))
+}

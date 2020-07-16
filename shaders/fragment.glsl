@@ -58,6 +58,4 @@ void main(void) {
     // Phong output (ambiant + diffuse + specular)
     out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
         (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
-
-    // out_Color = vec4(roughness, 1.0);
 }

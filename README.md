@@ -2,7 +2,9 @@
 
 Just a simple project while I'm learning OpenGL.
 
-![screenshot](docs/screenshot.png)
+![Screenshot #1](docs/screenshot.png)
+
+![Screenshot #2](docs/screenshot2.png)
 
 ### Currently implemented
 

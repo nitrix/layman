@@ -5,14 +5,13 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"learngl/engine"
 	"log"
-	"math"
 	"runtime/debug"
 )
 
 func main() {
 	// Create a window.
-	window, err := engine.NewFullScreenWindow("Learn OpenGL")
-	// window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
+	// window, err := engine.NewFullScreenWindow("Learn OpenGL")
+	window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -26,8 +25,8 @@ func main() {
 
 	// Create the camera.
 	camera := engine.NewCamera()
-	camera.Move(mgl32.Vec3{0, -0.3, 7})
-	camera.LookAt(mgl32.Vec3{0, -0.3, 0})
+	camera.Move(mgl32.Vec3{0, 3, 15})
+	camera.LookAt(mgl32.Vec3{0, 3, 0})
 
 	// Load shader
 	shader, err := engine.LoadShader("shaders/vertex.glsl", "shaders/fragment.glsl")
@@ -36,36 +35,38 @@ func main() {
 	}
 
 	// Load albedo texture
-	textureAlbedo, err := engine.LoadTexture(engine.TextureAlbedo, "assets/textures/yugo_albedo.jpg")
+	textureAlbedo, err := engine.LoadTexture(engine.TextureAlbedo, "assets/textures/helmet/helmet_albedo.png")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Load normal map texture
-	textureNormalMap, err := engine.LoadTexture(engine.TextureNormalMap, "assets/textures/yugo_normal.jpg")
+	textureNormalMap, err := engine.LoadTexture(engine.TextureNormalMap, "assets/textures/helmet/helmet_normal.png")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Load roughness map texture
-	textureRoughnessMap, err := engine.LoadTexture(engine.TextureRoughnessMap, "assets/textures/yugo_roughness.jpg")
+	textureRoughnessMap, err := engine.LoadTexture(engine.TextureRoughnessMap, "assets/textures/helmet/helmet_roughness.png")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Load glow map texture
-	textureGlowMap, err := engine.LoadTexture(engine.TextureGlowMap, "assets/textures/yugo_glow.jpg")
+	/*
+	textureGlowMap, err := engine.LoadTexture(engine.TextureGlowMap, "assets/textures/helmet/helmet_glow.jpg")
 	if err != nil {
 		log.Fatalln(err)
 	}
+	*/
+	textureGlowMap := &engine.Texture{}
 
 	// Load model
-	model, err := engine.LoadModel("assets/models/yugo.obj")
+	model, err := engine.LoadModel("assets/models/helmet.obj")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	// FIXME: This particular model isn't facing the right way.
-	model.RotateY(math.Pi)
+	model.Scale(0.05)
 
 	// Create light
 	light := &engine.Light{
@@ -80,7 +81,7 @@ func main() {
 		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
 		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
-		Shininess: 5,
+		Shininess: 50,
 	}
 
 	previousTime := glfw.GetTime()
