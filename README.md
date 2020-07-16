@@ -13,6 +13,7 @@ Just a simple project while I'm learning OpenGL.
 - Materials (ambient + diffuse + specular + shininess).
 - Back-face culling optimization.
 - Anti-aliasing (MSAA 4x multi-sampling).
+- Roughness/specular maps.
 
 ### Short term
 
@@ -45,7 +46,6 @@ Just a simple project while I'm learning OpenGL.
 - Post-processing effects
 - Gaussian Blur
 - Multisampled FBOs
-- Specular maps
 - Bloom effect
 - Multiple render targets
 - Geometry shaders
