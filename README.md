@@ -12,20 +12,21 @@ Just a simple project while I'm learning OpenGL.
 - Phong lighting (ambient + diffuse + specular).
 - Materials (ambient + diffuse + specular + shininess).
 - Back-face culling optimization.
-- Wireframe toggleable mode.
+- Anti-aliasing (MSAA 4x multi-sampling).
 
 ### Short term
 
+- Wireframe toggleable mode.
 - Entities with a model, texture, position, rotation and scale.
 - Third person camera with tilt-pan-zoom offsets.
 
 ### Long term
 
-- Flat terrain.
+- Flat terrain
 - Transparency
 - Fog
 - Multi-texturing
-- Mipmapping
+- Mipmapping / anisotropic filtering
 - Terrain collision
 - Texture atlases
 - GUI
@@ -41,7 +42,6 @@ Just a simple project while I'm learning OpenGL.
 - Procedural terrain
 - Shadow mapping
 - Percentage closer filtering
-- Antialiasing and anisotropic filtering
 - Post-processing effects
 - Gaussian Blur
 - Multisampled FBOs
