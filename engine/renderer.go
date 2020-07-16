@@ -23,6 +23,8 @@ func NewRenderer(w *Window) (*Renderer, error) {
 	gl.Enable(gl.CULL_FACE)
 	gl.CullFace(gl.BACK)
 
+	gl.Enable(gl.MULTISAMPLE)
+
 	return renderer, nil
 }
 
