@@ -11,8 +11,8 @@ import (
 
 func main() {
 	// Create a window.
-	// window, err := engine.NewFullScreenWindow("Learn OpenGL")
-	window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
+	window, err := engine.NewFullScreenWindow("Learn OpenGL")
+	// window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	material := &engine.Material{
 		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
+		Specular: mgl32.Vec3{0.5, 0.5, 0.5},
 		Shininess: 100,
 	}
 
@@ -84,7 +84,7 @@ func main() {
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
-		model.RotateY(float32(elapsed))
+		model.RotateY(float32(elapsed) * 0.25)
 		// camera.RotateZ(float32(elapsed))
 
 		// Render
