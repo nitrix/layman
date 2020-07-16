@@ -10,8 +10,8 @@ import (
 
 func main() {
 	// Create a window.
-	// window, err := engine.NewFullScreenWindow("Learn OpenGL")
-	window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
+	window, err := engine.NewFullScreenWindow("Learn OpenGL")
+	// window, err := engine.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -98,7 +98,6 @@ func main() {
 		elapsed := t - previousTime
 		previousTime = t
 		model.RotateY(float32(elapsed) * 0.25)
-		// camera.RotateZ(float32(elapsed))
 
 		// Render
 		renderer.Render(shader, textureAlbedo, textureNormalMap, textureRoughnessMap, textureGlowMap, camera, light, material, model)

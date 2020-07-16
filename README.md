@@ -2,9 +2,7 @@
 
 Just a simple project while I'm learning OpenGL.
 
-![Screenshot #1](docs/screenshot.png)
-
-![Screenshot #2](docs/screenshot2.png)
+![Screenshot](docs/screenshot.png)
 
 ### Currently implemented
 
@@ -16,6 +14,7 @@ Just a simple project while I'm learning OpenGL.
 - Back-face culling optimization.
 - Anti-aliasing (MSAA 4x multi-sampling).
 - Roughness/specular maps.
+- Wireframe mode.
 
 ### Short term
 
