@@ -81,7 +81,7 @@ func main() {
 		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
 		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
-		Shininess: 50,
+		Shininess: 10,
 	}
 
 	previousTime := glfw.GetTime()
