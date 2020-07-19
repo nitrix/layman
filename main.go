@@ -23,50 +23,18 @@ func main() {
 		log.Fatalln("Unable to create renderer:", err)
 	}
 
-	// Create the camera.
-	camera := engine.NewCamera()
-	camera.Move(mgl32.Vec3{0, 3, 15})
-	camera.LookAt(mgl32.Vec3{0, 3, 0})
-
-	// Load shader
-	shader, err := engine.LoadShader("shaders/vertex.glsl", "shaders/fragment.glsl")
-	if err != nil {
-		log.Fatalln("Unable to load shader:", err)
-	}
-
-	// Load albedo texture
-	textureAlbedo, err := engine.LoadTexture(engine.TextureAlbedo, "assets/textures/helmet/helmet_albedo.png")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Load normal map texture
-	textureNormalMap, err := engine.LoadTexture(engine.TextureNormalMap, "assets/textures/helmet/helmet_normal.png")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Load roughness map texture
-	textureRoughnessMap, err := engine.LoadTexture(engine.TextureRoughnessMap, "assets/textures/helmet/helmet_roughness.png")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Load glow map texture
-	/*
-	textureGlowMap, err := engine.LoadTexture(engine.TextureGlowMap, "assets/textures/helmet/helmet_glow.jpg")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	*/
-	textureGlowMap := &engine.Texture{}
-
-	// Load model
-	model, err := engine.LoadModel("assets/models/helmet.obj")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	model.Scale(0.05)
+	// Load the helmet model.
+	helmetModel, err := engine.LoadModel(engine.ModelParams{
+		Name:                    "helmet",
+		MeshPath:                "assets/models/helmet.obj",
+		AlbedoTexturePath:       "assets/textures/helmet/helmet_albedo.png",
+		NormalMapTexturePath:    "assets/textures/helmet/helmet_normal.png",
+		RoughnessMapTexturePath: "assets/textures/helmet/helmet_roughness.png",
+		VertexShaderPath:        "shaders/vertex.glsl",
+		FragmentShaderPath:      "shaders/fragment.glsl",
+		Material:                engine.DefaultMaterial,
+		InitialScale:            0.05,
+	})
 
 	// Create light
 	light := &engine.Light{
@@ -76,20 +44,25 @@ func main() {
 		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
 	}
 
-	// Create material
-	material := &engine.Material{
-		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
-		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
-		Shininess: 10,
-	}
+	// Demo entity
+	demoEntity := engine.NewEntityFromModel(helmetModel)
 
-	previousTime := glfw.GetTime()
+	// Camera
+	camera := engine.NewCamera()
+	camera.MoveAt(mgl32.Vec3{0, 3, 15})
+	camera.LookAt(mgl32.Vec3{0, 3, 0})
+
+	// Scene
+	scene := engine.NewScene()
+	scene.AddCamera(camera)
+	scene.AddEntity(demoEntity)
+	scene.AddLight(light)
 
 	// Reduce the memory residency after loading assets into GPU memory.
 	debug.FreeOSMemory()
 
 	// Main loop
+	previousTime := glfw.GetTime()
 	for !window.ShouldClose() {
 		window.PollEvents()
 
@@ -97,10 +70,10 @@ func main() {
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
-		model.RotateY(float32(elapsed) * 0.25)
+		demoEntity.RotateY(float32(elapsed) * 0.25)
 
 		// Render
-		renderer.Render(shader, textureAlbedo, textureNormalMap, textureRoughnessMap, textureGlowMap, camera, light, material, model)
+		renderer.Render(scene)
 		window.Refresh()
 	}
 }

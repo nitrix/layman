@@ -14,7 +14,7 @@ func NewCamera() *Camera {
 	return camera
 }
 
-func (c *Camera) Move(position mgl32.Vec3) {
+func (c *Camera) MoveAt(position mgl32.Vec3) {
 	c.position = position
 	c.updateView()
 }

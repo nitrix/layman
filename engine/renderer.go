@@ -36,29 +36,27 @@ func (r *Renderer) Wireframe(enabled bool) {
 	}
 }
 
-func (r *Renderer) Render(shader *Shader, textureAlbedo *Texture, textureNormalMap *Texture, textureRoughnessMap *Texture, textureGlowMap *Texture, camera *Camera, light *Light, material *Material, model *Model) {
+// TODO: Render a Scene instead. This lets us sort by entity models, to
+// avoid switching between them too often. Aka, batch rendering.
+func (r *Renderer) Render(scene *Scene) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-	shader.Use()
-	textureAlbedo.Use()
-	textureNormalMap.Use()
-	textureRoughnessMap.Use()
-	//textureGlowMap.Use()
-	model.Use()
+	// Iterate through group of entities (grouped by model)
+	for model, entities := range scene.entities {
+		model.Use()
 
-	shader.BindUniformProjection(r.projection)
-	shader.BindUniformCamera(camera)
-	shader.BindUniformModel(model)
-	shader.BindUniformLight(light)
-	shader.BindUniformMaterial(material)
-	shader.BindUniformTextureSamplers()
+		model.shader.BindUniformProjection(r.projection)
+		model.shader.BindUniformCamera(scene.activeCamera)
+		model.shader.BindUniformLight(scene.activeLight)
+		model.shader.BindUniformTextureSamplers()
 
-	gl.DrawElements(gl.TRIANGLES, model.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
+		for _, entity := range entities {
+			model.shader.BindUniformMaterial(entity.model.material)
+			model.shader.BindUniformEntity(entity)
 
-	shader.Unuse()
-	textureAlbedo.Unuse()
-	textureNormalMap.Unuse()
-	textureRoughnessMap.Unuse()
-	//textureGlowMap.Unuse()
-	model.Unuse()
+			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
+		}
+
+		model.Unuse()
+	}
 }

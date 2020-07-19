@@ -8,3 +8,10 @@ type Material struct {
 	Specular mgl32.Vec3
 	Shininess float32
 }
+
+var DefaultMaterial = Material {
+	Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
+	Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
+	Specular: mgl32.Vec3{1.0, 1.0, 1.0},
+	Shininess: 10,
+}
