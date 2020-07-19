@@ -4,6 +4,9 @@ type Scene struct{
 	// Entities, grouped by model for optimization purposes.
 	entities map[*Model][]*Entity
 
+	// Terrains
+	terrains []*Terrain
+
 	// Lighting stuff.
 	lights []*Light
 	activeLight *Light
@@ -51,4 +54,8 @@ func (s *Scene) AddLight(light *Light) {
 	}
 
 	s.lights = append(s.lights, light)
+}
+
+func (s *Scene) AddTerrain(terrain *Terrain) {
+	s.terrains = append(s.terrains, terrain)
 }

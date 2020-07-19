@@ -30,8 +30,8 @@ func main() {
 		AlbedoTexturePath:       "assets/textures/helmet/helmet_albedo.png",
 		NormalMapTexturePath:    "assets/textures/helmet/helmet_normal.png",
 		RoughnessMapTexturePath: "assets/textures/helmet/helmet_roughness.png",
-		VertexShaderPath:        "shaders/vertex.glsl",
-		FragmentShaderPath:      "shaders/fragment.glsl",
+		VertexShaderPath:        "shaders/model/vertex.glsl",
+		FragmentShaderPath:      "shaders/model/fragment.glsl",
 		Material:                engine.DefaultMaterial,
 		InitialScale:            0.05,
 	})
@@ -41,7 +41,7 @@ func main() {
 
 	// Create light
 	light := &engine.Light{
-		Position: mgl32.Vec3{0.0, -0.3, 10.0},
+		Position: mgl32.Vec3{0.0, 3, 100.0},
 		Ambient: mgl32.Vec3{0.2, 0.2, 0.2},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
 		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
@@ -55,10 +55,43 @@ func main() {
 	camera.MoveAt(mgl32.Vec3{0, 3, 15})
 	camera.LookAt(mgl32.Vec3{0, 3, 0})
 
+	// Terrains
+	groundTerrainParams := engine.TerrainParams{
+		AlbedoTexturePath: "assets/textures/ground/ground_albedo.png",
+		NormalMapTexturePath: "assets/textures/ground/ground_normal.png",
+		RoughnessMapTexturePath: "assets/textures/ground/ground_roughness.png",
+	}
+
+	terrain1, err := engine.NewTerrain(groundTerrainParams)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	terrain2, err := engine.NewTerrain(groundTerrainParams)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	terrain3, err := engine.NewTerrain(groundTerrainParams)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	terrain4, err := engine.NewTerrain(groundTerrainParams)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	terrain1.Translate(mgl32.Vec3{0, 0, 0})
+	terrain2.Translate(mgl32.Vec3{-engine.TerrainSize, 0, 0})
+	terrain3.Translate(mgl32.Vec3{0, 0, -engine.TerrainSize})
+	terrain4.Translate(mgl32.Vec3{-engine.TerrainSize, 0, -engine.TerrainSize})
+
 	// Scene
 	scene := engine.NewScene()
 	scene.AddCamera(camera)
 	scene.AddEntity(demoEntity)
+	scene.AddTerrain(terrain1)
+	scene.AddTerrain(terrain2)
+	scene.AddTerrain(terrain3)
+	scene.AddTerrain(terrain4)
 	scene.AddLight(light)
 
 	// Reduce the memory residency after loading assets into GPU memory.

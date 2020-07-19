@@ -15,20 +15,18 @@ Just a simple project while I'm learning OpenGL.
 - Anti-aliasing (MSAA 4x multi-sampling).
 - Roughness/specular maps.
 - Wireframe mode.
+- Mipmapping / anisotropic filtering.
+- Flat terrain.
 
 ### Short term
 
-- Wireframe toggleable mode.
-- Entities with a model, texture, position, rotation and scale.
 - Third person camera with tilt-pan-zoom offsets.
 
 ### Long term
 
-- Flat terrain
 - Transparency
 - Fog
 - Multi-texturing
-- Mipmapping / anisotropic filtering
 - Terrain collision
 - Texture atlases
 - GUI

@@ -25,7 +25,7 @@ void main() {
     pass_texture_coords = texture_coords;
     normal_in_model_space = (transform * vec4(normal, 0.0)).xyz;
     to_light_vector = light_position - world_position.xyz;
-    to_camera_vector = (inverse(view) * vec4(0, 0, 0, 1.0)).xyz - world_position.xyz;
+    to_camera_vector = (inverse(view) * vec4(1, 1, 1, 1.0)).xyz - world_position.xyz;
 
     // Normal mapping
     vec3 T = normalize(vec3(transform * vec4(tangent, 0.0)));

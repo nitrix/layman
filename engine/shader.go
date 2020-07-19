@@ -140,8 +140,8 @@ func (s *Shader) BindUniformCamera(camera *Camera) {
 	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.view[0])
 }
 
-func (s *Shader) BindUniformEntity(entity *Entity) {
-	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &entity.transform[0])
+func (s *Shader) BindUniformTransform(transform *mgl32.Mat4) {
+	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &transform[0])
 }
 
 func (s *Shader) BindUniformLight(light *Light) {
