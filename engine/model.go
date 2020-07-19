@@ -26,6 +26,7 @@ type ModelParams struct {
 	VertexShaderPath        string
 	FragmentShaderPath      string
 	InitialScale            float32
+	InitialRotation         mgl32.Vec3
 	Material                Material
 }
 
@@ -94,6 +95,19 @@ func LoadModel(params ModelParams) (*Model, error) {
 	if params.InitialScale != 0 {
 		model.initialTransform = model.initialTransform.Mul4(
 			mgl32.Scale3D(params.InitialScale, params.InitialScale, params.InitialScale),
+		)
+	}
+
+	// Apply rotation
+	if params.InitialRotation.X() != 0 || params.InitialRotation.Y() != 0 || params.InitialRotation.Z() != 0 {
+		model.initialTransform = model.initialTransform.Mul4(
+			mgl32.HomogRotate3DX(params.InitialRotation.X()),
+		)
+		model.initialTransform = model.initialTransform.Mul4(
+			mgl32.HomogRotate3DY(params.InitialRotation.Y()),
+		)
+		model.initialTransform = model.initialTransform.Mul4(
+			mgl32.HomogRotate3DZ(params.InitialRotation.Z()),
 		)
 	}
 

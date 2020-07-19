@@ -35,6 +35,9 @@ func main() {
 		Material:                engine.DefaultMaterial,
 		InitialScale:            0.05,
 	})
+	if err != nil {
+		log.Fatalln("Unable to load helmet model")
+	}
 
 	// Create light
 	light := &engine.Light{
