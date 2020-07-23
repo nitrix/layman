@@ -5,6 +5,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 	"learngl/engine"
 	"log"
+	"math"
 	"runtime/debug"
 )
 
@@ -39,23 +40,24 @@ func main() {
 		log.Fatalln("Unable to load helmet model")
 	}
 
+	// TODO: Light is directional on the Z axis. Therefore it has to be put far away in the negative space.
+
 	// Create light
 	light := engine.DefaultLight()
-	light.Position = mgl32.Vec3{0.0, 3, 10.0}
+	light.Position = mgl32.Vec3{0, 0, -engine.TerrainSize}
 
 	// Demo entity
 	demoEntity := engine.NewEntityFromModel(helmetModel)
+	demoEntity.RotateY(math.Pi)
 
 	// Camera
 	camera := engine.NewCamera()
-	camera.MoveAt(mgl32.Vec3{0, 3, 15})
+	camera.MoveAt(mgl32.Vec3{0, 3, -15})
 	camera.LookAt(mgl32.Vec3{0, 3, 0})
 
 	// Terrains
 	groundTerrainParams := engine.TerrainParams{
 		AlbedoTexturePath: "assets/textures/ground/ground_albedo.png",
-		NormalMapTexturePath: "assets/textures/ground/ground_normal.png",
-		RoughnessMapTexturePath: "assets/textures/ground/ground_roughness.png",
 	}
 
 	terrain1, err := engine.NewTerrain(groundTerrainParams)
@@ -84,10 +86,10 @@ func main() {
 	scene := engine.NewScene()
 	scene.AddCamera(camera)
 	scene.AddEntity(demoEntity)
-	scene.AddTerrain(terrain1)
-	scene.AddTerrain(terrain2)
-	scene.AddTerrain(terrain3)
-	scene.AddTerrain(terrain4)
+	//scene.AddTerrain(terrain1)
+	//scene.AddTerrain(terrain2)
+	//scene.AddTerrain(terrain3)
+	//scene.AddTerrain(terrain4)
 	scene.AddLight(&light)
 
 	// Reduce the memory residency after loading assets into GPU memory.
@@ -103,6 +105,7 @@ func main() {
 		elapsed := t - previousTime
 		previousTime = t
 		demoEntity.RotateY(float32(elapsed) * 0.25)
+		// camera.RotateY(float32(elapsed) * 0.25)
 
 		// Render
 		renderer.Render(scene)
