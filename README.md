@@ -24,12 +24,13 @@ Just a simple project while I'm learning OpenGL.
 
 - Multiple lights
 - Point lights
-- Third person camera with tilt-pan-zoom offsets.
 
 ### Long term
 
 - Transparency
 - Fog
+- Third person camera with tilt-pan-zoom offsets.
+- Skeletal animation
 - Multi-texturing
 - Terrain collision
 - Texture atlases
@@ -51,15 +52,12 @@ Just a simple project while I'm learning OpenGL.
 - Geometry shaders
 - Cube map reflections
 - Render to cube map texture
-- Skeletal animation
 - Lens flare
 - Occlusion queries
 - Water
 
-### Unsure
+### Not clear yet
 
-- Material emission.
-- Batch rendering using some kind of scene manager.
 - Runtime keybinding system to map actions to GLFW key constants.
 - Associating different materials to different mesh parts of a model.
 - Loading materials from files.
