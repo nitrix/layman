@@ -9,9 +9,11 @@ type Material struct {
 	Shininess float32
 }
 
-var DefaultMaterial = Material {
-	Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
-	Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-	Specular: mgl32.Vec3{1.0, 1.0, 1.0},
-	Shininess: 10,
+func DefaultMaterial() Material {
+	return Material {
+		Ambient: mgl32.Vec3{1.0, 1.0, 1.0},
+		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
+		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
+		Shininess: 30,
+	}
 }

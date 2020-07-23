@@ -70,7 +70,7 @@ func LoadTexture(kind TextureKind, filepath string) (*Texture, error) {
 	if kind == TextureAlbedo {
 		gl.GenerateMipmap(gl.TEXTURE_2D)
 		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-		// gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_LOD_BIAS, -0.4) // Incompatible with anisotopic filtering.
+		// gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_LOD_BIAS, -0.4) // Incompatible with anisotropic filtering.
 	}
 
 	// Anisotropic filtering, if supported.

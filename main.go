@@ -32,7 +32,7 @@ func main() {
 		RoughnessMapTexturePath: "assets/textures/helmet/helmet_roughness.png",
 		VertexShaderPath:        "shaders/model/vertex.glsl",
 		FragmentShaderPath:      "shaders/model/fragment.glsl",
-		Material:                engine.DefaultMaterial,
+		Material:                engine.DefaultMaterial(),
 		InitialScale:            0.05,
 	})
 	if err != nil {
@@ -40,12 +40,8 @@ func main() {
 	}
 
 	// Create light
-	light := &engine.Light{
-		Position: mgl32.Vec3{0.0, 3, 100.0},
-		Ambient: mgl32.Vec3{0.2, 0.2, 0.2},
-		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
-	}
+	light := engine.DefaultLight()
+	light.Position = mgl32.Vec3{0.0, 3, 10.0}
 
 	// Demo entity
 	demoEntity := engine.NewEntityFromModel(helmetModel)
@@ -92,7 +88,7 @@ func main() {
 	scene.AddTerrain(terrain2)
 	scene.AddTerrain(terrain3)
 	scene.AddTerrain(terrain4)
-	scene.AddLight(light)
+	scene.AddLight(&light)
 
 	// Reduce the memory residency after loading assets into GPU memory.
 	debug.FreeOSMemory()

@@ -13,7 +13,9 @@ type Terrain struct {
 	albedoTexture *Texture
 	normalMapTexture *Texture
 	roughnessMapTexture *Texture
+	glowMapTexture *Texture
 	shader *Shader
+	material Material
 	transform mgl32.Mat4
 }
 
@@ -21,6 +23,7 @@ type TerrainParams struct {
 	AlbedoTexturePath string
 	NormalMapTexturePath string
 	RoughnessMapTexturePath string
+	GlowMapTexturePath string
 }
 
 func NewTerrain(params TerrainParams) (*Terrain, error) {
@@ -57,7 +60,15 @@ func NewTerrain(params TerrainParams) (*Terrain, error) {
 		}
 	}
 
+	if params.GlowMapTexturePath != "" {
+		terrain.glowMapTexture, err = LoadTexture(TextureGlowMap, params.GlowMapTexturePath)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	terrain.mesh = generateTerrainMesh()
+	terrain.material = DefaultMaterial()
 	terrain.shader = shader
 	terrain.transform = mgl32.Ident4()
 
@@ -68,17 +79,43 @@ func NewTerrain(params TerrainParams) (*Terrain, error) {
 func (t Terrain) Use() {
 	t.mesh.Use()
 	t.shader.Use()
-	t.albedoTexture.Use()
-	t.normalMapTexture.Use()
-	t.roughnessMapTexture.Use()
+
+	if t.albedoTexture != nil {
+		t.albedoTexture.Use()
+	}
+
+	if t.normalMapTexture != nil {
+		t.normalMapTexture.Use()
+	}
+
+	if t.roughnessMapTexture != nil {
+		t.roughnessMapTexture.Use()
+	}
+
+	if t.glowMapTexture != nil {
+		t.glowMapTexture.Use()
+	}
 }
 
 func (t Terrain) Unuse() {
 	t.mesh.Unuse()
 	t.shader.Unuse()
-	t.albedoTexture.Unuse()
-	t.normalMapTexture.Unuse()
-	t.roughnessMapTexture.Unuse()
+
+	if t.albedoTexture != nil {
+		t.albedoTexture.Unuse()
+	}
+
+	if t.normalMapTexture != nil {
+		t.normalMapTexture.Unuse()
+	}
+
+	if t.roughnessMapTexture != nil {
+		t.roughnessMapTexture.Unuse()
+	}
+
+	if t.glowMapTexture != nil {
+		t.glowMapTexture.Unuse()
+	}
 }
 
 func (t *Terrain) Translate(position mgl32.Vec3) {

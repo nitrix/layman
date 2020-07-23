@@ -23,6 +23,7 @@ type ModelParams struct {
 	AlbedoTexturePath       string
 	NormalMapTexturePath    string
 	RoughnessMapTexturePath string
+	GlowMapTexturePath      string
 	VertexShaderPath        string
 	FragmentShaderPath      string
 	InitialScale            float32
@@ -31,17 +32,43 @@ type ModelParams struct {
 }
 
 func (m Model) Use() {
-	m.albedoTexture.Use()
-	m.normalMapTexture.Use()
-	m.roughnessMapTexture.Use()
+	if m.albedoTexture != nil {
+		m.albedoTexture.Use()
+	}
+
+	if m.normalMapTexture != nil {
+		m.normalMapTexture.Use()
+	}
+
+	if m.roughnessMapTexture != nil {
+		m.roughnessMapTexture.Use()
+	}
+
+	if m.glowMapTexture != nil {
+		m.glowMapTexture.Use()
+	}
+
 	m.mesh.Use()
 	m.shader.Use()
 }
 
 func (m Model) Unuse() {
-	m.albedoTexture.Unuse()
-	m.normalMapTexture.Unuse()
-	m.roughnessMapTexture.Unuse()
+	if m.albedoTexture != nil {
+		m.albedoTexture.Unuse()
+	}
+
+	if m.normalMapTexture != nil {
+		m.normalMapTexture.Unuse()
+	}
+
+	if m.roughnessMapTexture != nil {
+		m.roughnessMapTexture.Unuse()
+	}
+
+	if m.glowMapTexture != nil {
+		m.glowMapTexture.Unuse()
+	}
+
 	m.mesh.Unuse()
 	m.shader.Unuse()
 }
@@ -58,7 +85,7 @@ func LoadModel(params ModelParams) (*Model, error) {
 		return nil, err
 	}
 
-	// Albedo texture
+	// Albedo texture (optional)
 	if params.AlbedoTexturePath != "" {
 		model.albedoTexture, err = LoadTexture(TextureAlbedo, params.AlbedoTexturePath)
 		if err != nil {
@@ -66,7 +93,7 @@ func LoadModel(params ModelParams) (*Model, error) {
 		}
 	}
 
-	// Normal texture map
+	// Normal texture map (optional)
 	if params.NormalMapTexturePath != "" {
 		model.normalMapTexture, err = LoadTexture(TextureNormalMap, params.NormalMapTexturePath)
 		if err != nil {
@@ -74,7 +101,7 @@ func LoadModel(params ModelParams) (*Model, error) {
 		}
 	}
 
-	// Roughness texture map
+	// Roughness texture map (optional)
 	if params.RoughnessMapTexturePath != "" {
 		model.roughnessMapTexture, err = LoadTexture(TextureRoughnessMap, params.RoughnessMapTexturePath)
 		if err != nil {
@@ -82,8 +109,13 @@ func LoadModel(params ModelParams) (*Model, error) {
 		}
 	}
 
-	// TODO: Load glow map texture
-	model.glowMapTexture = &Texture{}
+	// Glow texture map (optional)
+	if params.GlowMapTexturePath != "" {
+		model.glowMapTexture, err = LoadTexture(TextureGlowMap, params.GlowMapTexturePath)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	// Load shader program.
 	model.shader, err = LoadShader(params.VertexShaderPath, params.FragmentShaderPath)

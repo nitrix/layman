@@ -20,6 +20,10 @@ type Shader struct {
 	uniformTextureRoughnessMapSampler int32
 	uniformTextureGlowMapSampler      int32
 
+	uniformUseNormalMap    int32
+	uniformUseRoughnessMap int32
+	uniformUseGlowMap      int32
+
 	uniformLightPosition     int32
 	uniformLightAmbient      int32
 	uniformLightDiffuse      int32
@@ -110,15 +114,22 @@ func (s *Shader) findUniforms() {
 	s.uniformProjection = s.findUniformByName("projection")
 	s.uniformView = s.findUniformByName("view")
 	s.uniformTransform = s.findUniformByName("transform")
+
 	s.uniformTextureAlbedoSampler = s.findUniformByName("texture_albedo_sampler")
 	s.uniformTextureNormalMapSampler = s.findUniformByName("texture_normal_map_sampler")
 	s.uniformTextureRoughnessMapSampler = s.findUniformByName("texture_roughness_map_sampler")
 	s.uniformTextureGlowMapSampler = s.findUniformByName("texture_glow_map_sampler")
-	s.uniformLightPosition = s.findUniformByName("light_position")
+
+	s.uniformUseNormalMap = s.findUniformByName("use_normal_map")
+	s.uniformUseRoughnessMap = s.findUniformByName("use_roughness_map")
+	s.uniformUseGlowMap = s.findUniformByName("use_glow_map")
+
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
 	s.uniformMaterialSpecular = s.findUniformByName("material_specular")
 	s.uniformMaterialShininess = s.findUniformByName("material_shininess")
+
+	s.uniformLightPosition = s.findUniformByName("light_position")
 	s.uniformLightAmbient = s.findUniformByName("light_ambient")
 	s.uniformLightDiffuse = s.findUniformByName("light_diffuse")
 	s.uniformLightSpecular = s.findUniformByName("light_specular")
@@ -159,11 +170,31 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
 }
 
-func (s *Shader) BindUniformTextureSamplers() {
+func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, roughnessMap, glowMap *Texture) {
 	gl.Uniform1i(s.uniformTextureAlbedoSampler, int32(TextureAlbedo))
 	gl.Uniform1i(s.uniformTextureNormalMapSampler, int32(TextureNormalMap))
 	gl.Uniform1i(s.uniformTextureRoughnessMapSampler, int32(TextureRoughnessMap))
 	gl.Uniform1i(s.uniformTextureGlowMapSampler, int32(TextureGlowMap))
+
+	// TODO: Should these below be here?
+
+	if normalMap != nil {
+		gl.Uniform1i(s.uniformUseNormalMap, 1)
+	} else {
+		gl.Uniform1i(s.uniformUseNormalMap, 0)
+	}
+
+	if roughnessMap != nil {
+		gl.Uniform1i(s.uniformUseRoughnessMap, 1)
+	} else {
+		gl.Uniform1i(s.uniformUseRoughnessMap, 0)
+	}
+
+	if glowMap != nil {
+		gl.Uniform1i(s.uniformUseGlowMap, 1)
+	} else {
+		gl.Uniform1i(s.uniformUseGlowMap, 0)
+	}
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {

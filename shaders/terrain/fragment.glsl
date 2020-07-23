@@ -10,6 +10,10 @@ uniform sampler2D texture_normal_map_sampler;
 uniform sampler2D texture_roughness_map_sampler;
 uniform sampler2D texture_glow_map_sampler;
 
+uniform bool use_normal_map;
+uniform bool use_roughness_map;
+uniform bool use_glow_map;
+
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
 uniform vec3 light_specular;
@@ -22,12 +26,16 @@ uniform float material_shininess;
 out vec4 out_Color;
 
 void main(void) {
+    // Constants
+    vec3 N = normalize(normal_in_model_space); // Normal
+
     // Normal from the normal map
-    vec3 N = texture(texture_normal_map_sampler, pass_texture_coords).rgb;
-    N = N * 2 - 1;
+    if (use_normal_map) {
+        N = texture(texture_normal_map_sampler, pass_texture_coords).rgb;
+        N = N * 2 - 1;
+    }
 
     // Constants
-    // vec3 N = normalize(normal_in_model_space); // Normal
     vec3 Li = normalize(to_light_vector); // Light inverse
     vec3 Ei = normalize(to_camera_vector); // Eye inverse
     vec3 L = -Li; // Light
@@ -46,16 +54,20 @@ void main(void) {
     vec3 specular = (specularBrightness * material_specular) * light_specular;
 
     // Roughness from the roughness map
-    vec3 roughness = texture(texture_roughness_map_sampler, pass_texture_coords).rgb;
-    specular *= 1 - roughness;
+    if (use_roughness_map) {
+        vec3 roughness = texture(texture_roughness_map_sampler, pass_texture_coords).rgb;
+        specular *= vec3(1, 1, 1) - roughness;
+    }
 
     // Glow map
-    vec3 glow = texture(texture_glow_map_sampler, pass_texture_coords).rgb;
-    if (glow.r > 0.5) {
-        diffuse = vec3(1.0);
+    if (use_glow_map) {
+        vec3 glow = texture(texture_glow_map_sampler, pass_texture_coords).rgb;
+        if (glow.r > 0.5) {
+            diffuse = vec3(1.0);
+        }
     }
 
     // Phong output (ambiant + diffuse + specular)
     out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
-        (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
+    (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
 }

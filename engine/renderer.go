@@ -54,7 +54,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 		model.shader.BindUniformCamera(scene.activeCamera)
 		model.shader.BindUniformLight(scene.activeLight)
 		model.shader.BindUniformMaterial(model.material)
-		model.shader.BindUniformTextureSamplers()
+		model.shader.BindUniformTextureSamplers(model.albedoTexture, model.normalMapTexture, model.roughnessMapTexture, model.glowMapTexture)
 
 		for _, entity := range entities {
 			// The entity transform is the only thing that we should be updating for each entity.
@@ -75,9 +75,9 @@ func (r *Renderer) renderTerrains(scene *Scene) {
 		terrain.shader.BindUniformProjection(r.projection)
 		terrain.shader.BindUniformCamera(scene.activeCamera)
 		terrain.shader.BindUniformLight(scene.activeLight)
-		terrain.shader.BindUniformMaterial(&DefaultMaterial)
-		terrain.shader.BindUniformTextureSamplers()
+		terrain.shader.BindUniformMaterial(&terrain.material)
 		terrain.shader.BindUniformTransform(&terrain.transform)
+		terrain.shader.BindUniformTextureSamplers(terrain.albedoTexture, terrain.normalMapTexture, terrain.roughnessMapTexture, terrain.glowMapTexture)
 
 		gl.DrawElements(gl.TRIANGLES, terrain.mesh.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
