@@ -21,7 +21,7 @@ const (
 	TextureAlbedo TextureKind = iota
 	TextureNormalMap
 	TextureRoughnessMap
-	TextureGlowMap
+	TextureEmissionMap
 )
 
 func (t *Texture) Use() {

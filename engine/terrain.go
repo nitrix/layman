@@ -9,21 +9,21 @@ const TerrainSize = 200
 const terrainVertexCount = 128
 
 type Terrain struct {
-	mesh *Mesh
-	albedoTexture *Texture
-	normalMapTexture *Texture
+	mesh                *Mesh
+	albedoTexture       *Texture
+	normalMapTexture    *Texture
 	roughnessMapTexture *Texture
-	glowMapTexture *Texture
-	shader *Shader
-	material Material
-	transform mgl32.Mat4
+	emissionMapTexture  *Texture
+	shader              *Shader
+	material            Material
+	transform           mgl32.Mat4
 }
 
 type TerrainParams struct {
-	AlbedoTexturePath string
-	NormalMapTexturePath string
+	AlbedoTexturePath       string
+	NormalMapTexturePath    string
 	RoughnessMapTexturePath string
-	GlowMapTexturePath string
+	EmissionMapTexturePath  string
 }
 
 func NewTerrain(params TerrainParams) (*Terrain, error) {
@@ -60,8 +60,8 @@ func NewTerrain(params TerrainParams) (*Terrain, error) {
 		}
 	}
 
-	if params.GlowMapTexturePath != "" {
-		terrain.glowMapTexture, err = LoadTexture(TextureGlowMap, params.GlowMapTexturePath)
+	if params.EmissionMapTexturePath != "" {
+		terrain.emissionMapTexture, err = LoadTexture(TextureEmissionMap, params.EmissionMapTexturePath)
 		if err != nil {
 			return nil, err
 		}
@@ -92,8 +92,8 @@ func (t Terrain) Use() {
 		t.roughnessMapTexture.Use()
 	}
 
-	if t.glowMapTexture != nil {
-		t.glowMapTexture.Use()
+	if t.emissionMapTexture != nil {
+		t.emissionMapTexture.Use()
 	}
 }
 
@@ -113,8 +113,8 @@ func (t Terrain) Unuse() {
 		t.roughnessMapTexture.Unuse()
 	}
 
-	if t.glowMapTexture != nil {
-		t.glowMapTexture.Unuse()
+	if t.emissionMapTexture != nil {
+		t.emissionMapTexture.Unuse()
 	}
 }
 

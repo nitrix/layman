@@ -8,11 +8,11 @@ in vec3 to_camera_vector;
 uniform sampler2D texture_albedo_sampler;
 uniform sampler2D texture_normal_map_sampler;
 uniform sampler2D texture_roughness_map_sampler;
-uniform sampler2D texture_glow_map_sampler;
+uniform sampler2D texture_emission_map_sampler;
 
 uniform bool use_normal_map;
 uniform bool use_roughness_map;
-uniform bool use_glow_map;
+uniform bool use_emission_map;
 
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
@@ -59,11 +59,11 @@ void main(void) {
         specular *= vec3(1, 1, 1) - roughness;
     }
 
-    // Glow map
-    if (use_glow_map) {
-        vec3 glow = texture(texture_glow_map_sampler, pass_texture_coords).rgb;
-        if (glow.r > 0.5) {
-            diffuse = vec3(1.0);
+    // Emission map
+    if (use_emission_map) {
+        vec3 emission = texture(texture_emission_map_sampler, pass_texture_coords).rgb;
+        if (emission.r > 0) {
+            diffuse = vec3(emission.r);
         }
     }
 

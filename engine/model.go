@@ -11,7 +11,7 @@ type Model struct {
 	albedoTexture       *Texture
 	normalMapTexture    *Texture
 	roughnessMapTexture *Texture
-	glowMapTexture      *Texture
+	emissionMapTexture  *Texture
 	shader              *Shader
 	material            *Material
 	initialTransform    mgl32.Mat4
@@ -23,7 +23,7 @@ type ModelParams struct {
 	AlbedoTexturePath       string
 	NormalMapTexturePath    string
 	RoughnessMapTexturePath string
-	GlowMapTexturePath      string
+	EmissionMapTexturePath  string
 	VertexShaderPath        string
 	FragmentShaderPath      string
 	InitialScale            float32
@@ -44,8 +44,8 @@ func (m Model) Use() {
 		m.roughnessMapTexture.Use()
 	}
 
-	if m.glowMapTexture != nil {
-		m.glowMapTexture.Use()
+	if m.emissionMapTexture != nil {
+		m.emissionMapTexture.Use()
 	}
 
 	m.mesh.Use()
@@ -65,8 +65,8 @@ func (m Model) Unuse() {
 		m.roughnessMapTexture.Unuse()
 	}
 
-	if m.glowMapTexture != nil {
-		m.glowMapTexture.Unuse()
+	if m.emissionMapTexture != nil {
+		m.emissionMapTexture.Unuse()
 	}
 
 	m.mesh.Unuse()
@@ -109,9 +109,9 @@ func LoadModel(params ModelParams) (*Model, error) {
 		}
 	}
 
-	// Glow texture map (optional)
-	if params.GlowMapTexturePath != "" {
-		model.glowMapTexture, err = LoadTexture(TextureGlowMap, params.GlowMapTexturePath)
+	// Emission texture map (optional)
+	if params.EmissionMapTexturePath != "" {
+		model.emissionMapTexture, err = LoadTexture(TextureEmissionMap, params.EmissionMapTexturePath)
 		if err != nil {
 			return nil, err
 		}

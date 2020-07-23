@@ -13,13 +13,17 @@ Just a simple project while I'm learning OpenGL.
 - Materials (ambient + diffuse + specular + shininess).
 - Back-face culling optimization.
 - Anti-aliasing (MSAA 4x multi-sampling).
+- Normal maps.
 - Roughness/specular maps.
+- Emission maps.
 - Wireframe mode.
 - Mipmapping / anisotropic filtering.
 - Flat terrain.
 
 ### Short term
 
+- Multiple lights
+- Point lights
 - Third person camera with tilt-pan-zoom offsets.
 
 ### Long term
@@ -30,11 +34,8 @@ Just a simple project while I'm learning OpenGL.
 - Terrain collision
 - Texture atlases
 - GUI
-- Multiple lights
-- Point lights
 - Day/night cycle
 - Cell shading
-- Normal mapping
 - Font rendering
 - Distance field text rendering
 - Particle effects

@@ -18,11 +18,11 @@ type Shader struct {
 	uniformTextureAlbedoSampler       int32
 	uniformTextureNormalMapSampler    int32
 	uniformTextureRoughnessMapSampler int32
-	uniformTextureGlowMapSampler      int32
+	uniformTextureEmissionMapSampler  int32
 
 	uniformUseNormalMap    int32
 	uniformUseRoughnessMap int32
-	uniformUseGlowMap      int32
+	uniformUseEmissionMap  int32
 
 	uniformLightPosition     int32
 	uniformLightAmbient      int32
@@ -118,11 +118,11 @@ func (s *Shader) findUniforms() {
 	s.uniformTextureAlbedoSampler = s.findUniformByName("texture_albedo_sampler")
 	s.uniformTextureNormalMapSampler = s.findUniformByName("texture_normal_map_sampler")
 	s.uniformTextureRoughnessMapSampler = s.findUniformByName("texture_roughness_map_sampler")
-	s.uniformTextureGlowMapSampler = s.findUniformByName("texture_glow_map_sampler")
+	s.uniformTextureEmissionMapSampler = s.findUniformByName("texture_emission_map_sampler")
 
 	s.uniformUseNormalMap = s.findUniformByName("use_normal_map")
 	s.uniformUseRoughnessMap = s.findUniformByName("use_roughness_map")
-	s.uniformUseGlowMap = s.findUniformByName("use_glow_map")
+	s.uniformUseEmissionMap = s.findUniformByName("use_emission_map")
 
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
@@ -170,11 +170,11 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
 }
 
-func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, roughnessMap, glowMap *Texture) {
+func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, roughnessMap, emissionMap *Texture) {
 	gl.Uniform1i(s.uniformTextureAlbedoSampler, int32(TextureAlbedo))
 	gl.Uniform1i(s.uniformTextureNormalMapSampler, int32(TextureNormalMap))
 	gl.Uniform1i(s.uniformTextureRoughnessMapSampler, int32(TextureRoughnessMap))
-	gl.Uniform1i(s.uniformTextureGlowMapSampler, int32(TextureGlowMap))
+	gl.Uniform1i(s.uniformTextureEmissionMapSampler, int32(TextureEmissionMap))
 
 	// TODO: Should these below be here?
 
@@ -190,10 +190,10 @@ func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, roughnessMap, glo
 		gl.Uniform1i(s.uniformUseRoughnessMap, 0)
 	}
 
-	if glowMap != nil {
-		gl.Uniform1i(s.uniformUseGlowMap, 1)
+	if emissionMap != nil {
+		gl.Uniform1i(s.uniformUseEmissionMap, 1)
 	} else {
-		gl.Uniform1i(s.uniformUseGlowMap, 0)
+		gl.Uniform1i(s.uniformUseEmissionMap, 0)
 	}
 }
 
