@@ -1,14 +1,15 @@
 on: [push, pull_request]
 name: Example
 jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  example:
+    runs-on: ubuntu-latest
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
+      - name: Install OpenGL
+        uses: openrndr/setup-opengl@v1
+      - name: Install GUI
+        run: sudo apt install -y  build-essential libalut-dev libasound2-dev libc6-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev mesa-utils pkg-config xorg-dev xvfb
       - name: Checking out code
         uses: actions/checkout@v2
       - name: Building example
