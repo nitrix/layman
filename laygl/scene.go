@@ -1,4 +1,4 @@
-package engine
+package laygl
 
 type Scene struct{
 	// Entities, grouped by model for optimization purposes.

@@ -1,6 +1,6 @@
-## Learn OpenGL (learngl)
+## Layman OpenGL (laygl)
 
-Just a simple project while I'm learning OpenGL.
+A simple 3D engine for the layman.
 
 ![Screenshot](docs/screenshot.png)
 

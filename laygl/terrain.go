@@ -1,4 +1,4 @@
-package engine
+package laygl
 
 import (
 	"github.com/go-gl/gl/v4.1-core/gl"
@@ -129,9 +129,9 @@ func generateTerrainMesh() *Mesh {
 
 	for i := 0; i < terrainVertexCount; i++ {
 		for j := 0; j < terrainVertexCount; j++ {
-			vx := float32(j) / (terrainVertexCount-1) * TerrainSize
+			vx := float32(j) / (terrainVertexCount -1) * TerrainSize
 			vy := float32(0)
-			vz := float32(i) / (terrainVertexCount-1) * TerrainSize
+			vz := float32(i) / (terrainVertexCount -1) * TerrainSize
 			tu := float32(j) / float32(terrainVertexCount-1)
 			tv := float32(i) / float32(terrainVertexCount-1)
 			nx := float32(0)
@@ -155,9 +155,9 @@ func generateTerrainMesh() *Mesh {
 
 	for z := int32(0); z < terrainVertexCount-1; z++ {
 		for x := int32(0); x < terrainVertexCount-1; x++ {
-			topLeft := z * terrainVertexCount + x
+			topLeft := z *terrainVertexCount + x
 			topRight := topLeft + 1
-			bottomLeft := (z+1) * terrainVertexCount + x
+			bottomLeft := (z+1) *terrainVertexCount + x
 			bottomRight := bottomLeft + 1
 
 			indices = append(indices, topLeft)
