@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
-	"learngl/laygl"
+	"github.com/nitrix/laygl/laygl"
 	"log"
 	"math"
 	"runtime/debug"

@@ -1,4 +1,4 @@
-module learngl
+module github.com/nitrix/laygl
 
 go 1.14
 
