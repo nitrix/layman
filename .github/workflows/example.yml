@@ -12,4 +12,4 @@ jobs:
       - name: Checking out code
         uses: actions/checkout@v2
       - name: Building example
-        run: go build ./example
+        run: cd example && go build
