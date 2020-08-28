@@ -5,6 +5,8 @@ uniform mat4 view;
 uniform mat4 transform;
 uniform vec3 light_position;
 
+uniform bool use_normal_map;
+
 in vec3 position;
 in vec2 texture_coords;
 in vec3 normal;
@@ -28,11 +30,12 @@ void main() {
     to_camera_vector = (inverse(view) * vec4(1, 1, 1, 1.0)).xyz - world_position.xyz;
 
     // Normal mapping
-    vec3 T = normalize(vec3(transform * vec4(tangent, 0.0)));
-    vec3 N = normalize(vec3(transform * vec4(normal, 0.0)));
-    vec3 B = cross(N, T);
-    mat3 TBN = transpose(mat3(T, B, N));
-
-    to_light_vector = TBN * to_light_vector;
-    to_camera_vector = TBN * to_camera_vector;
+    if (use_normal_map) {
+        vec3 T = normalize((transform * vec4(tangent, 0.0)).xyz);
+        vec3 N = normalize((transform * vec4(normal, 0.0)).xyz);
+        vec3 B = cross(N, T);
+        mat3 TBN = transpose(mat3(T, B, N)); // to tangeant space conversion matrix
+        to_light_vector = TBN * to_light_vector;
+        to_camera_vector = TBN * to_camera_vector;
+    }
 }

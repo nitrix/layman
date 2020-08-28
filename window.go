@@ -1,7 +1,7 @@
 package laygl
 
 import (
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"
 	"runtime"
@@ -97,6 +97,13 @@ func (w *Window) Refresh() {
 	w.glfwWindow.SwapBuffers()
 }
 
+// TODO: Allow multiple callbacks to be registered.
+func (w *Window) OnResize(f func(w *Window)) {
+	w.glfwWindow.SetFramebufferSizeCallback(func(glfwWindow *glfw.Window, width int, height int) {
+		f(w)
+	})
+}
+
 func incrementGlfw() {
 	newCount := atomic.AddInt32(&glfwReferenceCount, 1)
 	if newCount != 1 {
@@ -107,9 +114,9 @@ func incrementGlfw() {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
 
-	glfw.WindowHint(glfw.Resizable, glfw.False)
+	glfw.WindowHint(glfw.Resizable, glfw.True)
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	glfw.WindowHint(glfw.ContextVersionMinor, 6)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 	glfw.WindowHint(glfw.Samples, 4)

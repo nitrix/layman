@@ -49,14 +49,14 @@ void main(void) {
     vec3 diffuse = (diffuseBrightness * material_diffuse) * light_diffuse;
 
     // Specular lighting
-    float specularAngle = clamp(dot(R, Ei), 0, 1);
+    float specularAngle = max(dot(R, Ei), 0);
     float specularBrightness = pow(specularAngle, material_shininess);
     vec3 specular = (specularBrightness * material_specular) * light_specular;
 
     // Roughness from the roughness map
     if (use_roughness_map) {
-        vec3 roughness = texture(texture_roughness_map_sampler, pass_texture_coords).rgb;
-        specular *= vec3(1, 1, 1) - roughness;
+        float roughness = texture(texture_roughness_map_sampler, pass_texture_coords).y;
+        specular *= 1 - roughness;
     }
 
     // Emission map

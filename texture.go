@@ -2,7 +2,7 @@ package laygl
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"image"
 	"image/draw"
 	_ "image/jpeg"

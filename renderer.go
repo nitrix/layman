@@ -2,7 +2,7 @@ package laygl
 
 import "C"
 import (
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"unsafe"
 )
@@ -11,11 +11,13 @@ type Renderer struct {
 	projection mgl32.Mat4
 }
 
-func NewRenderer(w *Window) (*Renderer, error) {
+func NewRenderer(window *Window) (*Renderer, error) {
 	renderer := &Renderer{}
 
-	width, height := w.Dimensions()
-	renderer.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width) / float32(height), 0.1, 50.0)
+	renderer.Resize(window.Dimensions())
+	window.OnResize(func(w *Window) {
+		renderer.Resize(window.Dimensions())
+	})
 
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
@@ -36,6 +38,11 @@ func (r *Renderer) Wireframe(enabled bool) {
 	} else {
 		gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 	}
+}
+
+func (r *Renderer) Resize(width, height int) {
+	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width) / float32(height), 0.1, 50.0)
+	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
 func (r *Renderer) Render(scene *Scene) {
@@ -60,7 +67,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			// The entity transform is the only thing that we should be updating for each entity.
 			model.shader.BindUniformTransform(&entity.transform)
 
-			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
+			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.triangleCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
 		}
 
 		model.Unuse()
@@ -79,7 +86,7 @@ func (r *Renderer) renderTerrains(scene *Scene) {
 		terrain.shader.BindUniformTransform(&terrain.transform)
 		terrain.shader.BindUniformTextureSamplers(terrain.albedoTexture, terrain.normalMapTexture, terrain.roughnessMapTexture, terrain.emissionMapTexture)
 
-		gl.DrawElements(gl.TRIANGLES, terrain.mesh.faceCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
+		gl.DrawElements(gl.TRIANGLES, terrain.mesh.triangleCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
 
 		terrain.Unuse()
 	}

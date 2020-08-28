@@ -14,7 +14,7 @@ import (
 func main() {
 	// Create a window.
 	window, err := laygl.NewFullScreenWindow("Learn OpenGL")
-	//window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
+	// window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -29,7 +29,7 @@ func main() {
 	// Load the helmet model.
 	helmetModel, err := laygl.LoadModel(laygl.ModelParams{
 		Name:                    "helmet",
-		MeshPath:                "assets/models/helmet.obj",
+		ModelPath:               "assets/models/helmet.obj",
 		AlbedoTexturePath:       "assets/textures/helmet/helmet_albedo.png",
 		NormalMapTexturePath:    "assets/textures/helmet/helmet_normal.png",
 		RoughnessMapTexturePath: "assets/textures/helmet/helmet_roughness.png",
@@ -39,7 +39,7 @@ func main() {
 		InitialScale:            0.05,
 	})
 	if err != nil {
-		log.Fatalln("Unable to load helmet model")
+		log.Fatalln("Unable to load helmet model:", err)
 	}
 
 	// TODO: Light is directional on the Z axis. Therefore it has to be put far away in the negative space.

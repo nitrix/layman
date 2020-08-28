@@ -3,6 +3,7 @@ package laygl
 import (
 	"fmt"
 	"github.com/go-gl/mathgl/mgl32"
+	"path/filepath"
 )
 
 type Model struct {
@@ -19,7 +20,7 @@ type Model struct {
 
 type ModelParams struct {
 	Name                    string
-	MeshPath                string
+	ModelPath               string
 	AlbedoTexturePath       string
 	NormalMapTexturePath    string
 	RoughnessMapTexturePath string
@@ -73,16 +74,31 @@ func (m Model) Unuse() {
 	m.shader.Unuse()
 }
 
+func NewModel() *Model {
+	return &Model {
+		initialTransform: mgl32.Ident4(),
+	}
+}
+
 func LoadModel(params ModelParams) (*Model, error) {
 	var err error
 
-	model := &Model{
-		initialTransform: mgl32.Ident4(),
+	var model *Model
+
+	// OBJ models.
+	if filepath.Ext(params.ModelPath) == ".obj" {
+		model, err = LoadObj(params.ModelPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	model.mesh, err = LoadMesh(params.MeshPath)
-	if err != nil {
-		return nil, err
+	// Collada models.
+	if filepath.Ext(params.ModelPath) == ".dae" {
+		model, err = LoadDae(params.ModelPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Albedo texture (optional)

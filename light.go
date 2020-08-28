@@ -13,6 +13,6 @@ func DefaultLight() Light {
 	return Light{
 		Ambient: mgl32.Vec3{0.2, 0.2, 0.2},
 		Diffuse: mgl32.Vec3{1.0, 1.0, 1.0},
-		Specular: mgl32.Vec3{0.85, 0.85, 0.85},
+		Specular: mgl32.Vec3{1.0, 1.0, 1.0},
 	}
 }

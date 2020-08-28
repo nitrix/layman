@@ -1,7 +1,7 @@
 package laygl
 
 import (
-	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -124,7 +124,9 @@ func (t *Terrain) Translate(position mgl32.Vec3) {
 
 func generateTerrainMesh() *Mesh {
 	numberOfElements := terrainVertexCount * terrainVertexCount
-	allInOne := make([]float32, 0, numberOfElements * 8)
+	vertices := make([]float32, 0)
+	uvs := make([]float32, 0)
+	normals := make([]float32, 0)
 	indices := make([]int32, 0, 6*(terrainVertexCount-1)*(terrainVertexCount-1))
 
 	for i := 0; i < terrainVertexCount; i++ {
@@ -142,14 +144,14 @@ func generateTerrainMesh() *Mesh {
 			tu *= 40
 			tv *= 40
 
-			allInOne = append(allInOne, vx)
-			allInOne = append(allInOne, vy)
-			allInOne = append(allInOne, vz)
-			allInOne = append(allInOne, tu)
-			allInOne = append(allInOne, tv)
-			allInOne = append(allInOne, nx)
-			allInOne = append(allInOne, ny)
-			allInOne = append(allInOne, nz)
+			vertices = append(vertices, vx)
+			vertices = append(vertices, vy)
+			vertices = append(vertices, vz)
+			uvs = append(uvs, tu)
+			uvs = append(uvs, tv)
+			normals = append(normals, nx)
+			normals = append(normals, ny)
+			normals = append(normals, nz)
 		}
 	}
 
@@ -169,6 +171,6 @@ func generateTerrainMesh() *Mesh {
 		}
 	}
 
-	mesh := rawToMesh(allInOne, numberOfElements, indices)
+	mesh := rawToMesh(numberOfElements, vertices, uvs, normals, indices)
 	return mesh
 }
