@@ -13,10 +13,10 @@ func LoadObj(modelPath string) (*Model, error) {
 		return model, err
 	}
 
-	// The gwob obj reader produces indices that are `int` instead of the `int32` that OpenGL expects.
-	var convertedIndices []int32
+	// The gwob obj reader produces indices that are `int` instead of the `uint32` that OpenGL expects.
+	var convertedIndices []uint32
 	for _, v := range obj.Indices {
-		convertedIndices = append(convertedIndices, int32(v))
+		convertedIndices = append(convertedIndices, uint32(v))
 	}
 
 	vertices := make([]float32, 0)
@@ -39,7 +39,7 @@ func LoadObj(modelPath string) (*Model, error) {
 		uvs[i*2 + 1] = 1 - uvs[i*2 + 1]
 	}
 
-	model.mesh = rawToMesh(obj.NumberOfElements(), vertices, uvs, normals, convertedIndices)
+	model.mesh = rawToMesh(int32(obj.NumberOfElements()), vertices, uvs, normals, convertedIndices)
 
 	return model, nil
 }

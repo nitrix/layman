@@ -24,22 +24,22 @@ func (c *Camera) LookAt(direction mgl32.Vec3) {
 	c.updateView()
 }
 
-func (c *Camera) RotateX(angle float32) {
-	c.view = c.view.Mul4(mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()))
-	c.view = c.view.Mul4(mgl32.Rotate3DX(angle).Mat4())
-	c.view = c.view.Mul4(mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()))
+func (c *Camera) RotateX(radians float32) {
+	c.view = mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()).Mul4(c.view)
+	c.view = mgl32.Rotate3DX(radians).Mat4().Mul4(c.view)
+	c.view = mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()).Mul4(c.view)
 }
 
-func (c *Camera) RotateY(angle float32) {
-	c.view = c.view.Mul4(mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()))
-	c.view = c.view.Mul4(mgl32.Rotate3DY(angle).Mat4())
-	c.view = c.view.Mul4(mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()))
+func (c *Camera) RotateY(radians float32) {
+	c.view = mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()).Mul4(c.view)
+	c.view = mgl32.Rotate3DY(radians).Mat4().Mul4(c.view)
+	c.view = mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()).Mul4(c.view)
 }
 
-func (c *Camera) RotateZ(angle float32) {
-	c.view = c.view.Mul4(mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()))
-	c.view = c.view.Mul4(mgl32.Rotate3DZ(angle).Mat4())
-	c.view = c.view.Mul4(mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()))
+func (c *Camera) RotateZ(radians float32) {
+	c.view = mgl32.Translate3D(c.position.X(), c.position.Y(), c.position.Z()).Mul4(c.view)
+	c.view = mgl32.Rotate3DZ(radians).Mat4().Mul4(c.view)
+	c.view = mgl32.Translate3D(-c.position.X(), -c.position.Y(), -c.position.Z()).Mul4(c.view)
 }
 
 func (c *Camera) updateView() {

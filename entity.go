@@ -1,6 +1,8 @@
 package laygl
 
-import "github.com/go-gl/mathgl/mgl32"
+import (
+	"github.com/go-gl/mathgl/mgl32"
+)
 
 type Entity struct {
 	model *Model
@@ -17,16 +19,27 @@ func NewEntityFromModel(model *Model) *Entity {
 
 // Using radians, so a complete rotation is 2*Pi.
 
-func (e *Entity) RotateX(angle float32) {
-	e.transform = e.transform.Mul4(mgl32.HomogRotate3DX(angle))
+func (e *Entity) Translate(x, y, z float32) {
+	e.position = e.position.Add(mgl32.Vec3{x, y, z})
+	e.transform = mgl32.Translate3D(-x, -y, -z).Mul4(e.transform)
 }
 
-func (e *Entity) RotateY(angle float32) {
-	e.transform = e.transform.Mul4(mgl32.HomogRotate3DY(angle))
+func (e *Entity) RotateX(radians float32) {
+	e.transform = mgl32.Translate3D(e.position.X(), e.position.Y(), e.position.Z()).Mul4(e.transform)
+	e.transform = mgl32.HomogRotate3DX(radians).Mul4(e.transform)
+	e.transform = mgl32.Translate3D(-e.position.X(), -e.position.Y(), -e.position.Z()).Mul4(e.transform)
 }
 
-func (e *Entity) RotateZ(angle float32) {
-	e.transform = e.transform.Mul4(mgl32.HomogRotate3DZ(angle))
+func (e *Entity) RotateY(radians float32) {
+	e.transform = mgl32.Translate3D(e.position.X(), e.position.Y(), e.position.Z()).Mul4(e.transform)
+	e.transform = mgl32.HomogRotate3DY(radians).Mul4(e.transform)
+	e.transform = mgl32.Translate3D(-e.position.X(), -e.position.Y(), -e.position.Z()).Mul4(e.transform)
+}
+
+func (e *Entity) RotateZ(radians float32) {
+	e.transform = mgl32.Translate3D(e.position.X(), e.position.Y(), e.position.Z()).Mul4(e.transform)
+	e.transform = mgl32.HomogRotate3DZ(radians).Mul4(e.transform)
+	e.transform = mgl32.Translate3D(-e.position.X(), -e.position.Y(), -e.position.Z()).Mul4(e.transform)
 }
 
 func (e *Entity) Scale(factor float32) {

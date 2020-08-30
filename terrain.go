@@ -127,7 +127,7 @@ func generateTerrainMesh() *Mesh {
 	vertices := make([]float32, 0)
 	uvs := make([]float32, 0)
 	normals := make([]float32, 0)
-	indices := make([]int32, 0, 6*(terrainVertexCount-1)*(terrainVertexCount-1))
+	indices := make([]uint32, 0, 6*(terrainVertexCount-1)*(terrainVertexCount-1))
 
 	for i := 0; i < terrainVertexCount; i++ {
 		for j := 0; j < terrainVertexCount; j++ {
@@ -155,8 +155,8 @@ func generateTerrainMesh() *Mesh {
 		}
 	}
 
-	for z := int32(0); z < terrainVertexCount-1; z++ {
-		for x := int32(0); x < terrainVertexCount-1; x++ {
+	for z := uint32(0); z < terrainVertexCount-1; z++ {
+		for x := uint32(0); x < terrainVertexCount-1; x++ {
 			topLeft := z *terrainVertexCount + x
 			topRight := topLeft + 1
 			bottomLeft := (z+1) *terrainVertexCount + x
@@ -171,6 +171,6 @@ func generateTerrainMesh() *Mesh {
 		}
 	}
 
-	mesh := rawToMesh(numberOfElements, vertices, uvs, normals, indices)
+	mesh := rawToMesh(int32(numberOfElements), vertices, uvs, normals, indices)
 	return mesh
 }

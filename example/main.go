@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Load the helmet model.
-	helmetModel, err := laygl.LoadModel(laygl.ModelParams{
+	model, err := laygl.LoadModel(laygl.ModelParams{
 		Name:                    "helmet",
 		ModelPath:               "assets/models/helmet.obj",
 		AlbedoTexturePath:       "assets/textures/helmet/helmet_albedo.png",
@@ -37,61 +37,28 @@ func main() {
 		FragmentShaderPath:      "shaders/model/fragment.glsl",
 		Material:                laygl.DefaultMaterial(),
 		InitialScale:            0.05,
+		InitialRotation:         mgl32.Vec3{0, math.Pi, 0},
 	})
 	if err != nil {
 		log.Fatalln("Unable to load helmet model:", err)
 	}
 
-	// TODO: Light is directional on the Z axis. Therefore it has to be put far away in the negative space.
-
 	// Create light
 	light := laygl.DefaultLight()
-	light.Position = mgl32.Vec3{0, 0, -laygl.TerrainSize}
+	light.Position = mgl32.Vec3{0, 3, -15}
 
-	// Demo entity
-	demoEntity := laygl.NewEntityFromModel(helmetModel)
-	demoEntity.RotateY(math.Pi)
+	// Entity
+	entity := laygl.NewEntityFromModel(model)
 
 	// Camera
 	camera := laygl.NewCamera()
 	camera.MoveAt(mgl32.Vec3{0, 3, -15})
 	camera.LookAt(mgl32.Vec3{0, 3, 0})
 
-	// Terrains
-	groundTerrainParams := laygl.TerrainParams{
-		AlbedoTexturePath: "assets/textures/ground/ground_albedo.png",
-	}
-
-	terrain1, err := laygl.NewTerrain(groundTerrainParams)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	terrain2, err := laygl.NewTerrain(groundTerrainParams)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	terrain3, err := laygl.NewTerrain(groundTerrainParams)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	terrain4, err := laygl.NewTerrain(groundTerrainParams)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	terrain1.Translate(mgl32.Vec3{0, 0, 0})
-	terrain2.Translate(mgl32.Vec3{-laygl.TerrainSize, 0, 0})
-	terrain3.Translate(mgl32.Vec3{0, 0, -laygl.TerrainSize})
-	terrain4.Translate(mgl32.Vec3{-laygl.TerrainSize, 0, -laygl.TerrainSize})
-
 	// Scene
 	scene := laygl.NewScene()
 	scene.AddCamera(camera)
-	scene.AddEntity(demoEntity)
-	//scene.AddTerrain(terrain1)
-	//scene.AddTerrain(terrain2)
-	//scene.AddTerrain(terrain3)
-	//scene.AddTerrain(terrain4)
+	scene.AddEntity(entity)
 	scene.AddLight(&light)
 
 	// Reduce the memory residency after loading assets into GPU memory.
@@ -109,8 +76,7 @@ func main() {
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
-		demoEntity.RotateY(float32(elapsed) * 0.25)
-		// camera.RotateY(float32(elapsed) * 0.25)
+		entity.RotateY(float32(elapsed) * 0.25)
 
 		// Render
 		renderer.Render(scene)

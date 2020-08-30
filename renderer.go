@@ -67,7 +67,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			// The entity transform is the only thing that we should be updating for each entity.
 			model.shader.BindUniformTransform(&entity.transform)
 
-			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.triangleCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
+			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.triangleCount * 3, gl.UNSIGNED_INT, gl.PtrOffset(0))
 		}
 
 		model.Unuse()

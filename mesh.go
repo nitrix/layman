@@ -6,6 +6,8 @@ import (
 )
 
 type Mesh struct {
+	name string
+
 	vao uint32
 
 	verticesBufferId uint32
@@ -17,7 +19,7 @@ type Mesh struct {
 	triangleCount int32
 }
 
-func rawToMesh(triangleCount int, vertices, uvs, normals []float32, indices []int32) *Mesh {
+func rawToMesh(triangleCount int32, vertices, uvs, normals []float32, indices []uint32) *Mesh {
 	mesh := &Mesh{}
 
 	// Create the VAO on the GPU, then use it.
@@ -49,7 +51,6 @@ func rawToMesh(triangleCount int, vertices, uvs, normals []float32, indices []in
 	gl.GenBuffers(1, &mesh.indicesBufferId)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indicesBufferId)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices) * 4, gl.Ptr(indices), gl.STATIC_DRAW)
-	mesh.triangleCount = int32(len(indices))
 
 	// Tangent/Bitangent.
 	tangents := generateTangents(triangleCount, indices, vertices, uvs, normals)
@@ -59,10 +60,12 @@ func rawToMesh(triangleCount int, vertices, uvs, normals []float32, indices []in
 	gl.EnableVertexAttribArray(ShaderAttributeTangents)
 	gl.VertexAttribPointer(ShaderAttributeTangents, 3, gl.FLOAT, false, int32(3 * 4), gl.PtrOffset(0))
 
+	mesh.triangleCount = triangleCount
+
 	return mesh
 }
 
-func generateTangents(numberOfElements int, indices []int32, vertices, uvs, normals []float32) []float32 {
+func generateTangents(numberOfElements int32, indices []uint32, vertices, uvs, normals []float32) []float32 {
 	tangents := make([]float32, numberOfElements * 3)
 	bitangents := make([]float32, numberOfElements * 3)
 
@@ -136,7 +139,7 @@ func generateTangents(numberOfElements int, indices []int32, vertices, uvs, norm
 	}
 
 	// Part 2
-	for i := 0; i < numberOfElements; i++ {
+	for i := int32(0); i < numberOfElements; i++ {
 		n := mgl32.Vec3{
 			normals[i*3+0],
 			normals[i*3+1],

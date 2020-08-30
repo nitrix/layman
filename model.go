@@ -147,17 +147,9 @@ func LoadModel(params ModelParams) (*Model, error) {
 	}
 
 	// Apply rotation
-	if params.InitialRotation.X() != 0 || params.InitialRotation.Y() != 0 || params.InitialRotation.Z() != 0 {
-		model.initialTransform = model.initialTransform.Mul4(
-			mgl32.HomogRotate3DX(params.InitialRotation.X()),
-		)
-		model.initialTransform = model.initialTransform.Mul4(
-			mgl32.HomogRotate3DY(params.InitialRotation.Y()),
-		)
-		model.initialTransform = model.initialTransform.Mul4(
-			mgl32.HomogRotate3DZ(params.InitialRotation.Z()),
-		)
-	}
+	model.initialTransform = mgl32.HomogRotate3DX(params.InitialRotation.X()).Mul4(model.initialTransform)
+	model.initialTransform = mgl32.HomogRotate3DY(params.InitialRotation.Y()).Mul4(model.initialTransform)
+	model.initialTransform = mgl32.HomogRotate3DZ(params.InitialRotation.Z()).Mul4(model.initialTransform)
 
 	// Apply material
 	model.material = &params.Material
