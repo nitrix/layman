@@ -2,7 +2,9 @@ package laygl
 
 import (
 	"errors"
+	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nitrix/collada"
+	"math"
 )
 
 // TODO: Interface for model loaders? Own packages even?
@@ -34,8 +36,15 @@ func LoadDae(filename string) (*Model, error) {
 	model := NewModel()
 	model.mesh = mesh
 
-	// Blender models are Z axis aligned up for some reason. Gotta rotate it.
-	// model.initialTransform = model.initialTransform.Mul4(mgl32.HomogRotate3DX(90))
+	// Take into account the up axis.
+	switch c.UpAxis {
+	case collada.X_Up:
+		model.initialTransform = mgl32.HomogRotate3DZ(math.Pi/2).Mul4(model.initialTransform)
+	case collada.Y_Up:
+		// That's the same coordinate system that we're using.
+	case collada.Z_Up:
+		model.initialTransform = mgl32.HomogRotate3DX(-math.Pi/2).Mul4(model.initialTransform)
+	}
 
 	return model, nil
 }

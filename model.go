@@ -27,8 +27,7 @@ type ModelParams struct {
 	EmissionMapTexturePath  string
 	VertexShaderPath        string
 	FragmentShaderPath      string
-	InitialScale            float32
-	InitialRotation         mgl32.Vec3
+
 	Material                Material
 }
 
@@ -138,18 +137,6 @@ func LoadModel(params ModelParams) (*Model, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to load shader: %w", err)
 	}
-
-	// Apply scaling
-	if params.InitialScale != 0 {
-		model.initialTransform = model.initialTransform.Mul4(
-			mgl32.Scale3D(params.InitialScale, params.InitialScale, params.InitialScale),
-		)
-	}
-
-	// Apply rotation
-	model.initialTransform = mgl32.HomogRotate3DX(params.InitialRotation.X()).Mul4(model.initialTransform)
-	model.initialTransform = mgl32.HomogRotate3DY(params.InitialRotation.Y()).Mul4(model.initialTransform)
-	model.initialTransform = mgl32.HomogRotate3DZ(params.InitialRotation.Z()).Mul4(model.initialTransform)
 
 	// Apply material
 	model.material = &params.Material

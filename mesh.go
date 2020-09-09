@@ -66,8 +66,8 @@ func rawToMesh(triangleCount int32, vertices, uvs, normals []float32, indices []
 }
 
 func generateTangents(numberOfElements int32, indices []uint32, vertices, uvs, normals []float32) []float32 {
-	tangents := make([]float32, numberOfElements * 3)
-	bitangents := make([]float32, numberOfElements * 3)
+	tangents := make([]float32, len(normals))
+	bitangents := make([]float32, len(normals))
 
 	for i := 0; i < len(indices); i += 3 {
 		v1i := indices[i]

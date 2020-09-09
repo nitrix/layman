@@ -45,7 +45,7 @@ void main(void) {
     vec3 ambient = material_ambient * light_ambient;
 
     // Diffuse lighting
-    float diffuseBrightness = clamp(dot(Li, N), 0, 1);
+    float diffuseBrightness = max(dot(Li, N), 0);
     vec3 diffuse = (diffuseBrightness * material_diffuse) * light_diffuse;
 
     // Specular lighting
@@ -68,6 +68,6 @@ void main(void) {
     }
 
     // Phong output (ambiant + diffuse + specular)
-    out_Color = texture(texture_albedo_sampler, pass_texture_coords) *
-        (vec4(ambient, 1.0) + vec4(diffuse, 1.0) + vec4(specular, 1.0));
+    vec4 albedo = texture(texture_albedo_sampler, pass_texture_coords);
+    out_Color = albedo * vec4(ambient + diffuse + specular, 1.0);
 }

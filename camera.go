@@ -14,13 +14,13 @@ func NewCamera() *Camera {
 	return camera
 }
 
-func (c *Camera) MoveAt(position mgl32.Vec3) {
-	c.position = position
+func (c *Camera) MoveAt(x, y, z float32) {
+	c.position = mgl32.Vec3{x, y, z}
 	c.updateView()
 }
 
-func (c *Camera) LookAt(direction mgl32.Vec3) {
-	c.direction = direction
+func (c *Camera) LookAt(x, y, z float32) {
+	c.direction = mgl32.Vec3{x, y, z}
 	c.updateView()
 }
 
