@@ -49,46 +49,31 @@ func (r *Renderer) Render(scene *Scene) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	r.renderEntities(scene)
-	r.renderTerrains(scene)
 }
 
 func (r *Renderer) renderEntities(scene *Scene) {
 	for model, entities := range scene.entities {
-		model.Use()
+		// Render each meshes of the model.
+		for _, mesh := range model.meshes {
+			mesh.Use()
 
-		// Prepare the shader.
-		model.shader.BindUniformProjection(r.projection)
-		model.shader.BindUniformCamera(scene.activeCamera)
-		model.shader.BindUniformLight(scene.activeLight)
-		model.shader.BindUniformMaterial(model.material)
-		model.shader.BindUniformTextureSamplers(model.albedoTexture, model.normalMapTexture, model.roughnessMapTexture, model.emissionMapTexture)
+			// Prepare the shader.
+			mesh.shader.BindUniformProjection(r.projection)
+			mesh.shader.BindUniformCamera(scene.activeCamera)
+			mesh.shader.BindUniformLight(scene.activeLight)
+			mesh.shader.BindUniformMaterial(mesh.material)
+			mesh.shader.BindUniformTextureSamplers(mesh.albedoTexture, mesh.normalMapTexture, mesh.roughnessMapTexture, mesh.emissionMapTexture)
 
-		for _, entity := range entities {
-			// The entity transform is the only thing that we should be updating for each entity.
-			model.shader.BindUniformTransform(&entity.transform)
+			for _, entity := range entities {
+				// The entity transform is the only thing that we should be updating for each entity.
+				mesh.shader.BindUniformTransform(&entity.transform)
 
-			gl.DrawElements(gl.TRIANGLES, entity.model.mesh.triangleCount * 3, gl.UNSIGNED_INT, gl.PtrOffset(0))
+				// FIXME: UNSIGNED_SHORT?
+				gl.DrawElements(gl.TRIANGLES, int32(mesh.indiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
+			}
+
+			mesh.Unuse()
 		}
-
-		model.Unuse()
-	}
-}
-
-func (r *Renderer) renderTerrains(scene *Scene) {
-	for _, terrain := range scene.terrains {
-		terrain.Use()
-
-		// Prepare the shader.
-		terrain.shader.BindUniformProjection(r.projection)
-		terrain.shader.BindUniformCamera(scene.activeCamera)
-		terrain.shader.BindUniformLight(scene.activeLight)
-		terrain.shader.BindUniformMaterial(&terrain.material)
-		terrain.shader.BindUniformTransform(&terrain.transform)
-		terrain.shader.BindUniformTextureSamplers(terrain.albedoTexture, terrain.normalMapTexture, terrain.roughnessMapTexture, terrain.emissionMapTexture)
-
-		gl.DrawElements(gl.TRIANGLES, terrain.mesh.triangleCount, gl.UNSIGNED_INT, gl.PtrOffset(0))
-
-		terrain.Unuse()
 	}
 }
 

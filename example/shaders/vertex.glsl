@@ -31,8 +31,8 @@ void main() {
 
     // Normal mapping
     if (use_normal_map) {
-        vec3 T = normalize((transform * vec4(tangent, 0.0)).xyz);
-        vec3 N = normalize((transform * vec4(normal, 0.0)).xyz);
+        vec3 T = normalize((transform * vec4(tangent, 1.0)).xyz);
+        vec3 N = normalize((transform * vec4(normal, 1.0)).xyz);
         vec3 B = cross(N, T);
         mat3 TBN = transpose(mat3(T, B, N)); // to tangeant space conversion matrix
         to_light_vector = TBN * to_light_vector;

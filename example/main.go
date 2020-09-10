@@ -14,8 +14,8 @@ import (
 
 func main() {
 	// Create a window.
-	window, err := laygl.NewFullScreenWindow("Learn OpenGL")
-	//window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
+	//window, err := laygl.NewFullScreenWindow("Learn OpenGL")
+	window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -27,32 +27,9 @@ func main() {
 		log.Fatalln("Unable to create renderer:", err)
 	}
 
-	// Load the helmet model.
-	/*
-	model, err := laygl.LoadModel(laygl.ModelParams{
-		Name:                    "helmet",
-		ModelPath:               "assets/helmet/helmet.obj",
-		AlbedoTexturePath:       "assets/helmet/helmet_albedo.png",
-		NormalMapTexturePath:    "assets/helmet/helmet_normal.png",
-		RoughnessMapTexturePath: "assets/helmet/helmet_roughness.png",
-		VertexShaderPath:        "shaders/model/vertex.glsl",
-		FragmentShaderPath:      "shaders/model/fragment.glsl",
-		Material:                laygl.DefaultMaterial(),
-	})
-	if err != nil {
-		log.Fatalln("Unable to load helmet model:", err)
-	}
-	*/
-
-	// Load the cowboy model.
-	model, err := laygl.LoadModel(laygl.ModelParams{
-		Name:                    "helmet",
-		ModelPath:               "assets/cowboy/cowboy.dae",
-		AlbedoTexturePath:       "assets/cowboy/cowboy.png",
-		VertexShaderPath:        "shaders/model/vertex.glsl",
-		FragmentShaderPath:      "shaders/model/fragment.glsl",
-		Material:                laygl.DefaultMaterial(),
-	})
+	// Load the model.
+	//model, err := laygl.LoadModel("helmet", "assets/cowboy.glb")
+	model, err := laygl.LoadModel("helmet", "assets/helmet.glb")
 	if err != nil {
 		log.Fatalln("Unable to load cowboy model:", err)
 	}
@@ -66,8 +43,8 @@ func main() {
 
 	// Camera
 	camera := laygl.NewCamera()
-	camera.MoveAt(0, 3, 20)
-	camera.LookAt(0, 3, 0)
+	camera.MoveAt(0, 0, 20)
+	camera.LookAt(0, 0, 0)
 
 	// Scene
 	scene := laygl.NewScene()
