@@ -232,12 +232,12 @@ func (g *Gltf) loadMaterial(m *gltf.Material) error {
 
 		// Metallic/roughness texture.
 		if m.PBRMetallicRoughness.MetallicRoughnessTexture != nil {
-			err := g.loadTexture(TextureRoughnessMap, g.document.Textures[m.PBRMetallicRoughness.MetallicRoughnessTexture.Index])
+			err := g.loadTexture(TextureMetallicRoughnessMap, g.document.Textures[m.PBRMetallicRoughness.MetallicRoughnessTexture.Index])
 			if err != nil {
 				return err
 			}
 
-			g.mesh.roughnessMapTexture = g.texture // FIXME: This should be metallic+roughness, not just roughness.
+			g.mesh.metallicRoughnessMap = g.texture
 		}
 	}
 

@@ -14,20 +14,17 @@ type Shader struct {
 	uniformProjection        int32
 	uniformView              int32
 	uniformTransform         int32
+	uniformNormalTransform   int32
+	uniformCameraPosition    int32
 
-	uniformTextureAlbedoSampler       int32
-	uniformTextureNormalMapSampler    int32
-	uniformTextureRoughnessMapSampler int32
-	uniformTextureEmissionMapSampler  int32
+	albedoMap                UniformMapInfo
+	normalMap                UniformMapInfo
+	roughnessMap             UniformMapInfo
+	metallicMap              UniformMapInfo
+	aoMap                    UniformMapInfo
+	emissionMap              UniformMapInfo
 
-	uniformUseNormalMap    int32
-	uniformUseRoughnessMap int32
-	uniformUseEmissionMap  int32
-
-	uniformLightPosition     int32
-	uniformLightAmbient      int32
-	uniformLightDiffuse      int32
-	uniformLightSpecular     int32
+	directionalLight		 DirectionalLight
 
 	uniformMaterialAmbient   int32
 	uniformMaterialDiffuse   int32
@@ -35,6 +32,17 @@ type Shader struct {
 	uniformMaterialShininess int32
 }
 
+type UniformMapInfo struct {
+	enabledUniformId int32
+	defaultValueUniformId int32
+	samplerUniformId int32
+}
+
+type DirectionalLight struct {
+	enabledUniformId int32
+	directionUniformId int32
+	irradianceUniformId int32
+}
 
 const (
 	ShaderAttributeVertexCoords = iota
@@ -105,34 +113,46 @@ func LoadShader(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, e
 
 func (s *Shader) bindAttributes() {
 	s.bindAttribute(ShaderAttributeVertexCoords, "position")
-	s.bindAttribute(ShaderAttributeTextureCoords, "texture_coords")
+	s.bindAttribute(ShaderAttributeTextureCoords, "uv")
 	s.bindAttribute(ShaderAttributeNormals, "normal")
 	s.bindAttribute(ShaderAttributeTangents, "tangent")
 }
 
 func (s *Shader) findUniforms() {
-	s.uniformProjection = s.findUniformByName("projection")
-	s.uniformView = s.findUniformByName("view")
-	s.uniformTransform = s.findUniformByName("transform")
+	s.uniformProjection = s.findUniformByName("projection_transform")
+	s.uniformView = s.findUniformByName("view_transform")
+	s.uniformTransform = s.findUniformByName("model_transform")
+	s.uniformNormalTransform = s.findUniformByName("normal_transform")
+	s.uniformCameraPosition = s.findUniformByName("camera_position")
 
-	s.uniformTextureAlbedoSampler = s.findUniformByName("texture_albedo_sampler")
-	s.uniformTextureNormalMapSampler = s.findUniformByName("texture_normal_map_sampler")
-	s.uniformTextureRoughnessMapSampler = s.findUniformByName("texture_roughness_map_sampler")
-	s.uniformTextureEmissionMapSampler = s.findUniformByName("texture_emission_map_sampler")
+	s.albedoMap.samplerUniformId      = s.findUniformByName("albedo_map.map")
+	s.albedoMap.defaultValueUniformId = s.findUniformByName("albedo_map.default_value")
+	s.albedoMap.enabledUniformId      = s.findUniformByName("albedo_map.enabled")
 
-	s.uniformUseNormalMap = s.findUniformByName("use_normal_map")
-	s.uniformUseRoughnessMap = s.findUniformByName("use_roughness_map")
-	s.uniformUseEmissionMap = s.findUniformByName("use_emission_map")
+	s.normalMap.samplerUniformId      = s.findUniformByName("normal_map.map")
+	s.normalMap.defaultValueUniformId = s.findUniformByName("normal_map.default_value")
+	s.normalMap.enabledUniformId      = s.findUniformByName("normal_map.enabled")
+
+	s.roughnessMap.samplerUniformId      = s.findUniformByName("roughness_map.map")
+	s.roughnessMap.defaultValueUniformId = s.findUniformByName("roughness_map.default_value")
+	s.roughnessMap.enabledUniformId      = s.findUniformByName("roughness_map.enabled")
+
+	s.metallicMap.samplerUniformId      = s.findUniformByName("metallic_map.map")
+	s.metallicMap.defaultValueUniformId = s.findUniformByName("metallic_map.default_value")
+	s.metallicMap.enabledUniformId      = s.findUniformByName("metallic_map.enabled")
+
+	s.aoMap.samplerUniformId      = s.findUniformByName("ao_map.map")
+	s.aoMap.defaultValueUniformId = s.findUniformByName("ao_map.default_value")
+	s.aoMap.enabledUniformId      = s.findUniformByName("ao_map.enabled")
 
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
 	s.uniformMaterialSpecular = s.findUniformByName("material_specular")
 	s.uniformMaterialShininess = s.findUniformByName("material_shininess")
 
-	s.uniformLightPosition = s.findUniformByName("light_position")
-	s.uniformLightAmbient = s.findUniformByName("light_ambient")
-	s.uniformLightDiffuse = s.findUniformByName("light_diffuse")
-	s.uniformLightSpecular = s.findUniformByName("light_specular")
+	s.directionalLight.enabledUniformId = s.findUniformByName("directional_light.enabled")
+	s.directionalLight.directionUniformId = s.findUniformByName("directional_light.direction")
+	s.directionalLight.irradianceUniformId = s.findUniformByName("directional_light.irradiance")
 }
 
 func (s *Shader) bindAttribute(attribute uint32, name string) {
@@ -149,18 +169,28 @@ func (s *Shader) BindUniformProjection(projection mgl32.Mat4) {
 
 func (s *Shader) BindUniformCamera(camera *Camera) {
 	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.view[0])
+	gl.UniformMatrix3fv(s.uniformCameraPosition, 1, false, &camera.position[0])
 }
 
 func (s *Shader) BindUniformTransform(transform *mgl32.Mat4) {
 	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &transform[0])
 }
 
-func (s *Shader) BindUniformLight(light *Light) {
-	gl.Uniform3f(s.uniformLightPosition, light.Position.X(), light.Position.Y(), light.Position.Z())
+// TODO: Pretty sure this doesn't work.
+func (s *Shader) BindUniformNormalTransform() {
+	transform := mgl32.Ident4()
+	gl.UniformMatrix4fv(s.uniformNormalTransform, 1, false, &transform[0])
+}
 
-	gl.Uniform3f(s.uniformLightAmbient, light.Ambient.X(), light.Ambient.Y(), light.Ambient.Z())
-	gl.Uniform3f(s.uniformLightDiffuse, light.Diffuse.X(), light.Diffuse.Y(), light.Diffuse.Z())
-	gl.Uniform3f(s.uniformLightSpecular, light.Specular.X(), light.Specular.Y(), light.Specular.Z())
+// TODO: Rename these to directional light.
+func (s *Shader) BindUniformLight(light *Light) {
+	if light != nil {
+		gl.Uniform1i(s.directionalLight.enabledUniformId, 1)
+		gl.Uniform3f(s.directionalLight.directionUniformId, light.Direction.X(), light.Direction.Y(), light.Direction.Z())
+		gl.Uniform3f(s.directionalLight.irradianceUniformId, light.Irradiance.X(), light.Irradiance.Y(), light.Irradiance.Z())
+	} else {
+		gl.Uniform1i(s.directionalLight.enabledUniformId, 0)
+	}
 }
 
 func (s *Shader) BindUniformMaterial(material *Material) {
@@ -170,31 +200,49 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
 }
 
-func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, roughnessMap, emissionMap *Texture) {
-	gl.Uniform1i(s.uniformTextureAlbedoSampler, int32(TextureAlbedo))
-	gl.Uniform1i(s.uniformTextureNormalMapSampler, int32(TextureNormalMap))
-	gl.Uniform1i(s.uniformTextureRoughnessMapSampler, int32(TextureRoughnessMap))
-	gl.Uniform1i(s.uniformTextureEmissionMapSampler, int32(TextureEmissionMap))
+func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughnessMap, aoMap, emissionMap *Texture) {
+	// TODO: Rename to map?
+	// Albedo map
+	if albedo != nil {
+		gl.Uniform1i(s.albedoMap.enabledUniformId, 1)
+	} else {
+		gl.Uniform1i(s.albedoMap.enabledUniformId, 0)
+	}
+	gl.Uniform1i(s.albedoMap.samplerUniformId, int32(TextureAlbedo))
+	gl.Uniform3f(s.albedoMap.defaultValueUniformId, 1.0, 1.0, 1.0)
 
-	// TODO: Should these below be here?
-
+	// Normal map
 	if normalMap != nil {
-		gl.Uniform1i(s.uniformUseNormalMap, 1)
+		gl.Uniform1i(s.normalMap.enabledUniformId, 1)
 	} else {
-		gl.Uniform1i(s.uniformUseNormalMap, 0)
+		gl.Uniform1i(s.normalMap.enabledUniformId, 0)
 	}
+	gl.Uniform1i(s.normalMap.samplerUniformId, int32(TextureNormalMap))
+	gl.Uniform3f(s.normalMap.defaultValueUniformId, 0.5, 0.5, 1.0)
 
-	if roughnessMap != nil {
-		gl.Uniform1i(s.uniformUseRoughnessMap, 1)
+	// Metallic/roughness map
+	if metallicRoughnessMap != nil {
+		gl.Uniform1i(s.metallicMap.enabledUniformId, 1)
+		gl.Uniform1i(s.roughnessMap.enabledUniformId, 1)
 	} else {
-		gl.Uniform1i(s.uniformUseRoughnessMap, 0)
+		gl.Uniform1i(s.metallicMap.enabledUniformId, 0)
+		gl.Uniform1i(s.roughnessMap.enabledUniformId, 0)
 	}
+	gl.Uniform1i(s.metallicMap.samplerUniformId, int32(TextureMetallicRoughnessMap))
+	gl.Uniform1i(s.roughnessMap.samplerUniformId, int32(TextureMetallicRoughnessMap))
+	gl.Uniform3f(s.metallicMap.defaultValueUniformId, 0.0, 0.0, 0.0)
+	gl.Uniform3f(s.roughnessMap.defaultValueUniformId, 0.5, 0.5, 0.5)
 
-	if emissionMap != nil {
-		gl.Uniform1i(s.uniformUseEmissionMap, 1)
+	// Ambient occlusion map
+	if aoMap != nil {
+		gl.Uniform1i(s.aoMap.enabledUniformId, 1)
 	} else {
-		gl.Uniform1i(s.uniformUseEmissionMap, 0)
+		gl.Uniform1i(s.aoMap.enabledUniformId, 0)
 	}
+	gl.Uniform1i(s.aoMap.samplerUniformId, int32(TextureAmbientOcclusionMap))
+	gl.Uniform3f(s.aoMap.defaultValueUniformId, 1.0, 1.0, 1.0)
+
+	// TODO: Emission map?
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nitrix/laygl"
 	"log"
 	"runtime/debug"
@@ -14,8 +13,8 @@ import (
 
 func main() {
 	// Create a window.
-	//window, err := laygl.NewFullScreenWindow("Learn OpenGL")
-	window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
+	window, err := laygl.NewFullScreenWindow("Learn OpenGL")
+	//window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -36,7 +35,6 @@ func main() {
 
 	// Create light
 	light := laygl.DefaultLight()
-	light.Position = mgl32.Vec3{0, 0, 100}
 
 	// Entity
 	entity := laygl.NewEntityFromModel(model)
@@ -57,6 +55,8 @@ func main() {
 
 	fps := 0
 	lastTime := time.Now()
+
+	entity.Translate(0, 0, -10) // FIXME: Why the directional light struggle at the origin?
 
 	// Main loop
 	previousTime := glfw.GetTime()

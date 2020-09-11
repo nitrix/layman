@@ -17,10 +17,11 @@ type Mesh struct {
 
 	indiceCount uint32
 
-	albedoTexture       *Texture
-	normalMapTexture    *Texture
-	roughnessMapTexture *Texture
-	emissionMapTexture  *Texture
+	albedoTexture              *Texture
+	normalMapTexture           *Texture
+	metallicRoughnessMap       *Texture
+	ambientOcclusionMapTexture *Texture
+	emissionMapTexture         *Texture
 
 	vertices 			[]float32
 	normals 			[]float32
@@ -50,7 +51,7 @@ func (m *Mesh) Use() {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.indicesBufferId)
 
 	// Tangents
-	//gl.BindBuffer(gl.ARRAY_BUFFER, m.tangentBufferId)
+	gl.BindBuffer(gl.ARRAY_BUFFER, m.tangentBufferId)
 
 	if m.albedoTexture != nil {
 		m.albedoTexture.Use()
@@ -60,8 +61,8 @@ func (m *Mesh) Use() {
 		m.normalMapTexture.Use()
 	}
 
-	if m.roughnessMapTexture != nil {
-		m.roughnessMapTexture.Use()
+	if m.metallicRoughnessMap != nil {
+		m.metallicRoughnessMap.Use()
 	}
 
 	if m.emissionMapTexture != nil {
@@ -82,8 +83,8 @@ func (m *Mesh) Unuse() {
 		m.normalMapTexture.Unuse()
 	}
 
-	if m.roughnessMapTexture != nil {
-		m.roughnessMapTexture.Unuse()
+	if m.metallicRoughnessMap != nil {
+		m.metallicRoughnessMap.Unuse()
 	}
 
 	if m.emissionMapTexture != nil {

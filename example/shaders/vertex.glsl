@@ -1,41 +1,35 @@
-#version 400 core
+#version 330 core
 
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 transform;
-uniform vec3 light_position;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 uv;
+layout (location = 2) in vec3 normal;
+layout (location = 3) in vec3 tangent;
 
-uniform bool use_normal_map;
+uniform mat4 model_transform;
+uniform mat4 normal_transform;
+uniform mat4 view_transform;
+uniform mat4 projection_transform;
 
-in vec3 position;
-in vec2 texture_coords;
-in vec3 normal;
-in vec3 tangent;
-
-out vec2 pass_texture_coords;
-out vec3 normal_in_model_space;
-out vec3 to_light_vector;
-out vec3 to_camera_vector;
+//out vec3 Normal;
+out vec2 UV;
+out vec3 WorldPosition;
+out mat3 TBN;
 
 void main() {
-    vec4 world_position = transform * vec4(position.x, position.y, position.z, 1.0);
+    gl_Position = projection_transform * view_transform * model_transform * vec4(position, 1.0);
+    WorldPosition = vec3(model_transform * vec4(position, 1.0));
+    //Normal = normalize(mat3(normal_transform) * normal);
+    UV = uv;
 
-    // Direct output
-    gl_Position = projection * view * world_position;
+    // TBN: Tangent space to world space.
+    vec3 T = normalize(mat3(model_transform) * tangent);
+    vec3 N = normalize(mat3(model_transform) * normal);
+    vec3 B = normalize(cross(N, T));
+    TBN = mat3(T, B, N);
 
-    // Outputs for fragment shader
-    pass_texture_coords = texture_coords;
-    normal_in_model_space = (transform * vec4(normal, 0.0)).xyz;
-    to_light_vector = light_position - world_position.xyz;
-    to_camera_vector = (inverse(view) * vec4(1, 1, 1, 1.0)).xyz - world_position.xyz;
-
-    // Normal mapping
-    if (use_normal_map) {
-        vec3 T = normalize((transform * vec4(tangent, 1.0)).xyz);
-        vec3 N = normalize((transform * vec4(normal, 1.0)).xyz);
-        vec3 B = cross(N, T);
-        mat3 TBN = transpose(mat3(T, B, N)); // to tangeant space conversion matrix
-        to_light_vector = TBN * to_light_vector;
-        to_camera_vector = TBN * to_camera_vector;
-    }
+    // TBN: World space to tangent space.
+    //vec3 T = normalize((normal_transform * vec4(tangent, 0.0)).xyz);
+    //vec3 N = normalize((normal_transform * vec4(normal, 0.0)).xyz);
+    //vec3 B = cross(N, T);
+    //mat3 TBN = transpose(mat3(T, B, N));
 }

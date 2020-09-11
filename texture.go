@@ -20,7 +20,8 @@ type TextureKind int
 const (
 	TextureAlbedo TextureKind = iota
 	TextureNormalMap
-	TextureRoughnessMap
+	TextureMetallicRoughnessMap
+	TextureAmbientOcclusionMap
 	TextureEmissionMap
 )
 

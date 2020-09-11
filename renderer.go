@@ -19,7 +19,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 		renderer.Resize(window.Dimensions())
 	})
 
-	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+	gl.ClearColor(0, 0, 0, 1.0)
 
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
@@ -62,11 +62,18 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.shader.BindUniformCamera(scene.activeCamera)
 			mesh.shader.BindUniformLight(scene.activeLight)
 			mesh.shader.BindUniformMaterial(mesh.material)
-			mesh.shader.BindUniformTextureSamplers(mesh.albedoTexture, mesh.normalMapTexture, mesh.roughnessMapTexture, mesh.emissionMapTexture)
+			mesh.shader.BindUniformTextureSamplers(
+				mesh.albedoTexture,
+				mesh.normalMapTexture,
+				mesh.metallicRoughnessMap,
+				mesh.ambientOcclusionMapTexture,
+				mesh.emissionMapTexture,
+			)
 
 			for _, entity := range entities {
 				// The entity transform is the only thing that we should be updating for each entity.
 				mesh.shader.BindUniformTransform(&entity.transform)
+				mesh.shader.BindUniformNormalTransform()
 
 				// FIXME: UNSIGNED_SHORT?
 				gl.DrawElements(gl.TRIANGLES, int32(mesh.indiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
