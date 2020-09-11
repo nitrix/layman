@@ -11,6 +11,7 @@ import (
 	"image/draw"
 	_ "image/jpeg"
 	_ "image/png"
+	"math"
 	"os"
 	"reflect"
 	"unsafe"
@@ -237,7 +238,7 @@ func (g *Gltf) loadMaterial(m *gltf.Material) error {
 				return err
 			}
 
-			g.mesh.metallicRoughnessMap = g.texture
+			g.mesh.metallicRoughnessMapTexture = g.texture
 		}
 	}
 
@@ -318,6 +319,22 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 	// TODO
 	if t.Sampler != nil {
 		// sampler := g.document.Samplers[*t.Sampler]
+	}
+
+	detailed := kind == TextureAlbedo || kind == TextureMetallicRoughnessMap
+
+	// Mipmapping.
+	if detailed {
+		gl.GenerateMipmap(gl.TEXTURE_2D)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		// gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_LOD_BIAS, -0.4) // Incompatible with anisotropic filtering.
+	}
+
+	// Anisotropic filtering, if supported.
+	if detailed && IsExtensionSupported("GL_EXT_texture_filter_anisotropic") {
+		max := float32(0)
+		gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &max)
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_ANISOTROPY, float32(math.Min(4, float64(max))))
 	}
 
 	return nil

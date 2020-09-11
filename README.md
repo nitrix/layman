@@ -8,22 +8,21 @@ A simple 3D engine for the layman.
 
 - Creating a window and renderer with a modern OpenGL context.
 - High resolution clock for elapsed-time calculation.
-- Support .obj file format.
-- Phong lighting (ambient + diffuse + specular).
-- Materials (ambient + diffuse + specular + shininess).
-- Back-face culling optimization.
-- Anti-aliasing (MSAA 4x multi-sampling).
+- Physically Based Rendering (metallic/roughness workflow).
+- Support glTF 2.0 file format.
+- Materials.
 - Normal maps.
-- Roughness/specular maps.
-- Emission maps.
-- Wireframe mode.
+- Anti-aliasing (MSAA 4x multi-sampling).
+- Back-face culling optimization.
 - Mipmapping / anisotropic filtering.
-- Flat terrain.
+- Wireframe mode.
+- Directional light.
 
 ### Short term
 
-- Multiple lights
-- Point lights
+- Image Based Lighting (IBL).
+- Point lights.
+- Flat terrain.
 
 ### Long term
 

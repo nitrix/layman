@@ -13,8 +13,8 @@ import (
 
 func main() {
 	// Create a window.
-	window, err := laygl.NewFullScreenWindow("Learn OpenGL")
-	//window, err := laygl.NewWindow(1280, 720, "Learn OpenGL")
+	window, err := laygl.NewFullScreenWindow("Layman OpenGL")
+	//window, err := laygl.NewWindow(1280, 720, "Layman OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}

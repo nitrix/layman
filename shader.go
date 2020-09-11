@@ -200,7 +200,7 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
 }
 
-func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughnessMap, aoMap, emissionMap *Texture) {
+func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughnessMap, aoMap *Texture) {
 	// TODO: Rename to map?
 	// Albedo map
 	if albedo != nil {
@@ -241,8 +241,6 @@ func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughness
 	}
 	gl.Uniform1i(s.aoMap.samplerUniformId, int32(TextureAmbientOcclusionMap))
 	gl.Uniform3f(s.aoMap.defaultValueUniformId, 1.0, 1.0, 1.0)
-
-	// TODO: Emission map?
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {

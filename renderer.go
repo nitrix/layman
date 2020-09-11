@@ -65,9 +65,8 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.shader.BindUniformTextureSamplers(
 				mesh.albedoTexture,
 				mesh.normalMapTexture,
-				mesh.metallicRoughnessMap,
+				mesh.metallicRoughnessMapTexture,
 				mesh.ambientOcclusionMapTexture,
-				mesh.emissionMapTexture,
 			)
 
 			for _, entity := range entities {

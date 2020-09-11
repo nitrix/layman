@@ -17,11 +17,10 @@ type Mesh struct {
 
 	indiceCount uint32
 
-	albedoTexture              *Texture
-	normalMapTexture           *Texture
-	metallicRoughnessMap       *Texture
-	ambientOcclusionMapTexture *Texture
-	emissionMapTexture         *Texture
+	albedoTexture               *Texture
+	normalMapTexture            *Texture
+	metallicRoughnessMapTexture *Texture
+	ambientOcclusionMapTexture  *Texture
 
 	vertices 			[]float32
 	normals 			[]float32
@@ -61,12 +60,12 @@ func (m *Mesh) Use() {
 		m.normalMapTexture.Use()
 	}
 
-	if m.metallicRoughnessMap != nil {
-		m.metallicRoughnessMap.Use()
+	if m.metallicRoughnessMapTexture != nil {
+		m.metallicRoughnessMapTexture.Use()
 	}
 
-	if m.emissionMapTexture != nil {
-		m.emissionMapTexture.Use()
+	if m.ambientOcclusionMapTexture != nil {
+		m.ambientOcclusionMapTexture.Use()
 	}
 
 	m.shader.Use()
@@ -83,12 +82,12 @@ func (m *Mesh) Unuse() {
 		m.normalMapTexture.Unuse()
 	}
 
-	if m.metallicRoughnessMap != nil {
-		m.metallicRoughnessMap.Unuse()
+	if m.metallicRoughnessMapTexture != nil {
+		m.metallicRoughnessMapTexture.Unuse()
 	}
 
-	if m.emissionMapTexture != nil {
-		m.emissionMapTexture.Unuse()
+	if m.ambientOcclusionMapTexture != nil {
+		m.ambientOcclusionMapTexture.Unuse()
 	}
 
 	m.shader.Unuse()
