@@ -7,6 +7,8 @@ import (
 	"unsafe"
 )
 
+const AntiAliasingSamples = 8
+
 type Renderer struct {
 	projection mgl32.Mat4
 }
@@ -15,7 +17,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 	renderer := &Renderer{}
 
 	renderer.Resize(window.Dimensions())
-	window.OnResize(func(w *Window) {
+	window.OnResize(func() {
 		renderer.Resize(window.Dimensions())
 	})
 

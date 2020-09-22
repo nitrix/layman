@@ -64,21 +64,18 @@ func main() {
 	//entity.Scale(600)
 	entity.Translate(0, 0, -10) // FIXME: Why the directional light struggles at the origin?
 
-	// Main loop
 	previousTime := glfw.GetTime()
-	for !window.ShouldClose() {
-		window.PollEvents()
 
+	window.OnRender(func() {
 		// Update
 		t := glfw.GetTime()
 		elapsed := t - previousTime
 		previousTime = t
 
-		entity.Rotate(0, float32(elapsed) * 0.5, 0)
+		entity.Rotate(0, float32(elapsed)*0.5, 0)
 
 		// Render
 		renderer.Render(scene)
-		window.Refresh()
 
 		// Print FPS
 		fps++
@@ -87,5 +84,7 @@ func main() {
 			fps = 0
 			lastTime = time.Now()
 		}
-	}
+	})
+
+	window.Run()
 }
