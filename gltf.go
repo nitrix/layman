@@ -322,6 +322,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 	}
 
 	detailed := kind == TextureAlbedo || kind == TextureMetallicRoughnessMap
+	detailed = true // FIXME
 
 	// Mipmapping.
 	if detailed {
@@ -382,7 +383,11 @@ func (g *Gltf) initialModelTransform() {
 
 func (g *Gltf) loadTangents() error {
 	// There aren't always present in the glTF file so we might as well just generate it all the time.
-	// TODO: Actually, only really needed for models with a normal map.
+
+	// Actually, only really needed for models with a normal map.
+	if g.mesh.normalMapTexture == nil {
+		return nil
+	}
 
 	g.mesh.tangents = g.generateTangents(g.mesh.indices, g.mesh.vertices, g.mesh.uvs, g.mesh.normals)
 

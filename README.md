@@ -12,7 +12,7 @@ A simple 3D engine for the layman.
 - Support glTF 2.0 file format.
 - Materials.
 - Normal maps.
-- Anti-aliasing (MSAA 4x multi-sampling).
+- Anti-aliasing (MSAA 8x multi-sampling).
 - Back-face culling optimization.
 - Mipmapping / anisotropic filtering.
 - Wireframe mode.

@@ -62,6 +62,10 @@ func NewWindow(width, height int, title string) (*Window, error) {
 		log.Fatalln("Unable to initialize OpenGL:", err)
 	}
 
+	// Refresh every frame rendered. This is to please the window compositor on Windows, otherwise it stutters.
+	// The FPS should still remain that of the VSync.
+	glfw.SwapInterval(1)
+
 	return w, nil
 }
 
@@ -119,7 +123,7 @@ func incrementGlfw() {
 	glfw.WindowHint(glfw.ContextVersionMinor, 6)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	glfw.WindowHint(glfw.Samples, 4)
+	glfw.WindowHint(glfw.Samples, 8)
 }
 
 func decrementGlfw() {

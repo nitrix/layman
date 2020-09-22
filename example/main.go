@@ -13,8 +13,8 @@ import (
 
 func main() {
 	// Create a window.
-	window, err := laygl.NewFullScreenWindow("Layman OpenGL")
-	//window, err := laygl.NewWindow(1280, 720, "Layman OpenGL")
+	//window, err := laygl.NewFullScreenWindow("Layman OpenGL")
+	window, err := laygl.NewWindow(1280, 720, "Layman OpenGL")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}
@@ -29,6 +29,9 @@ func main() {
 	// Load the model.
 	//model, err := laygl.LoadModel("helmet", "assets/cowboy.glb")
 	model, err := laygl.LoadModel("helmet", "assets/helmet.glb")
+	//model, err := laygl.LoadModel("helmet", "assets/corset.glb")
+	//model, err := laygl.LoadModel("helmet", "assets/boombox.glb")
+	//model, err := laygl.LoadModel("helmet", "assets/illya.glb")
 	if err != nil {
 		log.Fatalln("Unable to load cowboy model:", err)
 	}
@@ -56,7 +59,10 @@ func main() {
 	fps := 0
 	lastTime := time.Now()
 
-	entity.Translate(0, 0, -10) // FIXME: Why the directional light struggle at the origin?
+	//entity.Scale(2)
+	//entity.Scale(400)
+	//entity.Scale(600)
+	entity.Translate(0, 0, -10) // FIXME: Why the directional light struggles at the origin?
 
 	// Main loop
 	previousTime := glfw.GetTime()
@@ -68,7 +74,7 @@ func main() {
 		elapsed := t - previousTime
 		previousTime = t
 
-		entity.Rotate(0, float32(elapsed) * 0.25, 0)
+		entity.Rotate(0, float32(elapsed) * 0.5, 0)
 
 		// Render
 		renderer.Render(scene)
