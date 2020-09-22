@@ -2,16 +2,15 @@ package laygl
 
 import (
 	"github.com/go-gl/gl/v4.6-core/gl"
-	_ "image/jpeg"
-	_ "image/png"
 )
 
 type Texture struct {
-	textureId uint32
-	kind      TextureKind
+	id   uint32
+	kind TextureKind
 }
 
 type TextureKind int
+
 const (
 	TextureAlbedo TextureKind = iota
 	TextureNormalMap
@@ -20,8 +19,10 @@ const (
 )
 
 func (t *Texture) Use() {
+	// This is actually the recommended way to enumerate that constant.
+	// You use the texture unit 0 and add your offset to it.
 	gl.ActiveTexture(gl.TEXTURE0 + uint32(t.kind))
-	gl.BindTexture(gl.TEXTURE_2D, t.textureId)
+	gl.BindTexture(gl.TEXTURE_2D, t.id)
 }
 
 func (t *Texture) Unuse() {

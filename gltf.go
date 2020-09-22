@@ -18,9 +18,9 @@ import (
 )
 
 type Gltf struct {
-	texture *Texture
-	mesh *Mesh
-	model *Model
+	texture  *Texture
+	mesh     *Mesh
+	model    *Model
 	document *gltf.Document
 }
 
@@ -120,7 +120,7 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 		g.mesh.indiceCount = accessor.Count / 3
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset:bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
 
 		var vertices []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&vertices))
@@ -146,7 +146,7 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset:bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
 
 		var uvs []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&uvs))
@@ -159,7 +159,7 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.uvsBufferId)
 		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
 		gl.EnableVertexAttribArray(ShaderAttributeTextureCoords)
-		gl.VertexAttribPointer(ShaderAttributeTextureCoords, 2, gl.FLOAT, false, 2 * 4, gl.PtrOffset(0))
+		gl.VertexAttribPointer(ShaderAttributeTextureCoords, 2, gl.FLOAT, false, 2*4, gl.PtrOffset(0))
 	}
 
 	// Normals.
@@ -170,7 +170,7 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset:bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
 
 		var normals []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&normals))
@@ -183,7 +183,7 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.normalsBufferId)
 		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
 		gl.EnableVertexAttribArray(ShaderAttributeNormals)
-		gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, 3 * 4, gl.PtrOffset(0))
+		gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
 	}
 
 	return nil
@@ -194,7 +194,7 @@ func (g *Gltf) loadIndices(accessor *gltf.Accessor) error {
 	// Faces (EBO).
 	bufferView := g.document.BufferViews[*accessor.BufferView]
 	buffer := g.document.Buffers[bufferView.Buffer]
-	data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset:bufferView.ByteOffset+bufferView.ByteLength]
+	data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
 
 	if accessor.Type != gltf.AccessorScalar || accessor.ComponentType != gltf.ComponentUshort {
 		return errors.New("position accessor is not a scalar ushort")
@@ -263,8 +263,8 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 			kind: kind,
 		}
 
-		gl.GenTextures(1, &g.texture.textureId)
-		gl.BindTexture(gl.TEXTURE_2D, g.texture.textureId)
+		gl.GenTextures(1, &g.texture.id)
+		gl.BindTexture(gl.TEXTURE_2D, g.texture.id)
 
 		var finalImg image.Image
 
@@ -287,7 +287,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 		if img.BufferView != nil {
 			bufferView := g.document.BufferViews[*img.BufferView]
 			buffer := g.document.Buffers[bufferView.Buffer]
-			data := buffer.Data[bufferView.ByteOffset:bufferView.ByteOffset+bufferView.ByteLength]
+			data := buffer.Data[bufferView.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
 
 			reader := bytes.NewReader(data)
 			img, _, err := image.Decode(reader)
@@ -303,7 +303,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 		}
 
 		rgba := image.NewRGBA(finalImg.Bounds())
-		if rgba.Stride != 4 * rgba.Rect.Size().X {
+		if rgba.Stride != 4*rgba.Rect.Size().X {
 			return fmt.Errorf("unsupported stride")
 		}
 
@@ -394,9 +394,9 @@ func (g *Gltf) loadTangents() error {
 	// Tangent/Bitangent.
 	gl.GenBuffers(1, &g.mesh.tangentBufferId)
 	gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.tangentBufferId)
-	gl.BufferData(gl.ARRAY_BUFFER, len(g.mesh.tangents) * 4, gl.Ptr(g.mesh.tangents), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(g.mesh.tangents)*4, gl.Ptr(g.mesh.tangents), gl.STATIC_DRAW)
 	gl.EnableVertexAttribArray(ShaderAttributeTangents)
-	gl.VertexAttribPointer(ShaderAttributeTangents, 3, gl.FLOAT, false, int32(3 * 4), gl.PtrOffset(0))
+	gl.VertexAttribPointer(ShaderAttributeTangents, 3, gl.FLOAT, false, int32(3*4), gl.PtrOffset(0))
 
 	return nil
 }
@@ -407,29 +407,29 @@ func (g *Gltf) generateTangents(indices []uint16, vertices, uvs, normals []float
 
 	for i := 0; i < len(indices); i += 3 {
 		v1i := indices[i]
-		v1x := vertices[v1i*3 + 0]
-		v1y := vertices[v1i*3 + 1]
-		v1z := vertices[v1i*3 + 2]
-		v1u := uvs[v1i*2 + 0]
-		v1v := uvs[v1i*2 + 1]
+		v1x := vertices[v1i*3+0]
+		v1y := vertices[v1i*3+1]
+		v1z := vertices[v1i*3+2]
+		v1u := uvs[v1i*2+0]
+		v1v := uvs[v1i*2+1]
 		v1 := mgl32.Vec3{v1x, v1y, v1z}
 		vt1 := mgl32.Vec2{v1u, v1v}
 
 		v2i := indices[i+1]
-		v2x := vertices[v2i*3 + 0]
-		v2y := vertices[v2i*3 + 1]
-		v2z := vertices[v2i*3 + 2]
-		v2u := uvs[v2i*2 + 0]
-		v2v := uvs[v2i*2 + 1]
+		v2x := vertices[v2i*3+0]
+		v2y := vertices[v2i*3+1]
+		v2z := vertices[v2i*3+2]
+		v2u := uvs[v2i*2+0]
+		v2v := uvs[v2i*2+1]
 		v2 := mgl32.Vec3{v2x, v2y, v2z}
 		vt2 := mgl32.Vec2{v2u, v2v}
 
 		v3i := indices[i+2]
-		v3x := vertices[v3i*3 + 0]
-		v3y := vertices[v3i*3 + 1]
-		v3z := vertices[v3i*3 + 2]
-		v3u := uvs[v3i*2 + 0]
-		v3v := uvs[v3i*2 + 1]
+		v3x := vertices[v3i*3+0]
+		v3y := vertices[v3i*3+1]
+		v3z := vertices[v3i*3+2]
+		v3u := uvs[v3i*2+0]
+		v3v := uvs[v3i*2+1]
 		v3 := mgl32.Vec3{v3x, v3y, v3z}
 		vt3 := mgl32.Vec2{v3u, v3v}
 
@@ -439,43 +439,43 @@ func (g *Gltf) generateTangents(indices []uint16, vertices, uvs, normals []float
 		deltaUV1 := vt2.Sub(vt1)
 		deltaUV2 := vt3.Sub(vt1)
 
-		f := 1.0 / (deltaUV1.X() * deltaUV2.Y() - deltaUV1.Y() * deltaUV2.X())
+		f := 1.0 / (deltaUV1.X()*deltaUV2.Y() - deltaUV1.Y()*deltaUV2.X())
 
 		tangent := mgl32.Vec3{
-			(deltaPos1.X() * deltaUV2.Y() - deltaPos2.X() * deltaUV1.Y()) * f,
-			(deltaPos1.Y() * deltaUV2.Y() - deltaPos2.Y() * deltaUV1.Y()) * f,
-			(deltaPos1.Z() * deltaUV2.Y() - deltaPos2.Z() * deltaUV1.Y()) * f,
+			(deltaPos1.X()*deltaUV2.Y() - deltaPos2.X()*deltaUV1.Y()) * f,
+			(deltaPos1.Y()*deltaUV2.Y() - deltaPos2.Y()*deltaUV1.Y()) * f,
+			(deltaPos1.Z()*deltaUV2.Y() - deltaPos2.Z()*deltaUV1.Y()) * f,
 		}
 
 		bitangent := mgl32.Vec3{
-			(deltaPos1.X() * deltaUV2.X() - deltaPos2.X() * deltaUV1.X()) * f,
-			(deltaPos1.Y() * deltaUV2.X() - deltaPos2.Y() * deltaUV1.X()) * f,
-			(deltaPos1.Z() * deltaUV2.X() - deltaPos2.Z() * deltaUV1.X()) * f,
+			(deltaPos1.X()*deltaUV2.X() - deltaPos2.X()*deltaUV1.X()) * f,
+			(deltaPos1.Y()*deltaUV2.X() - deltaPos2.Y()*deltaUV1.X()) * f,
+			(deltaPos1.Z()*deltaUV2.X() - deltaPos2.Z()*deltaUV1.X()) * f,
 		}
 
-		tangents[v1i*3 + 0] += tangent.X()
-		tangents[v1i*3 + 1] += tangent.Y()
-		tangents[v1i*3 + 2] += tangent.Z()
-		tangents[v2i*3 + 0] += tangent.X()
-		tangents[v2i*3 + 1] += tangent.Y()
-		tangents[v2i*3 + 2] += tangent.Z()
-		tangents[v3i*3 + 0] += tangent.X()
-		tangents[v3i*3 + 1] += tangent.Y()
-		tangents[v3i*3 + 2] += tangent.Z()
+		tangents[v1i*3+0] += tangent.X()
+		tangents[v1i*3+1] += tangent.Y()
+		tangents[v1i*3+2] += tangent.Z()
+		tangents[v2i*3+0] += tangent.X()
+		tangents[v2i*3+1] += tangent.Y()
+		tangents[v2i*3+2] += tangent.Z()
+		tangents[v3i*3+0] += tangent.X()
+		tangents[v3i*3+1] += tangent.Y()
+		tangents[v3i*3+2] += tangent.Z()
 
-		bitangents[v1i*3 + 0] += bitangent.X()
-		bitangents[v1i*3 + 1] += bitangent.Y()
-		bitangents[v1i*3 + 2] += bitangent.Z()
-		bitangents[v2i*3 + 0] += bitangent.X()
-		bitangents[v2i*3 + 1] += bitangent.Y()
-		bitangents[v2i*3 + 2] += bitangent.Z()
-		bitangents[v3i*3 + 0] += bitangent.X()
-		bitangents[v3i*3 + 1] += bitangent.Y()
-		bitangents[v3i*3 + 2] += bitangent.Z()
+		bitangents[v1i*3+0] += bitangent.X()
+		bitangents[v1i*3+1] += bitangent.Y()
+		bitangents[v1i*3+2] += bitangent.Z()
+		bitangents[v2i*3+0] += bitangent.X()
+		bitangents[v2i*3+1] += bitangent.Y()
+		bitangents[v2i*3+2] += bitangent.Z()
+		bitangents[v3i*3+0] += bitangent.X()
+		bitangents[v3i*3+1] += bitangent.Y()
+		bitangents[v3i*3+2] += bitangent.Z()
 	}
 
 	// Part 2
-	for i := 0; i < len(normals) / 3; i++ {
+	for i := 0; i < len(normals)/3; i++ {
 		n := mgl32.Vec3{
 			normals[i*3+0],
 			normals[i*3+1],

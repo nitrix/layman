@@ -1,15 +1,15 @@
 package laygl
 
-type Scene struct{
+type Scene struct {
 	// Entities, grouped by model for optimization purposes.
 	entities map[*Model][]*Entity
 
 	// Lighting stuff.
-	lights []*Light
+	lights      []*Light
 	activeLight *Light
 
 	// Camera stuff.
-	cameras []*Camera
+	cameras      []*Camera
 	activeCamera *Camera
 }
 

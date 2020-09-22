@@ -3,9 +3,9 @@ package laygl
 import "github.com/go-gl/mathgl/mgl32"
 
 type Camera struct {
-	position mgl32.Vec3
+	position  mgl32.Vec3
 	direction mgl32.Vec3
-	view mgl32.Mat4
+	view      mgl32.Mat4
 }
 
 func NewCamera() *Camera {

@@ -9,22 +9,22 @@ import (
 )
 
 type Shader struct {
-	programId                uint32
+	programId uint32
 
-	uniformProjection        int32
-	uniformView              int32
-	uniformTransform         int32
-	uniformNormalTransform   int32
-	uniformCameraPosition    int32
+	uniformProjection      int32
+	uniformView            int32
+	uniformTransform       int32
+	uniformNormalTransform int32
+	uniformCameraPosition  int32
 
-	albedoMap                UniformMapInfo
-	normalMap                UniformMapInfo
-	roughnessMap             UniformMapInfo
-	metallicMap              UniformMapInfo
-	aoMap                    UniformMapInfo
-	emissionMap              UniformMapInfo
+	albedoMap    UniformMapInfo
+	normalMap    UniformMapInfo
+	roughnessMap UniformMapInfo
+	metallicMap  UniformMapInfo
+	aoMap        UniformMapInfo
+	emissionMap  UniformMapInfo
 
-	directionalLight		 DirectionalLight
+	directionalLight DirectionalLight
 
 	uniformMaterialAmbient   int32
 	uniformMaterialDiffuse   int32
@@ -33,14 +33,14 @@ type Shader struct {
 }
 
 type UniformMapInfo struct {
-	enabledUniformId int32
+	enabledUniformId      int32
 	defaultValueUniformId int32
-	samplerUniformId int32
+	samplerUniformId      int32
 }
 
 type DirectionalLight struct {
-	enabledUniformId int32
-	directionUniformId int32
+	enabledUniformId    int32
+	directionUniformId  int32
 	irradianceUniformId int32
 }
 
@@ -125,25 +125,25 @@ func (s *Shader) findUniforms() {
 	s.uniformNormalTransform = s.findUniformByName("normal_transform")
 	s.uniformCameraPosition = s.findUniformByName("camera_position")
 
-	s.albedoMap.samplerUniformId      = s.findUniformByName("albedo_map.map")
+	s.albedoMap.samplerUniformId = s.findUniformByName("albedo_map.map")
 	s.albedoMap.defaultValueUniformId = s.findUniformByName("albedo_map.default_value")
-	s.albedoMap.enabledUniformId      = s.findUniformByName("albedo_map.enabled")
+	s.albedoMap.enabledUniformId = s.findUniformByName("albedo_map.enabled")
 
-	s.normalMap.samplerUniformId      = s.findUniformByName("normal_map.map")
+	s.normalMap.samplerUniformId = s.findUniformByName("normal_map.map")
 	s.normalMap.defaultValueUniformId = s.findUniformByName("normal_map.default_value")
-	s.normalMap.enabledUniformId      = s.findUniformByName("normal_map.enabled")
+	s.normalMap.enabledUniformId = s.findUniformByName("normal_map.enabled")
 
-	s.roughnessMap.samplerUniformId      = s.findUniformByName("roughness_map.map")
+	s.roughnessMap.samplerUniformId = s.findUniformByName("roughness_map.map")
 	s.roughnessMap.defaultValueUniformId = s.findUniformByName("roughness_map.default_value")
-	s.roughnessMap.enabledUniformId      = s.findUniformByName("roughness_map.enabled")
+	s.roughnessMap.enabledUniformId = s.findUniformByName("roughness_map.enabled")
 
-	s.metallicMap.samplerUniformId      = s.findUniformByName("metallic_map.map")
+	s.metallicMap.samplerUniformId = s.findUniformByName("metallic_map.map")
 	s.metallicMap.defaultValueUniformId = s.findUniformByName("metallic_map.default_value")
-	s.metallicMap.enabledUniformId      = s.findUniformByName("metallic_map.enabled")
+	s.metallicMap.enabledUniformId = s.findUniformByName("metallic_map.enabled")
 
-	s.aoMap.samplerUniformId      = s.findUniformByName("ao_map.map")
+	s.aoMap.samplerUniformId = s.findUniformByName("ao_map.map")
 	s.aoMap.defaultValueUniformId = s.findUniformByName("ao_map.default_value")
-	s.aoMap.enabledUniformId      = s.findUniformByName("ao_map.enabled")
+	s.aoMap.enabledUniformId = s.findUniformByName("ao_map.enabled")
 
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
@@ -156,11 +156,11 @@ func (s *Shader) findUniforms() {
 }
 
 func (s *Shader) bindAttribute(attribute uint32, name string) {
-	gl.BindAttribLocation(s.programId, attribute, gl.Str(name + "\x00"))
+	gl.BindAttribLocation(s.programId, attribute, gl.Str(name+"\x00"))
 }
 
 func (s *Shader) findUniformByName(name string) int32 {
-	return gl.GetUniformLocation(s.programId, gl.Str(name + "\x00"))
+	return gl.GetUniformLocation(s.programId, gl.Str(name+"\x00"))
 }
 
 func (s *Shader) BindUniformProjection(projection mgl32.Mat4) {

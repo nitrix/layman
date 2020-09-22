@@ -22,14 +22,14 @@ type Mesh struct {
 	metallicRoughnessMapTexture *Texture
 	ambientOcclusionMapTexture  *Texture
 
-	vertices 			[]float32
-	normals 			[]float32
-	uvs 			    []float32
-	tangents            []float32
-	indices 			[]uint16
+	vertices []float32
+	normals  []float32
+	uvs      []float32
+	tangents []float32
+	indices  []uint16
 
-	shader              *Shader
-	material            *Material
+	shader   *Shader
+	material *Material
 }
 
 func (m *Mesh) Use() {

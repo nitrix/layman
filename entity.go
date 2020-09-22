@@ -8,19 +8,19 @@ type Entity struct {
 	model *Model
 
 	translation mgl32.Vec3
-	rotation mgl32.Vec3
-	scale float32
+	rotation    mgl32.Vec3
+	scale       float32
 
 	transform mgl32.Mat4
 }
 
 func NewEntityFromModel(model *Model) *Entity {
 	return &Entity{
-		model: model,
-		scale: 1,
+		model:       model,
+		scale:       1,
 		translation: mgl32.Vec3{0, 0, 0},
-		rotation: mgl32.Vec3{0, 0, 0},
-		transform: model.initialTransform,
+		rotation:    mgl32.Vec3{0, 0, 0},
+		transform:   model.initialTransform,
 	}
 }
 

@@ -43,7 +43,7 @@ func (r *Renderer) Wireframe(enabled bool) {
 }
 
 func (r *Renderer) Resize(width, height int) {
-	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width) / float32(height), 0.1, 50.0)
+	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 50.0)
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 

@@ -7,14 +7,14 @@ import (
 )
 
 type Model struct {
-	name                string
-	meshes              []*Mesh
-	initialTransform    mgl32.Mat4
+	name             string
+	meshes           []*Mesh
+	initialTransform mgl32.Mat4
 }
 
 func NewModel() *Model {
-	return &Model {
-		meshes: make([]*Mesh, 0),
+	return &Model{
+		meshes:           make([]*Mesh, 0),
 		initialTransform: mgl32.Ident4(),
 	}
 }
