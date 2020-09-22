@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"github.com/nitrix/laygl/lights"
 	"io/ioutil"
 	"strings"
 )
+
+const LightCount = 4
 
 type Shader struct {
 	programId uint32
@@ -24,7 +27,8 @@ type Shader struct {
 	aoMap        UniformMapInfo
 	emissionMap  UniformMapInfo
 
-	directionalLight DirectionalLight
+	directionalLight DirectionalLightInfo
+	pointLights [LightCount]PointLightInfo
 
 	uniformMaterialAmbient   int32
 	uniformMaterialDiffuse   int32
@@ -38,10 +42,19 @@ type UniformMapInfo struct {
 	samplerUniformId      int32
 }
 
-type DirectionalLight struct {
+type DirectionalLightInfo struct {
 	enabledUniformId    int32
 	directionUniformId  int32
 	irradianceUniformId int32
+}
+
+type PointLightInfo struct {
+	enabledUniformedId int32
+	positionUniformedId int32
+	irradianceUniformedId int32
+	constantAttenuationUniformedId int32
+	linearAttenuationUniformedId int32
+	quadraticAttenuationUniformedId int32
 }
 
 const (
@@ -122,7 +135,6 @@ func (s *Shader) findUniforms() {
 	s.uniformProjection = s.findUniformByName("projection_transform")
 	s.uniformView = s.findUniformByName("view_transform")
 	s.uniformTransform = s.findUniformByName("model_transform")
-	s.uniformNormalTransform = s.findUniformByName("normal_transform")
 	s.uniformCameraPosition = s.findUniformByName("camera_position")
 
 	s.albedoMap.samplerUniformId = s.findUniformByName("albedo_map.map")
@@ -153,6 +165,16 @@ func (s *Shader) findUniforms() {
 	s.directionalLight.enabledUniformId = s.findUniformByName("directional_light.enabled")
 	s.directionalLight.directionUniformId = s.findUniformByName("directional_light.direction")
 	s.directionalLight.irradianceUniformId = s.findUniformByName("directional_light.irradiance")
+
+	for i := 0; i < LightCount; i++ {
+		light := fmt.Sprintf("point_lights[%d]", i)
+		s.pointLights[i].enabledUniformedId = s.findUniformByName(light + ".enabled")
+		s.pointLights[i].positionUniformedId = s.findUniformByName(light + ".position")
+		s.pointLights[i].irradianceUniformedId = s.findUniformByName(light + ".irradiance")
+		s.pointLights[i].constantAttenuationUniformedId = s.findUniformByName(light + ".const_atten")
+		s.pointLights[i].linearAttenuationUniformedId = s.findUniformByName(light + ".linear_atten")
+		s.pointLights[i].quadraticAttenuationUniformedId = s.findUniformByName(light + ".quad_atten")
+	}
 }
 
 func (s *Shader) bindAttribute(attribute uint32, name string) {
@@ -168,7 +190,7 @@ func (s *Shader) BindUniformProjection(projection mgl32.Mat4) {
 }
 
 func (s *Shader) BindUniformCamera(camera *Camera) {
-	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.view[0])
+	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.viewMatrix[0])
 	gl.UniformMatrix3fv(s.uniformCameraPosition, 1, false, &camera.position[0])
 }
 
@@ -176,20 +198,25 @@ func (s *Shader) BindUniformTransform(transform *mgl32.Mat4) {
 	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &transform[0])
 }
 
-// TODO: Pretty sure this doesn't work.
-func (s *Shader) BindUniformNormalTransform() {
-	transform := mgl32.Ident4()
-	gl.UniformMatrix4fv(s.uniformNormalTransform, 1, false, &transform[0])
-}
+func (s *Shader) BindUniformLights(allLights []lights.Light) {
+	gl.Uniform1i(s.directionalLight.enabledUniformId, 0)
 
-// TODO: Rename these to directional light.
-func (s *Shader) BindUniformLight(light *Light) {
-	if light != nil {
-		gl.Uniform1i(s.directionalLight.enabledUniformId, 1)
-		gl.Uniform3f(s.directionalLight.directionUniformId, light.Direction.X(), light.Direction.Y(), light.Direction.Z())
-		gl.Uniform3f(s.directionalLight.irradianceUniformId, light.Irradiance.X(), light.Irradiance.Y(), light.Irradiance.Z())
-	} else {
-		gl.Uniform1i(s.directionalLight.enabledUniformId, 0)
+	for i, light := range allLights {
+		switch l := light.(type) {
+		case *lights.Directional:
+			gl.Uniform1i(s.directionalLight.enabledUniformId, 1)
+			gl.Uniform3f(s.directionalLight.directionUniformId, l.Direction.X(), l.Direction.Y(), l.Direction.Z())
+			gl.Uniform3f(s.directionalLight.irradianceUniformId, l.Irradiance.X(), l.Irradiance.Y(), l.Irradiance.Z())
+		case *lights.Point:
+			if i < LightCount {
+				gl.Uniform1i(s.pointLights[i].enabledUniformedId, 1)
+				gl.Uniform3f(s.pointLights[i].positionUniformedId, l.Position.X(), l.Position.Y(), l.Position.Z())
+				gl.Uniform3f(s.pointLights[i].irradianceUniformedId, l.Irradiance.X(), l.Irradiance.Y(), l.Irradiance.Z())
+				gl.Uniform1f(s.pointLights[i].constantAttenuationUniformedId, l.ConstantAttenuation)
+				gl.Uniform1f(s.pointLights[i].linearAttenuationUniformedId, l.LinearAttenuation)
+				gl.Uniform1f(s.pointLights[i].quadraticAttenuationUniformedId, l.QuadraticAttenuation)
+			}
+		}
 	}
 }
 

@@ -16,12 +16,11 @@ A simple 3D engine for the layman.
 - Back-face culling optimization.
 - Mipmapping / anisotropic filtering.
 - Wireframe mode.
-- Directional light.
+- Directional and point lights.
 
 ### Short term
 
 - Image Based Lighting (IBL).
-- Point lights.
 - Flat terrain.
 
 ### Long term

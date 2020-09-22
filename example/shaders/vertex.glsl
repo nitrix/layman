@@ -6,7 +6,6 @@ layout (location = 2) in vec3 normal;
 layout (location = 3) in vec3 tangent;
 
 uniform mat4 model_transform;
-uniform mat4 normal_transform;
 uniform mat4 view_transform;
 uniform mat4 projection_transform;
 
@@ -21,15 +20,12 @@ void main() {
     //Normal = normalize(mat3(normal_transform) * normal);
     UV = uv;
 
-    // TBN: Tangent space to world space.
-    vec3 T = normalize(mat3(model_transform) * tangent);
-    vec3 N = normalize(mat3(model_transform) * normal);
-    vec3 B = normalize(cross(N, T));
-    TBN = mat3(T, B, N);
+    // TODO: That's incredibly expensive, should be computed outside this shader.
+    mat4 normal_transform = transpose(inverse(model_transform));
 
-    // TBN: World space to tangent space.
-    //vec3 T = normalize((normal_transform * vec4(tangent, 0.0)).xyz);
-    //vec3 N = normalize((normal_transform * vec4(normal, 0.0)).xyz);
-    //vec3 B = cross(N, T);
-    //mat3 TBN = transpose(mat3(T, B, N));
+    // TBN: Tangent space to world space.
+    vec3 T = normalize(mat3(normal_transform) * tangent);
+    vec3 N = normalize(mat3(normal_transform) * normal);
+    vec3 B = normalize(cross(T, N));
+    TBN = mat3(T, B, N);
 }

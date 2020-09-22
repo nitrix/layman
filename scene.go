@@ -1,12 +1,13 @@
 package laygl
 
+import lights2 "github.com/nitrix/laygl/lights"
+
 type Scene struct {
 	// Entities, grouped by model for optimization purposes.
 	entities map[*Model][]*Entity
 
 	// Lighting stuff.
-	lights      []*Light
-	activeLight *Light
+	lights      []lights2.Light
 
 	// Camera stuff.
 	cameras      []*Camera
@@ -16,7 +17,7 @@ type Scene struct {
 func NewScene() *Scene {
 	return &Scene{
 		entities: make(map[*Model][]*Entity),
-		lights:   make([]*Light, 0),
+		lights:   make([]lights2.Light, 0),
 		cameras:  make([]*Camera, 0),
 	}
 }
@@ -41,14 +42,6 @@ func (s *Scene) AddEntity(entity *Entity) {
 	s.entities[entity.model] = append(s.entities[entity.model], entity)
 }
 
-func (s *Scene) ActiveLight(light *Light) {
-	s.activeLight = light
-}
-
-func (s *Scene) AddLight(light *Light) {
-	if len(s.lights) == 0 {
-		s.ActiveLight(light)
-	}
-
+func (s *Scene) AddLight(light lights2.Light) {
 	s.lights = append(s.lights, light)
 }

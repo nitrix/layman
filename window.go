@@ -82,7 +82,9 @@ func newWindow(width, height int, title string, monitor *glfw.Monitor) (*Window,
 	// Setup callbacks.
 	glfwWindow.SetFramebufferSizeCallback(func(w *glfw.Window, width int, height int) {
 		window.tasks <- func() {
-			window.resized()
+			for _, callback := range window.resizeCallbacks {
+				callback()
+			}
 		}
 	})
 
@@ -124,26 +126,18 @@ func (w *Window) Run() {
 			case task := <- w.tasks:
 				task()
 			default:
-				w.render()
-				w.glfwWindow.SwapBuffers()
 			}
+
+			for _, callback := range w.renderCallbacks {
+				callback()
+			}
+
+			w.glfwWindow.SwapBuffers()
 		}
 	}()
 
 	for !w.glfwWindow.ShouldClose() {
 		glfw.PollEvents()
-	}
-}
-
-func (w *Window) resized() {
-	for _, callback := range w.resizeCallbacks {
-		callback()
-	}
-}
-
-func (w *Window) render() {
-	for _, callback := range w.renderCallbacks {
-		callback()
 	}
 }
 

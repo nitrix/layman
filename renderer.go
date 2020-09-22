@@ -43,7 +43,7 @@ func (r *Renderer) Wireframe(enabled bool) {
 }
 
 func (r *Renderer) Resize(width, height int) {
-	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 50.0)
+	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 1000.0)
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
@@ -62,7 +62,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			// Prepare the shader.
 			mesh.shader.BindUniformProjection(r.projection)
 			mesh.shader.BindUniformCamera(scene.activeCamera)
-			mesh.shader.BindUniformLight(scene.activeLight)
+			mesh.shader.BindUniformLights(scene.lights)
 			mesh.shader.BindUniformMaterial(mesh.material)
 			mesh.shader.BindUniformTextureSamplers(
 				mesh.albedoTexture,
@@ -72,9 +72,8 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			)
 
 			for _, entity := range entities {
-				// The entity transform is the only thing that we should be updating for each entity.
-				mesh.shader.BindUniformTransform(&entity.transform)
-				mesh.shader.BindUniformNormalTransform()
+				// The entity transformMatrix is the only thing that we should be updating for each entity.
+				mesh.shader.BindUniformTransform(&entity.transformMatrix)
 
 				// FIXME: UNSIGNED_SHORT?
 				gl.DrawElements(gl.TRIANGLES, int32(mesh.indiceCount), gl.UNSIGNED_SHORT, gl.PtrOffset(0))
