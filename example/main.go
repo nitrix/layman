@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/nitrix/laygl"
 	"github.com/nitrix/laygl/lights"
 	"log"
@@ -79,20 +78,14 @@ func main() {
 
 	entity.Translate(0, 0, -20)
 
-	previousTime := glfw.GetTime()
-
 	window.OnRender(func() {
-		// Update
-		t := glfw.GetTime()
-		elapsed := t - previousTime
-		previousTime = t
+		// Update.
+		entity.Rotate(0, window.Elapsed() * 0.5, 0)
 
-		entity.Rotate(0, float32(elapsed)*0.5, 0)
-
-		// Render
+		// Render.
 		renderer.Render(scene)
 
-		// Print FPS
+		// Print FPS.
 		fps++
 		if time.Since(lastTime) > time.Second {
 			fmt.Println("FPS:", fps)

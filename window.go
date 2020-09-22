@@ -12,6 +12,7 @@ type Window struct {
 	glfwWindow      *glfw.Window
 	resizeCallbacks []func()
 	renderCallbacks []func()
+	elapsed float32
 	tasks chan func()
 }
 
@@ -121,17 +122,26 @@ func (w *Window) Run() {
 		w.glfwWindow.MakeContextCurrent()
 
 		// Main loop.
+		previousTime := glfw.GetTime()
 		for !w.glfwWindow.ShouldClose() {
+			// Update time.
+			t := glfw.GetTime()
+			w.elapsed = float32(t - previousTime)
+			previousTime = t
+
+			// Process events from the main thread.
 			select {
 			case task := <- w.tasks:
 				task()
 			default:
 			}
 
+			// Render.
 			for _, callback := range w.renderCallbacks {
 				callback()
 			}
 
+			// Present.
 			w.glfwWindow.SwapBuffers()
 		}
 	}()
@@ -139,6 +149,10 @@ func (w *Window) Run() {
 	for !w.glfwWindow.ShouldClose() {
 		glfw.PollEvents()
 	}
+}
+
+func (w Window) Elapsed() float32 {
+	return w.elapsed
 }
 
 func (w *Window) OnResize(callback func()) {
