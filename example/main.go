@@ -75,11 +75,11 @@ func main() {
 	fps := 0
 	lastTime := time.Now()
 
-	entity.Translate(0, 0, -30)
+	entity.Translate(0, 0, -25)
 
 	window.OnRender(func() {
 		// Update.
-		entity.Rotate(0, window.Elapsed() * 0.50, 0)
+		entity.Rotate(0, window.Elapsed() * 0.5, 0)
 
 		// Render.
 		renderer.Render(scene)
