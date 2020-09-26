@@ -342,11 +342,6 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-	// TODO
-	if t.Sampler != nil {
-		// sampler := g.document.Samplers[*t.Sampler]
-	}
-
 	detailed := kind == TextureAlbedo || kind == TextureMetallicRoughnessMap
 	detailed = true // FIXME
 

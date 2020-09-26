@@ -6,6 +6,7 @@ layout (location = 2) in vec3 normal;
 layout (location = 3) in vec4 tangent;
 
 uniform mat4 model_transform;
+uniform mat4 normal_transform;
 uniform mat4 view_transform;
 uniform mat4 projection_transform;
 
@@ -17,9 +18,6 @@ void main() {
     gl_Position = projection_transform * view_transform * model_transform * vec4(position, 1.0);
     WorldPosition = vec3(model_transform * vec4(position, 1.0));
     UV = uv;
-
-    // TODO: That's incredibly expensive, should be computed outside this shader.
-    mat4 normal_transform = transpose(inverse(model_transform));
 
     // TBN: Tangent space to world space.
     vec3 T = normalize(mat3(normal_transform) * tangent.xyz);

@@ -135,6 +135,7 @@ func (s *Shader) findUniforms() {
 	s.uniformProjection = s.findUniformByName("projection_transform")
 	s.uniformView = s.findUniformByName("view_transform")
 	s.uniformTransform = s.findUniformByName("model_transform")
+	s.uniformNormalTransform = s.findUniformByName("normal_transform")
 	s.uniformCameraPosition = s.findUniformByName("camera_position")
 
 	s.albedoMap.samplerUniformId = s.findUniformByName("albedo_map.map")
@@ -196,6 +197,9 @@ func (s *Shader) BindUniformCamera(camera *Camera) {
 
 func (s *Shader) BindUniformTransform(transform *mgl32.Mat4) {
 	gl.UniformMatrix4fv(s.uniformTransform, 1, false, &transform[0])
+
+	normalTransform := transform.Inv().Transpose()
+	gl.UniformMatrix4fv(s.uniformNormalTransform, 1, false, &normalTransform[0])
 }
 
 func (s *Shader) BindUniformLights(allLights []lights.Light) {

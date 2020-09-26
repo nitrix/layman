@@ -9,12 +9,10 @@ import (
 	"time"
 )
 
-// TODO: Get rid of mgl32 at top-level.
-
 func main() {
 	// Create a window.
-	//window, err := laygl.NewFullScreenWindow("Layman OpenGL")
-	window, err := laygl.NewWindow(1280, 720, "Layman OpenGL")
+	//window, err := laygl.NewFullScreenWindow("Demo")
+	window, err := laygl.NewWindow(1280, 720, "Demo")
 	if err != nil {
 		log.Fatalln("Unable to create fullscreen window:", err)
 	}

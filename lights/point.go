@@ -2,6 +2,7 @@ package lights
 
 import "github.com/go-gl/mathgl/mgl32"
 
+// TODO: Get rid of mgl32 at top-level.
 type Point struct {
 	Position   mgl32.Vec3
 	Irradiance mgl32.Vec3
