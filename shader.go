@@ -258,7 +258,7 @@ func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughness
 	gl.Uniform1i(s.metallicMap.samplerUniformId, int32(TextureMetallicRoughnessMap))
 	gl.Uniform1i(s.roughnessMap.samplerUniformId, int32(TextureMetallicRoughnessMap))
 	gl.Uniform3f(s.metallicMap.defaultValueUniformId, 0.0, 0.0, 0.0)
-	gl.Uniform3f(s.roughnessMap.defaultValueUniformId, 0.5, 0.5, 0.5)
+	gl.Uniform3f(s.roughnessMap.defaultValueUniformId, 1, 1, 1)
 
 	// Ambient occlusion map
 	if aoMap != nil {

@@ -173,13 +173,13 @@ void main() {
     vec3 total_color = vec3(0.0, 0.0, 0.0);
 
     // Convert sRGB to linear color space.
-    //albedo = pow(albedo, vec3(GAMMA));
+    albedo = pow(albedo, vec3(GAMMA));
+    ao = pow(ao, vec3(GAMMA));
 
     /*
     if (environment_map.enabled) {
         for (int i = 0; i < NUM_IBL_SAMPLES; i++) {
-            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo,
-            metallic);
+            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo, metallic);
         }
         total_color /= float(NUM_IBL_SAMPLES);
     } else {
@@ -207,7 +207,9 @@ void main() {
         total_color += get_point_light_contribution(3, albedo, metallic, roughness, normal);
     }
 
-    // Bias AO because it will eventually be gamma corrected.
-    total_color = total_color * pow(ao, vec3(GAMMA));
     out_color = vec4(total_color, 1.0);
+
+    // Post-processing.
+    // Gamma correction.
+    out_color = vec4(pow(out_color.xyz, vec3(1.0 / GAMMA)), 1.0);
 }

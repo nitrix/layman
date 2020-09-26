@@ -48,12 +48,12 @@ func (g *Gltf) loadMeshes() error {
 	meshes := make([]*Mesh, 0)
 
 	for _, m := range g.document.Meshes {
-		err := g.loadMesh(m)
+		additionalMeshes, err := g.loadMesh(m)
 		if err != nil {
 			return err
 		}
 
-		meshes = append(meshes, g.mesh)
+		meshes = append(meshes, additionalMeshes...)
 	}
 
 	g.model.meshes = meshes
@@ -61,52 +61,54 @@ func (g *Gltf) loadMeshes() error {
 	return nil
 }
 
-func (g *Gltf) loadMesh(m *gltf.Mesh) error {
-	g.mesh = &Mesh{}
-	g.mesh.name = m.Name
+func (g *Gltf) loadMesh(m *gltf.Mesh) ([]*Mesh, error) {
+	meshes := make([]*Mesh, 0)
 
-	// Create the VAO on the GPU, then use it.
-	gl.GenVertexArrays(1, &g.mesh.vao)
-	gl.BindVertexArray(g.mesh.vao)
+	for nb, primitive := range m.Primitives {
+		g.mesh = &Mesh{}
+		g.mesh.name = m.Name + fmt.Sprintf(" (%d)", nb)
 
-	for _, primitive := range m.Primitives {
+		// Create the VAO on the GPU, then use it.
+		gl.GenVertexArrays(1, &g.mesh.vao)
+		gl.BindVertexArray(g.mesh.vao)
+
 		if primitive.Mode != gltf.PrimitiveTriangles {
-			return errors.New("only triangle primitives supported")
+			return nil, errors.New("only triangle primitives supported")
 		}
 
 		for name, accessorId := range primitive.Attributes {
 			accessor := g.document.Accessors[accessorId]
 			err := g.loadAttribute(name, accessor)
 			if err != nil {
-				return err
+				return nil, err
 			}
+		}
+
+		if g.mesh.tangents == nil || len(g.mesh.tangents) == 0 {
+			return nil, fmt.Errorf("missing tangents")
 		}
 
 		err := g.loadIndices(g.document.Accessors[*primitive.Indices])
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Load material.
 		err = g.loadMaterial(g.document.Materials[*primitive.Material])
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		// Load tangents.
-		err = g.loadTangents()
+		// Load shader program.
+		err = g.loadShader()
 		if err != nil {
-			return err
+			return nil, err
 		}
+
+		meshes = append(meshes, g.mesh)
 	}
 
-	// Load shader program.
-	err := g.loadShader()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return meshes, nil
 }
 
 func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
@@ -184,6 +186,30 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
 		gl.EnableVertexAttribArray(ShaderAttributeNormals)
 		gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
+	}
+
+	// Tangents.
+	if name == "TANGENT" {
+		if accessor.Type != gltf.AccessorVec4 || accessor.ComponentType != gltf.ComponentFloat {
+			return errors.New("tangent accessor is not a vec4 of floats")
+		}
+
+		bufferView := g.document.BufferViews[*accessor.BufferView]
+		buffer := g.document.Buffers[bufferView.Buffer]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
+
+		var tangents []float32
+		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&tangents))
+		sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
+		sliceHeader.Len = len(data) / int(unsafe.Sizeof(float32(0)))
+		sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(float32(0)))
+		g.mesh.tangents = tangents
+
+		gl.GenBuffers(1, &g.mesh.tangentBufferId)
+		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.tangentBufferId)
+		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+		gl.EnableVertexAttribArray(ShaderAttributeTangents)
+		gl.VertexAttribPointer(ShaderAttributeTangents, 4, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
 	}
 
 	return nil
@@ -379,122 +405,4 @@ func (g *Gltf) initialModelTransform() {
 	g.model.initialTransform = g.model.initialTransform.Mul4(mgl32.Translate3D(
 		float32(translation[0]), float32(translation[1]), float32(translation[2]),
 	))
-}
-
-func (g *Gltf) loadTangents() error {
-	// There aren't always present in the glTF file so we might as well just generate it all the time.
-
-	// Actually, only really needed for models with a normal map.
-	if g.mesh.normalMapTexture == nil {
-		return nil
-	}
-
-	g.mesh.tangents = g.generateTangents(g.mesh.indices, g.mesh.vertices, g.mesh.uvs, g.mesh.normals)
-
-	// Tangent/Bitangent.
-	gl.GenBuffers(1, &g.mesh.tangentBufferId)
-	gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.tangentBufferId)
-	gl.BufferData(gl.ARRAY_BUFFER, len(g.mesh.tangents)*4, gl.Ptr(g.mesh.tangents), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(ShaderAttributeTangents)
-	gl.VertexAttribPointer(ShaderAttributeTangents, 3, gl.FLOAT, false, int32(3*4), gl.PtrOffset(0))
-
-	return nil
-}
-
-func (g *Gltf) generateTangents(indices []uint16, vertices, uvs, normals []float32) []float32 {
-	tangents := make([]float32, len(normals))
-	bitangents := make([]float32, len(normals))
-
-	for i := 0; i < len(indices); i += 3 {
-		v1i := indices[i]
-		v1x := vertices[v1i*3+0]
-		v1y := vertices[v1i*3+1]
-		v1z := vertices[v1i*3+2]
-		v1u := uvs[v1i*2+0]
-		v1v := uvs[v1i*2+1]
-		v1 := mgl32.Vec3{v1x, v1y, v1z}
-		vt1 := mgl32.Vec2{v1u, v1v}
-
-		v2i := indices[i+1]
-		v2x := vertices[v2i*3+0]
-		v2y := vertices[v2i*3+1]
-		v2z := vertices[v2i*3+2]
-		v2u := uvs[v2i*2+0]
-		v2v := uvs[v2i*2+1]
-		v2 := mgl32.Vec3{v2x, v2y, v2z}
-		vt2 := mgl32.Vec2{v2u, v2v}
-
-		v3i := indices[i+2]
-		v3x := vertices[v3i*3+0]
-		v3y := vertices[v3i*3+1]
-		v3z := vertices[v3i*3+2]
-		v3u := uvs[v3i*2+0]
-		v3v := uvs[v3i*2+1]
-		v3 := mgl32.Vec3{v3x, v3y, v3z}
-		vt3 := mgl32.Vec2{v3u, v3v}
-
-		// Part 1
-		deltaPos1 := v2.Sub(v1)
-		deltaPos2 := v3.Sub(v1)
-		deltaUV1 := vt2.Sub(vt1)
-		deltaUV2 := vt3.Sub(vt1)
-
-		f := 1.0 / (deltaUV1.X()*deltaUV2.Y() - deltaUV1.Y()*deltaUV2.X())
-
-		tangent := mgl32.Vec3{
-			(deltaPos1.X()*deltaUV2.Y() - deltaPos2.X()*deltaUV1.Y()) * f,
-			(deltaPos1.Y()*deltaUV2.Y() - deltaPos2.Y()*deltaUV1.Y()) * f,
-			(deltaPos1.Z()*deltaUV2.Y() - deltaPos2.Z()*deltaUV1.Y()) * f,
-		}
-
-		bitangent := mgl32.Vec3{
-			(deltaPos1.X()*deltaUV2.X() - deltaPos2.X()*deltaUV1.X()) * f,
-			(deltaPos1.Y()*deltaUV2.X() - deltaPos2.Y()*deltaUV1.X()) * f,
-			(deltaPos1.Z()*deltaUV2.X() - deltaPos2.Z()*deltaUV1.X()) * f,
-		}
-
-		tangents[v1i*3+0] += tangent.X()
-		tangents[v1i*3+1] += tangent.Y()
-		tangents[v1i*3+2] += tangent.Z()
-		tangents[v2i*3+0] += tangent.X()
-		tangents[v2i*3+1] += tangent.Y()
-		tangents[v2i*3+2] += tangent.Z()
-		tangents[v3i*3+0] += tangent.X()
-		tangents[v3i*3+1] += tangent.Y()
-		tangents[v3i*3+2] += tangent.Z()
-
-		bitangents[v1i*3+0] += bitangent.X()
-		bitangents[v1i*3+1] += bitangent.Y()
-		bitangents[v1i*3+2] += bitangent.Z()
-		bitangents[v2i*3+0] += bitangent.X()
-		bitangents[v2i*3+1] += bitangent.Y()
-		bitangents[v2i*3+2] += bitangent.Z()
-		bitangents[v3i*3+0] += bitangent.X()
-		bitangents[v3i*3+1] += bitangent.Y()
-		bitangents[v3i*3+2] += bitangent.Z()
-	}
-
-	// Part 2
-	for i := 0; i < len(normals)/3; i++ {
-		n := mgl32.Vec3{
-			normals[i*3+0],
-			normals[i*3+1],
-			normals[i*3+2],
-		}
-
-		t0 := mgl32.Vec3{
-			tangents[i*3+0],
-			tangents[i*3+1],
-			tangents[i*3+2],
-		}
-
-		t := t0.Sub(n.Mul(n.Dot(t0)))
-		t = t.Normalize()
-
-		tangents[i*3+0] = t.X()
-		tangents[i*3+1] = t.Y()
-		tangents[i*3+2] = t.Z()
-	}
-
-	return tangents
 }

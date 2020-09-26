@@ -32,12 +32,10 @@ func main() {
 	//model, err := laygl.LoadModel("helmet", "assets/corset.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/boombox.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/illya.glb")
+	//model, err := laygl.LoadModel("helmet", "assets/wakfu.glb")
 	if err != nil {
 		log.Fatalln("Unable to load model:", err)
 	}
-
-	// glm::vec3 position, GLfloat const_atten, GLfloat linear_atten,
-	//    GLfloat quad_atten, glm::vec3 irradiance
 
 	// Create directional light
 	directionalLight := lights.NewDirectional()
@@ -45,11 +43,12 @@ func main() {
 	/*
 	pointLight := lights.NewPoint()
 	pointLight.Position = mgl32.Vec3{
-		0, 0, 20,
+		0, 0, 0,
 	}
 	pointLight.Irradiance = mgl32.Vec3{
 		40.0, 40.0, 40.0,
 	}
+
 	pointLight.ConstantAttenuation = 1
 	pointLight.LinearAttenuation = 0.3
 	pointLight.QuadraticAttenuation = 0.03
@@ -76,11 +75,11 @@ func main() {
 	fps := 0
 	lastTime := time.Now()
 
-	entity.Translate(0, 0, -20)
+	entity.Translate(0, 0, -30)
 
 	window.OnRender(func() {
 		// Update.
-		entity.Rotate(0, window.Elapsed() * 0.5, 0)
+		entity.Rotate(0, window.Elapsed() * 0.50, 0)
 
 		// Render.
 		renderer.Render(scene)
