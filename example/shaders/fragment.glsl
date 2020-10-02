@@ -177,7 +177,7 @@ void main() {
 
     if (environment_map.enabled) {
         for (int i = 0; i < NUM_IBL_SAMPLES; i++) {
-            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo, metallic) * NUM_IBL_SAMPLES;
+            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo, metallic);
         }
         total_color /= float(NUM_IBL_SAMPLES);
     } else {
