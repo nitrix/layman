@@ -122,7 +122,6 @@ vec3 get_point_light_contribution(int light_index, vec3 albedo, float metallic, 
     return get_light_contribution(albedo, metallic, roughness, normal, incoming_irradiance, reversed_direction);
 }
 
-/*
 vec3 get_ibl_sample_contribution(vec2 hammersley, float roughness, vec3 normal, vec3 albedo, float metallic) {
     // Get the sample direction from the Hammersley point. See GGX paper for derivation of closed
     // solutions for theta and phi.
@@ -151,13 +150,13 @@ vec3 get_ibl_sample_contribution(vec2 hammersley, float roughness, vec3 normal, 
         vec3 sample_color = vec3(textureLod(environment_map.map, uv1, lod));
 
         vec3 f0 = mix(vec3(0.04, 0.04, 0.04), albedo, metallic);
-        vec3 f = get_fresnel(v, h, f0);
-        float g = get_geometric_attenuation(l, v, n, h, roughness);
+        vec3 f = FresnelSchlick(v, h, f0);
+        float g = GeometrySmith(n, v, l, roughness);
         return (f * g * sample_color * clamp(dot(v, h), 0, 1) / clamp(dot(n, h), 0, 1) * clamp(dot(n, v), 0, 1));
     }
+
     return vec3(0.0, 0.0, 0.0);
 }
-*/
 
 void main() {
     vec3 albedo = albedo_map.enabled ? vec3(texture(albedo_map.map, UV)) : albedo_map.default_value;
@@ -176,16 +175,14 @@ void main() {
     albedo = pow(albedo, vec3(GAMMA));
     ao = pow(ao, vec3(GAMMA));
 
-    /*
     if (environment_map.enabled) {
         for (int i = 0; i < NUM_IBL_SAMPLES; i++) {
-            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo, metallic);
+            total_color += get_ibl_sample_contribution(hammersley_points[i], roughness, normal, albedo, metallic) * NUM_IBL_SAMPLES;
         }
         total_color /= float(NUM_IBL_SAMPLES);
     } else {
-    */
-        total_color = mix(albedo * 0.2, vec3(0), metallic);
-    //}
+        total_color = mix(albedo * 0.03, vec3(0), metallic);
+    }
 
     if (directional_light.enabled) {
         total_color += get_directional_light_contribution(albedo, metallic, roughness, normal);

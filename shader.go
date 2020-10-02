@@ -20,6 +20,9 @@ type Shader struct {
 	uniformNormalTransform int32
 	uniformCameraPosition  int32
 
+	uniformHammersleyPoints int32
+	environmentMap UniformMapInfo
+
 	albedoMap    UniformMapInfo
 	normalMap    UniformMapInfo
 	roughnessMap UniformMapInfo
@@ -158,6 +161,10 @@ func (s *Shader) findUniforms() {
 	s.aoMap.defaultValueUniformId = s.findUniformByName("ao_map.default_value")
 	s.aoMap.enabledUniformId = s.findUniformByName("ao_map.enabled")
 
+	s.environmentMap.samplerUniformId = s.findUniformByName("environment_map.map")
+	s.environmentMap.defaultValueUniformId = s.findUniformByName("environment_map.default_value")
+	s.environmentMap.enabledUniformId = s.findUniformByName("environment_map.enabled")
+
 	s.uniformMaterialAmbient = s.findUniformByName("material_ambient")
 	s.uniformMaterialDiffuse = s.findUniformByName("material_diffuse")
 	s.uniformMaterialSpecular = s.findUniformByName("material_specular")
@@ -166,6 +173,8 @@ func (s *Shader) findUniforms() {
 	s.directionalLight.enabledUniformId = s.findUniformByName("directional_light.enabled")
 	s.directionalLight.directionUniformId = s.findUniformByName("directional_light.direction")
 	s.directionalLight.irradianceUniformId = s.findUniformByName("directional_light.irradiance")
+
+	s.uniformHammersleyPoints = s.findUniformByName("hammersley_points")
 
 	for i := 0; i < LightCount; i++ {
 		light := fmt.Sprintf("point_lights[%d]", i)
@@ -222,6 +231,13 @@ func (s *Shader) BindUniformLights(allLights []lights.Light) {
 			}
 		}
 	}
+}
+
+func (s *Shader) BindUniformEnvironment(environment *Environment) {
+	environment.texture.Use()
+	gl.Uniform2fv(s.uniformHammersleyPoints, IBLSamples, &environment.hammersleyPoints[0])
+	gl.Uniform1i(s.environmentMap.enabledUniformId, 1)
+	gl.Uniform1i(s.environmentMap.samplerUniformId, int32(TextureEnvironmentMap))
 }
 
 func (s *Shader) BindUniformMaterial(material *Material) {

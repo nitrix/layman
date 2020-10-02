@@ -16,6 +16,7 @@ const (
 	TextureNormalMap
 	TextureMetallicRoughnessMap
 	TextureAmbientOcclusionMap
+	TextureEnvironmentMap
 )
 
 func (t *Texture) Use() {
