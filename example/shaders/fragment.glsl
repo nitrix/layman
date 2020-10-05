@@ -181,7 +181,7 @@ void main() {
         }
         total_color /= float(NUM_IBL_SAMPLES);
     } else {
-        total_color = mix(albedo * 0.03, vec3(0), metallic);
+        total_color = mix(albedo * 0.05, vec3(0), metallic);
     }
 
     if (directional_light.enabled) {
