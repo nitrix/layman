@@ -184,29 +184,19 @@ void main() {
         total_color = mix(albedo * 0.05, vec3(0), metallic);
     }
 
+    // Single directional light.
     if (directional_light.enabled) {
         total_color += get_directional_light_contribution(albedo, metallic, roughness, normal);
     }
 
-    if (point_lights[0].enabled) {
-        total_color += get_point_light_contribution(0, albedo, metallic, roughness, normal);
+    // Multiple point lights.
+    for (int i = 0; i < MAX_POINT_LIGHTS; i++) {
+        if (point_lights[i].enabled) {
+            total_color += get_point_light_contribution(i, albedo, metallic, roughness, normal);
+        }
     }
 
-    if (point_lights[1].enabled) {
-        total_color += get_point_light_contribution(1, albedo, metallic, roughness, normal);
-    }
-
-    if (point_lights[2].enabled) {
-        total_color += get_point_light_contribution(2, albedo, metallic, roughness, normal);
-    }
-
-    if (point_lights[3].enabled) {
-        total_color += get_point_light_contribution(3, albedo, metallic, roughness, normal);
-    }
-
+    // Bias AO because it will eventually be gamma corrected.
+    total_color = total_color * pow(ao, vec3(GAMMA));
     out_color = vec4(total_color, 1.0);
-
-    // Post-processing.
-    // Gamma correction.
-    out_color = vec4(pow(out_color.xyz, vec3(1.0 / GAMMA)), 1.0);
 }

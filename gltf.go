@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/qmuntal/gltf"
 	"image"
@@ -342,8 +343,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-	detailed := kind == TextureAlbedo || kind == TextureMetallicRoughnessMap
-	detailed = true // FIXME
+	detailed := kind == TextureAlbedo
 
 	// Mipmapping.
 	if detailed {
@@ -353,7 +353,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 	}
 
 	// Anisotropic filtering, if supported.
-	if detailed && IsExtensionSupported("GL_EXT_texture_filter_anisotropic") {
+	if detailed && glfw.ExtensionSupported("GL_EXT_texture_filter_anisotropic") {
 		max := float32(0)
 		gl.GetFloatv(gl.MAX_TEXTURE_MAX_ANISOTROPY, &max)
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_ANISOTROPY, float32(math.Min(4, float64(max))))
@@ -365,7 +365,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 func (g *Gltf) loadShader() error {
 	// FIXME: That's a lot of shader duplication per mesh.
 	// FIXME: Hardcoded path.
-	shader, err := LoadShader("shaders/vertex.glsl", "shaders/fragment.glsl")
+	shader, err := LoadShader("shaders/pbr.vert", "shaders/pbr.frag")
 	if err != nil {
 		return fmt.Errorf("unable to load shader: %w", err)
 	}

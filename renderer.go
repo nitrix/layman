@@ -10,25 +10,24 @@ import (
 const AntiAliasingSamples = 8
 const IBLSamples = 32
 
-/*
-// Number of vertices in skybox_vertices.
-const numSkyboxVertices = 36
-// Vertex positions of a skybox centered at the origin and extending -1 units in each direction.
-var skybox_vertices = []float32{
-	-1.0,  1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0,
-	-1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0,
-	1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0,
-	1.0, 1.0, 1.0, 1.0,  1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0,
-	1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0,
-	1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0,
-	1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0,
-	-1.0, -1.0, 1.0, 1.0, -1.0, 1.0,
-}
-*/
-
 type Renderer struct {
 	projection mgl32.Mat4
 	environment *Environment
+	framebuffer *Framebuffer
+	hdrShader *Shader
+	ditherTexture *Texture
+	width, height int
+}
+
+var bayerMatrix = []uint8 {
+	10, 32, 8, 40, 2, 34, 10, 42,
+	48, 16, 56, 24, 50, 18, 58, 26,
+	12, 44, 4, 36, 14, 46, 6, 38,
+	60, 28, 52, 20, 62, 30, 54, 22,
+	3, 35, 11, 43, 1, 33, 9, 41,
+	51, 19, 59, 27, 49, 17, 57, 25,
+	15, 47, 7, 39, 13, 45, 5, 37,
+	63, 31, 55, 23, 61, 29, 53, 21,
 }
 
 func NewRenderer(window *Window) (*Renderer, error) {
@@ -41,26 +40,13 @@ func NewRenderer(window *Window) (*Renderer, error) {
 
 	gl.ClearColor(0, 0, 0, 1.0)
 
+	//gl.Enable(gl.DEPTH_TEST)
+	//gl.Enable(gl.CULL_FACE)
+	//gl.CullFace(gl.BACK)
+
 	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-
-	gl.Enable(gl.CULL_FACE)
-	gl.CullFace(gl.BACK)
-
+	//gl.DepthFunc(gl.LEQUAL)
 	gl.Enable(gl.MULTISAMPLE)
-
-	/*
-	// Create the VAO on the GPU, then use it.
-	gl.GenVertexArrays(1, &renderer.skyboxMesh.vao)
-	gl.BindVertexArray(renderer.skyboxMesh.vao)
-	gl.GenBuffers(1, &renderer.skyboxMesh.verticesBufferId)
-	gl.BindBuffer(gl.ARRAY_BUFFER, renderer.skyboxMesh.verticesBufferId)
-	gl.BufferData(gl.ARRAY_BUFFER, numSkyboxVertices * 4, gl.Ptr(&skybox_vertices[0]), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(ShaderAttributeVertexCoords)
-	gl.VertexAttribPointer(ShaderAttributeVertexCoords, 3, gl.FLOAT, false, 3 * 4, gl.PtrOffset(0))
-
-	renderer.skyboxShader, _ = LoadShader("shaders/skybox.vert", "shaders/skybox.frag")
-	*/
 
 	environment, err := NewEnvironment()
 	if err != nil {
@@ -68,6 +54,22 @@ func NewRenderer(window *Window) (*Renderer, error) {
 	}
 
 	renderer.environment = environment
+	renderer.framebuffer = NewFramebuffer(window.Dimensions())
+
+	renderer.hdrShader, err = LoadShader("shaders/hdr.vert", "shaders/hdr.frag")
+	if err != nil {
+		return nil, err
+	}
+
+	renderer.ditherTexture = &Texture{}
+
+	gl.GenTextures(1, &renderer.ditherTexture.id)
+	gl.BindTexture(gl.TEXTURE_2D, renderer.ditherTexture.id)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R8UI, 8, 8, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, unsafe.Pointer(&bayerMatrix[0]))
 
 	return renderer, nil
 }
@@ -81,43 +83,42 @@ func (r *Renderer) Wireframe(enabled bool) {
 }
 
 func (r *Renderer) Resize(width, height int) {
+	r.width, r.height = width, height
 	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 1000.0)
 	gl.Viewport(0, 0, int32(width), int32(height))
 }
 
 func (r *Renderer) Render(scene *Scene) {
+	r.framebuffer.Use()
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
 	r.renderEntities(scene)
+	r.framebuffer.Unuse()
+
+	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	//r.renderEntities(scene)
+
+	// Present.
+	r.hdrShader.Use()
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D_MULTISAMPLE, r.framebuffer.colorBuffer)
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, r.ditherTexture.id)
+
+	gl.Uniform2ui(r.hdrShader.findUniformByName("dimensions"), uint32(r.width), uint32(r.height))
+	gl.Uniform1i(r.hdrShader.findUniformByName("hdrBuffer"), 0)
+	gl.Uniform1i(r.hdrShader.findUniformByName("bayer_matrix"), 1)
+
+	// Render a quad that covers the entire screen so we can actually use the texture produced by the main shader.
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.DrawArrays(gl.TRIANGLES, 0, 3)
+	r.hdrShader.Unuse()
+
+	//gl.BindFramebuffer(gl.READ_FRAMEBUFFER, r.framebuffer.fbo)
+	//gl.BindFramebuffer(gl.DRAW_FRAMEBUFFER, 0)
+	//gl.BlitFramebuffer(0, 0, int32(r.width), int32(r.height), 0, 0, int32(r.width), int32(r.height), gl.DEPTH_BUFFER_BIT, gl.NEAREST)
+
+	//r.renderEntities(scene)
 }
-
-/*
-func (r *Renderer) renderSkybox(camera *Camera) {
-	// Setup the program and uniforms.
-	gl.UseProgram(r.skyboxShader.programId)
-	gl.DepthMask(false)
-
-	view_location := r.skyboxShader.findUniformByName("view_transform")
-	gl.UniformMatrix4fv(view_location, 1, false, &camera.viewMatrix[0])
-
-	projection_location := r.skyboxShader.findUniformByName("projection_transform")
-	gl.UniformMatrix4fv(projection_location, 1, false, &r.projection[0])
-
-	blur_location := r.skyboxShader.findUniformByName("skybox_blur")
-	gl.Uniform1f(blur_location, 0.0)
-
-	// Setup the texture.
-	gl.BindTexture(gl.TEXTURE_2D, environment->environment_handle)
-	environment_location := r.skyboxShader.findUniformByName("environment_map")
-	gl.Uniform1i(environment_location, 0)
-
-	// Draw the box.
-	gl.BindVertexArray(r.skyboxMesh.vao)
-	gl.DrawArrays(gl.TRIANGLES, 0, numSkyboxVertices / 3)
-	gl.BindVertexArray(0)
-	gl.DepthMask(true)
-}
-*/
 
 func (r *Renderer) renderEntities(scene *Scene) {
 	for model, entities := range scene.entities {
@@ -149,19 +150,4 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.Unuse()
 		}
 	}
-}
-
-func IsExtensionSupported(name string) bool {
-	nb := int32(0)
-	gl.GetIntegerv(gl.NUM_EXTENSIONS, &nb)
-
-	for i := uint32(0); i < uint32(nb); i++ {
-		str := gl.GetStringi(gl.EXTENSIONS, i)
-		str2 := C.GoString((*C.char)(unsafe.Pointer(str)))
-		if str2 == name {
-			return true
-		}
-	}
-
-	return false
 }
