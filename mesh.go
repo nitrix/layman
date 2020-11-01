@@ -19,6 +19,7 @@ type Mesh struct {
 
 	albedoTexture               *Texture
 	normalMapTexture            *Texture
+	emissiveMapTexture          *Texture
 	metallicRoughnessMapTexture *Texture
 	ambientOcclusionMapTexture  *Texture
 
@@ -60,6 +61,10 @@ func (m *Mesh) Use() {
 		m.normalMapTexture.Use()
 	}
 
+	if m.emissiveMapTexture != nil {
+		m.emissiveMapTexture.Use()
+	}
+
 	if m.metallicRoughnessMapTexture != nil {
 		m.metallicRoughnessMapTexture.Use()
 	}
@@ -80,6 +85,10 @@ func (m *Mesh) Unuse() {
 
 	if m.normalMapTexture != nil {
 		m.normalMapTexture.Unuse()
+	}
+
+	if m.emissiveMapTexture != nil {
+		m.emissiveMapTexture.Unuse()
 	}
 
 	if m.metallicRoughnessMapTexture != nil {

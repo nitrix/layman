@@ -28,7 +28,7 @@ type Shader struct {
 	roughnessMap UniformMapInfo
 	metallicMap  UniformMapInfo
 	aoMap        UniformMapInfo
-	emissionMap  UniformMapInfo
+	emissiveMap  UniformMapInfo
 
 	directionalLight DirectionalLightInfo
 	pointLights [LightCount]PointLightInfo
@@ -149,6 +149,10 @@ func (s *Shader) findUniforms() {
 	s.normalMap.defaultValueUniformId = s.findUniformByName("normal_map.default_value")
 	s.normalMap.enabledUniformId = s.findUniformByName("normal_map.enabled")
 
+	s.emissiveMap.samplerUniformId = s.findUniformByName("emissive_map.map")
+	s.emissiveMap.defaultValueUniformId = s.findUniformByName("emissive_map.default_value")
+	s.emissiveMap.enabledUniformId = s.findUniformByName("emissive_map.enabled")
+
 	s.roughnessMap.samplerUniformId = s.findUniformByName("roughness_map.map")
 	s.roughnessMap.defaultValueUniformId = s.findUniformByName("roughness_map.default_value")
 	s.roughnessMap.enabledUniformId = s.findUniformByName("roughness_map.enabled")
@@ -247,7 +251,7 @@ func (s *Shader) BindUniformMaterial(material *Material) {
 	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
 }
 
-func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughnessMap, aoMap *Texture) {
+func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, emissiveMap, metallicRoughnessMap, aoMap *Texture) {
 	// TODO: Rename to map?
 	// Albedo map
 	if albedo != nil {
@@ -266,6 +270,15 @@ func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, metallicRoughness
 	}
 	gl.Uniform1i(s.normalMap.samplerUniformId, int32(TextureNormalMap))
 	gl.Uniform3f(s.normalMap.defaultValueUniformId, 0.5, 0.5, 1.0)
+
+	// Emissive map
+	if emissiveMap != nil {
+		gl.Uniform1i(s.emissiveMap.enabledUniformId, 1)
+	} else {
+		gl.Uniform1i(s.emissiveMap.enabledUniformId, 0)
+	}
+	gl.Uniform1i(s.emissiveMap.samplerUniformId, int32(TextureEmissiveMap))
+	gl.Uniform3f(s.emissiveMap.defaultValueUniformId, 0.5, 0.5, 1.0)
 
 	// Metallic/roughness map
 	if metallicRoughnessMap != nil {

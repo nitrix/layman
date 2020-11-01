@@ -279,6 +279,16 @@ func (g *Gltf) loadMaterial(m *gltf.Material) error {
 		g.mesh.normalMapTexture = g.texture
 	}
 
+	// Emissive map texture.
+	if m.NormalTexture != nil {
+		err := g.loadTexture(TextureEmissiveMap, g.document.Textures[m.EmissiveTexture.Index])
+		if err != nil {
+			return err
+		}
+
+		g.mesh.emissiveMapTexture = g.texture
+	}
+
 	return nil
 }
 

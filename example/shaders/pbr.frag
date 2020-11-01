@@ -32,6 +32,7 @@ uniform MapInfo albedo_map;
 uniform MapInfo metallic_map;
 uniform MapInfo roughness_map;
 uniform MapInfo normal_map;
+uniform MapInfo emissive_map;
 uniform MapInfo ao_map;
 uniform MapInfo environment_map;
 uniform vec2 hammersley_points[NUM_IBL_SAMPLES];
@@ -162,6 +163,7 @@ void main() {
     vec3 albedo = albedo_map.enabled ? vec3(texture(albedo_map.map, UV)) : albedo_map.default_value;
     float metallic = metallic_map.enabled ? texture(metallic_map.map, UV).b : metallic_map.default_value.b;
     float roughness = roughness_map.enabled ? texture(roughness_map.map, UV).g : roughness_map.default_value.g;
+    vec3 emission = emissive_map.enabled ? vec3(texture(emissive_map.map, UV)) : emissive_map.default_value;
     vec3 tangent_space_normal = normal_map.enabled ? vec3(texture(normal_map.map, UV)) : normal_map.default_value;
     vec3 ao = ao_map.enabled ? vec3(texture(ao_map.map, UV)) : ao_map.default_value;
 
@@ -174,6 +176,7 @@ void main() {
     // Convert sRGB to linear color space.
     albedo = pow(albedo, vec3(GAMMA));
     ao = pow(ao, vec3(GAMMA));
+    emission = pow(emission, vec3(GAMMA));
 
     if (environment_map.enabled) {
         for (int i = 0; i < NUM_IBL_SAMPLES; i++) {
@@ -195,6 +198,8 @@ void main() {
             total_color += get_point_light_contribution(i, albedo, metallic, roughness, normal);
         }
     }
+
+    total_color += emission;
 
     // Bias AO because it will eventually be gamma corrected.
     total_color = total_color * pow(ao, vec3(GAMMA));

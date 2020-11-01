@@ -17,6 +17,8 @@ type Renderer struct {
 	hdrShader *Shader
 	ditherTexture *Texture
 	width, height int
+
+	dummyVao uint32
 }
 
 var bayerMatrix = []uint8 {
@@ -55,6 +57,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 
 	renderer.environment = environment
 	renderer.framebuffer = NewFramebuffer(window.Dimensions())
+	gl.GenVertexArrays(1, &renderer.dummyVao)
 
 	renderer.hdrShader, err = LoadShader("shaders/hdr.vert", "shaders/hdr.frag")
 	if err != nil {
@@ -97,7 +100,7 @@ func (r *Renderer) Render(scene *Scene) {
 	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	//r.renderEntities(scene)
 
-	// Present.
+	//Present.
 	r.hdrShader.Use()
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D_MULTISAMPLE, r.framebuffer.colorBuffer)
@@ -110,6 +113,7 @@ func (r *Renderer) Render(scene *Scene) {
 
 	// Render a quad that covers the entire screen so we can actually use the texture produced by the main shader.
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	gl.BindVertexArray(r.dummyVao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 	r.hdrShader.Unuse()
 
@@ -135,6 +139,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.shader.BindUniformTextureSamplers(
 				mesh.albedoTexture,
 				mesh.normalMapTexture,
+				mesh.emissiveMapTexture,
 				mesh.metallicRoughnessMapTexture,
 				mesh.ambientOcclusionMapTexture,
 			)
