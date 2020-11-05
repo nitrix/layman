@@ -278,7 +278,7 @@ func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, emissiveMap, meta
 		gl.Uniform1i(s.emissiveMap.enabledUniformId, 0)
 	}
 	gl.Uniform1i(s.emissiveMap.samplerUniformId, int32(TextureEmissiveMap))
-	gl.Uniform3f(s.emissiveMap.defaultValueUniformId, 0.5, 0.5, 1.0)
+	gl.Uniform3f(s.emissiveMap.defaultValueUniformId, 0, 0, 0)
 
 	// Metallic/roughness map
 	if metallicRoughnessMap != nil {

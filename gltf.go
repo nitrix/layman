@@ -280,7 +280,7 @@ func (g *Gltf) loadMaterial(m *gltf.Material) error {
 	}
 
 	// Emissive map texture.
-	if m.NormalTexture != nil {
+	if m.EmissiveTexture != nil {
 		err := g.loadTexture(TextureEmissiveMap, g.document.Textures[m.EmissiveTexture.Index])
 		if err != nil {
 			return err
@@ -350,8 +350,8 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+	//gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	//gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
 	detailed := kind == TextureAlbedo
 

@@ -48,7 +48,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 
 	gl.Enable(gl.DEPTH_TEST)
 	//gl.DepthFunc(gl.LEQUAL)
-	gl.Enable(gl.MULTISAMPLE)
+	//gl.Enable(gl.MULTISAMPLE)
 
 	environment, err := NewEnvironment()
 	if err != nil {

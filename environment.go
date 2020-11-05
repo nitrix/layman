@@ -5,9 +5,7 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/mdouchement/hdr"
 	_ "github.com/mdouchement/hdr/codec/rgbe"
-	"github.com/mdouchement/hdr/tmo"
 	"image"
-	"image/draw"
 	"os"
 )
 
@@ -45,12 +43,12 @@ func (e *Environment) loadHDR() error {
 		return err
 	}
 
+	/*
 	if hdrm, ok := m.(hdr.Image); ok {
-		t := tmo.NewLinear(hdrm)
-		// t := tmo.NewLogarithmic(hdrm)
-		//t := tmo.NewDefaultReinhard05(hdrm)
+		t := tmo.NewDefaultReinhard05(hdrm)
 		m = t.Perform()
 	}
+	*/
 
 	e.texture.kind = TextureEnvironmentMap
 
@@ -66,12 +64,15 @@ func (e *Environment) loadHDR() error {
 		return fmt.Errorf("unsupported stride")
 	}
 
-	draw.Draw(rgba, rgba.Bounds(), m, image.Point{}, draw.Src)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
-	gl.GenerateMipmap(gl.TEXTURE_2D)
-	gl.BindTexture(gl.TEXTURE_2D, 0)
+	if safeM, ok := m.(*hdr.RGB); ok {
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y), 0, gl.RGB, gl.FLOAT, gl.Ptr(safeM.Pix))
+		gl.GenerateMipmap(gl.TEXTURE_2D)
+		gl.BindTexture(gl.TEXTURE_2D, 0)
 
-	return nil
+		return nil
+	}
+
+	return fmt.Errorf("hdr type assertion failed")
 }
 
 func (e *Environment) generateHammersleyPoints() {
@@ -89,8 +90,6 @@ func (e *Environment) generateHammersleyPoints() {
 		}
 
 		v := (float32(i) + 0.5) / float32(IBLSamples)
-		//location := gl.GetUniformLocation(program, ("hammersley_points[" + std::to_string(i) + "]").c_str());
-		//gl.Uniform2f(location, u, v)
 		e.hammersleyPoints = append(e.hammersleyPoints, u)
 		e.hammersleyPoints = append(e.hammersleyPoints, v)
 	}

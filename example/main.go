@@ -25,13 +25,14 @@ func main() {
 	}
 
 	// Load the model.
+	model, err := laygl.LoadModel("helmet", "assets/DamagedHelmet.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/cowboy.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/helmet.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/corset.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/boombox.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/illya.glb")
 	//model, err := laygl.LoadModel("helmet", "assets/wakfu.glb")
-	model, err := laygl.LoadModel("helmet", "assets/BoomBox.glb")
+	//model, err := laygl.LoadModel("helmet", "assets/BoomBox.glb")
 	if err != nil {
 		log.Fatalln("Unable to load model:", err)
 	}
@@ -74,7 +75,7 @@ func main() {
 	fps := 0
 	lastTime := time.Now()
 
-	entity.Translate(0, 0, -10)
+	entity.Translate(0, 0, -3)
 
 	window.OnRender(func() {
 		// Update.
