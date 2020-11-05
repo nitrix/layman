@@ -17,6 +17,7 @@ type Renderer struct {
 	hdrShader *Shader
 	ditherTexture *Texture
 	width, height int
+	wireframe bool
 
 	dummyVao uint32
 }
@@ -78,11 +79,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 }
 
 func (r *Renderer) Wireframe(enabled bool) {
-	if enabled {
-		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-	} else {
-		gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
-	}
+	r.wireframe = enabled
 }
 
 func (r *Renderer) Resize(width, height int) {
@@ -92,10 +89,16 @@ func (r *Renderer) Resize(width, height int) {
 }
 
 func (r *Renderer) Render(scene *Scene) {
+	if r.wireframe {
+		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	}
+
 	r.framebuffer.Use()
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	r.renderEntities(scene)
 	r.framebuffer.Unuse()
+
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 
 	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	//r.renderEntities(scene)
