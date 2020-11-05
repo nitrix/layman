@@ -165,7 +165,7 @@ void main() {
     float roughness = roughness_map.enabled ? texture(roughness_map.map, UV).g : roughness_map.default_value.g;
     vec3 emission = emissive_map.enabled ? vec3(texture(emissive_map.map, UV)) : emissive_map.default_value;
     vec3 tangent_space_normal = normal_map.enabled ? vec3(texture(normal_map.map, UV)) : normal_map.default_value;
-    vec3 ao = ao_map.enabled ? vec3(texture(ao_map.map, UV)) : ao_map.default_value;
+    float ao = ao_map.enabled ? texture(ao_map.map, UV).r : ao_map.default_value.r;
 
     tangent_space_normal = normalize((tangent_space_normal * 2.0) - 1.0) * vec3(1.0, -1.0, 1.0);
     tangent_space_normal = vec3(tangent_space_normal.x, tangent_space_normal.y, tangent_space_normal.z);
@@ -175,7 +175,6 @@ void main() {
 
     // Convert sRGB to linear color space.
     albedo = pow(albedo, vec3(GAMMA));
-    ao = pow(ao, vec3(GAMMA));
     emission = pow(emission, vec3(GAMMA));
 
     if (environment_map.enabled) {
@@ -199,9 +198,12 @@ void main() {
         }
     }
 
+    // Emission map.
     total_color += emission;
 
-    // Bias AO because it will eventually be gamma corrected.
-    total_color = total_color * pow(ao, vec3(GAMMA));
+    // Ambient occlusion map.
+    total_color *= ao;
+
+    // Final color.
     out_color = vec4(total_color, 1.0);
 }

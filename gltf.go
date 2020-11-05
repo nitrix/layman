@@ -289,6 +289,16 @@ func (g *Gltf) loadMaterial(m *gltf.Material) error {
 		g.mesh.emissiveMapTexture = g.texture
 	}
 
+	// Occlusion map texture.
+	if m.OcclusionTexture != nil {
+		err := g.loadTexture(TextureAmbientOcclusionMap, g.document.Textures[*m.OcclusionTexture.Index])
+		if err != nil {
+			return err
+		}
+
+		g.mesh.ambientOcclusionMapTexture = g.texture
+	}
+
 	return nil
 }
 
