@@ -198,11 +198,11 @@ void main() {
         }
     }
 
-    // Emission map.
-    total_color += emission;
-
     // Ambient occlusion map.
     total_color *= ao;
+
+    // Emission map.
+    total_color += emission;
 
     // Final color.
     out_color = vec4(total_color, 1.0);
