@@ -1,6 +1,8 @@
 package laygl
 
-import	"github.com/go-gl/gl/v4.6-core/gl"
+import (
+	"github.com/go-gl/gl/v4.6-core/gl"
+)
 
 type Framebuffer struct{
 	fbo uint32
@@ -30,6 +32,12 @@ func NewFramebuffer(width, height int) *Framebuffer {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
 	return fb
+}
+
+func (fb *Framebuffer) Destroy() {
+	gl.DeleteTextures(1, &fb.colorBuffer)
+	gl.DeleteRenderbuffers(1, &fb.depthBuffer)
+	gl.DeleteFramebuffers(1, &fb.fbo)
 }
 
 func (fb *Framebuffer) Use() {

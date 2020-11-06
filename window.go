@@ -40,7 +40,6 @@ func NewWindow(width, height int, title string, fullscreen bool) (*Window, error
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 6)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	//glfw.WindowHint(glfw.Samples, AntiAliasingSamples)
 
 	glfwWindow, err := glfw.CreateWindow(width, height, title, monitor, nil)
 	if err != nil {

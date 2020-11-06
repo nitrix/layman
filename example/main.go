@@ -5,7 +5,6 @@ import (
 	"github.com/nitrix/laygl"
 	"github.com/nitrix/laygl/lights"
 	"log"
-	"runtime/debug"
 	"time"
 )
 
@@ -44,20 +43,6 @@ func main() {
 	// Create directional light
 	directionalLight := lights.NewDirectional()
 
-	/*
-	pointLight := lights.NewPoint()
-	pointLight.Position = mgl32.Vec3{
-		0, 0, 0,
-	}
-	pointLight.Irradiance = mgl32.Vec3{
-		40.0, 40.0, 40.0,
-	}
-
-	pointLight.ConstantAttenuation = 1
-	pointLight.LinearAttenuation = 0.3
-	pointLight.QuadraticAttenuation = 0.03
-	*/
-
 	// Entity
 	entity := laygl.NewEntityFromModel(model)
 
@@ -72,11 +57,6 @@ func main() {
 	scene.AddEntity(entity)
 	scene.AddLight(&directionalLight)
 	//scene.AddLight(&pointLight)
-
-	// Reduce the memory residency after loading assets into GPU memory.
-	t = time.Now()
-	debug.FreeOSMemory()
-	log.Println("Time to free up memory:", time.Now().Sub(t))
 
 	fps := 0
 	lastTime := time.Now()
@@ -98,10 +78,4 @@ func main() {
 			lastTime = time.Now()
 		}
 	})
-}
-
-func wrapTiming(do func()) time.Duration {
-	t := time.Now()
-	do()
-	return time.Now().Sub(t)
 }

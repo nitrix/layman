@@ -36,20 +36,13 @@ var bayerMatrix = []uint8 {
 func NewRenderer(window *Window) (*Renderer, error) {
 	renderer := &Renderer{}
 
-	renderer.Resize(window.Dimensions())
-	window.OnResize(func() {
-		renderer.Resize(window.Dimensions())
-	})
-
 	gl.ClearColor(0, 0, 0, 1.0)
 
-	//gl.Enable(gl.DEPTH_TEST)
+	// TODO: Culling faces.
 	//gl.Enable(gl.CULL_FACE)
 	//gl.CullFace(gl.BACK)
 
 	gl.Enable(gl.DEPTH_TEST)
-	//gl.DepthFunc(gl.LEQUAL)
-	//gl.Enable(gl.MULTISAMPLE)
 
 	environment, err := NewEnvironment()
 	if err != nil {
@@ -75,6 +68,11 @@ func NewRenderer(window *Window) (*Renderer, error) {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.R8UI, 8, 8, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, unsafe.Pointer(&bayerMatrix[0]))
 
+	renderer.Resize(window.Dimensions())
+	window.OnResize(func() {
+		renderer.Resize(window.Dimensions())
+	})
+
 	return renderer, nil
 }
 
@@ -86,25 +84,22 @@ func (r *Renderer) Resize(width, height int) {
 	r.width, r.height = width, height
 	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 1000.0)
 	gl.Viewport(0, 0, int32(width), int32(height))
+
+	r.framebuffer.Destroy()
+	r.framebuffer = NewFramebuffer(width, height)
 }
 
 func (r *Renderer) Render(scene *Scene) {
-	if r.wireframe {
-		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-	}
-
-	r.framebuffer.Use()
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	r.renderEntities(scene)
-	r.framebuffer.Unuse()
+	r.postProcessing()
+}
 
+func (r *Renderer) postProcessing() {
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 
-	//gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	//r.renderEntities(scene)
-
-	//Present.
 	r.hdrShader.Use()
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D_MULTISAMPLE, r.framebuffer.colorBuffer)
 	gl.ActiveTexture(gl.TEXTURE1)
@@ -115,19 +110,19 @@ func (r *Renderer) Render(scene *Scene) {
 	gl.Uniform1i(r.hdrShader.findUniformByName("bayer_matrix"), 1)
 
 	// Render a quad that covers the entire screen so we can actually use the texture produced by the main shader.
-	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 	gl.BindVertexArray(r.dummyVao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 3)
 	r.hdrShader.Unuse()
-
-	//gl.BindFramebuffer(gl.READ_FRAMEBUFFER, r.framebuffer.fbo)
-	//gl.BindFramebuffer(gl.DRAW_FRAMEBUFFER, 0)
-	//gl.BlitFramebuffer(0, 0, int32(r.width), int32(r.height), 0, 0, int32(r.width), int32(r.height), gl.DEPTH_BUFFER_BIT, gl.NEAREST)
-
-	//r.renderEntities(scene)
 }
 
 func (r *Renderer) renderEntities(scene *Scene) {
+	if r.wireframe {
+		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	}
+
+	r.framebuffer.Use()
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
 	for model, entities := range scene.entities {
 		// Render each meshes of the model.
 		for _, mesh := range model.meshes {
@@ -158,4 +153,6 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.Unuse()
 		}
 	}
+
+	r.framebuffer.Unuse()
 }

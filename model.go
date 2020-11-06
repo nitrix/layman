@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-gl/mathgl/mgl32"
 	"path/filepath"
+	"runtime/debug"
 )
 
 type Model struct {
@@ -31,6 +32,9 @@ func LoadModel(name, path string) (*Model, error) {
 	}
 
 	model.name = name
+
+	// Reduce the memory residency after loading a model.
+	debug.FreeOSMemory()
 
 	return model, nil
 }
