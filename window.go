@@ -64,8 +64,8 @@ func NewWindow(width, height int, title string, fullscreen bool) (*Window, error
 		}
 	})
 
-	// Refresh every frame rendered. This is to please the window compositor on Windows, otherwise it stutters.
-	// The FPS should still remain that of the VSync.
+	// 1 = Swap every 1 frame rendered (defaults to V-Sync's FPS).
+	// 0 = Disable V-Sync.
 	glfw.SwapInterval(1)
 
 	return window, nil

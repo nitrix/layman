@@ -30,7 +30,6 @@ type Mesh struct {
 	indices  []uint16
 
 	shader   *Shader
-	material *Material
 }
 
 func (m *Mesh) Use() {

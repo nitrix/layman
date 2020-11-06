@@ -38,9 +38,9 @@ func NewRenderer(window *Window) (*Renderer, error) {
 
 	gl.ClearColor(0, 0, 0, 1.0)
 
-	// TODO: Culling faces.
-	//gl.Enable(gl.CULL_FACE)
-	//gl.CullFace(gl.BACK)
+	// Culling back faces.
+	gl.Enable(gl.CULL_FACE)
+	gl.CullFace(gl.BACK)
 
 	gl.Enable(gl.DEPTH_TEST)
 
@@ -132,7 +132,6 @@ func (r *Renderer) renderEntities(scene *Scene) {
 			mesh.shader.BindUniformProjection(r.projection)
 			mesh.shader.BindUniformCamera(scene.activeCamera)
 			mesh.shader.BindUniformLights(scene.lights)
-			mesh.shader.BindUniformMaterial(mesh.material)
 			mesh.shader.BindUniformEnvironment(r.environment)
 			mesh.shader.BindUniformTextureSamplers(
 				mesh.albedoTexture,

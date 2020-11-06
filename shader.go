@@ -244,13 +244,6 @@ func (s *Shader) BindUniformEnvironment(environment *Environment) {
 	gl.Uniform1i(s.environmentMap.samplerUniformId, int32(TextureEnvironmentMap))
 }
 
-func (s *Shader) BindUniformMaterial(material *Material) {
-	gl.Uniform3f(s.uniformMaterialAmbient, material.Ambient.X(), material.Ambient.Y(), material.Ambient.Z())
-	gl.Uniform3f(s.uniformMaterialDiffuse, material.Diffuse.X(), material.Diffuse.Y(), material.Diffuse.Z())
-	gl.Uniform3f(s.uniformMaterialSpecular, material.Specular.X(), material.Specular.Y(), material.Specular.Z())
-	gl.Uniform1f(s.uniformMaterialShininess, material.Shininess)
-}
-
 func (s *Shader) BindUniformTextureSamplers(albedo, normalMap, emissiveMap, metallicRoughnessMap, aoMap *Texture) {
 	// TODO: Rename to map?
 	// Albedo map

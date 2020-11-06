@@ -244,8 +244,6 @@ func (g *Gltf) loadIndices(accessor *gltf.Accessor) error {
 }
 
 func (g *Gltf) loadMaterial(m *gltf.Material) error {
-	g.mesh.material = DefaultMaterial()
-
 	// PBR
 	if m.PBRMetallicRoughness != nil {
 		// Albedo (base color) texture.
