@@ -9,6 +9,7 @@ import (
 
 type window struct {
 	glfwWindow      *glfw.Window
+	keyCallbacks    map[rune]func(bool, bool)
 	resizeCallbacks []func()
 	elapsed float32
 }
@@ -48,6 +49,7 @@ func NewWindow(width, height int, title string, fullscreen bool) (*window, error
 
 	w := &window{}
 	w.glfwWindow = glfwWindow
+	w.keyCallbacks = make(map[rune]func(bool, bool))
 
 	// Switch context.
 	glfwWindow.MakeContextCurrent()
@@ -64,9 +66,16 @@ func NewWindow(width, height int, title string, fullscreen bool) (*window, error
 		}
 	})
 
+	w.glfwWindow.SetKeyCallback(func(_ *glfw.Window, k glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		callback, ok := w.keyCallbacks[rune(k)]
+		if ok {
+			callback(action == glfw.Release, action == glfw.Press)
+		}
+	})
+
 	// 1 = Swap every 1 frame rendered (defaults to V-Sync's FPS).
 	// 0 = Disable V-Sync.
-	glfw.SwapInterval(0)
+	glfw.SwapInterval(1)
 
 	return w, nil
 }
@@ -116,6 +125,10 @@ func (w *window) Run(renderFunc func()) {
 		// Present.
 		w.glfwWindow.SwapBuffers()
 	}
+}
+
+func (w window) BindKey(key rune, callback func(released bool, pressed bool)) {
+	w.keyCallbacks[key] = callback
 }
 
 func (w window) Elapsed() float32 {

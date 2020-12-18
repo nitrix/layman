@@ -411,7 +411,7 @@ func (g *Gltf) initialModelTransform() {
 		float32(scale[0]), float32(scale[1]), float32(scale[2]),
 	))
 
-	// Rotation
+	// rotation
 	rotation := rootNode.RotationOrDefault()
 	v := mgl32.Vec4{
 		float32(rotation[0]), float32(rotation[1]), float32(rotation[2]), float32(rotation[3]),
