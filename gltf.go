@@ -2,6 +2,7 @@ package laygl
 
 import (
 	"bytes"
+	_ "embed"
 	"errors"
 	"fmt"
 	"github.com/go-gl/gl/v4.6-core/gl"
@@ -18,9 +19,15 @@ import (
 	"unsafe"
 )
 
+//go:embed shaders/pbr.vert
+var embeddedShaderPbrVert string
+
+//go:embed shaders/pbr.frag
+var embeddedShaderPbrFrag string
+
 type Gltf struct {
 	texture  *Texture
-	mesh     *Mesh
+	mesh     *mesh
 	model    *Model
 	document *gltf.Document
 }
@@ -46,7 +53,7 @@ func (g *Gltf) loadModel(gltfFilepath string) (*Model, error) {
 }
 
 func (g *Gltf) loadMeshes() error {
-	meshes := make([]*Mesh, 0)
+	meshes := make([]*mesh, 0)
 
 	for _, m := range g.document.Meshes {
 		additionalMeshes, err := g.loadMesh(m)
@@ -62,11 +69,11 @@ func (g *Gltf) loadMeshes() error {
 	return nil
 }
 
-func (g *Gltf) loadMesh(m *gltf.Mesh) ([]*Mesh, error) {
-	meshes := make([]*Mesh, 0)
+func (g *Gltf) loadMesh(m *gltf.Mesh) ([]*mesh, error) {
+	meshes := make([]*mesh, 0)
 
 	for nb, primitive := range m.Primitives {
-		g.mesh = &Mesh{}
+		g.mesh = &mesh{}
 		g.mesh.name = m.Name + fmt.Sprintf(" (%d)", nb)
 
 		// Create the VAO on the GPU, then use it.
@@ -382,8 +389,7 @@ func (g *Gltf) loadTexture(kind TextureKind, t *gltf.Texture) error {
 
 func (g *Gltf) loadShader() error {
 	// FIXME: That's a lot of shader duplication per mesh.
-	// FIXME: Hardcoded path.
-	shader, err := LoadShader("shaders/pbr.vert", "shaders/pbr.frag")
+	shader, err := LoadShaderFromMemory(embeddedShaderPbrVert, embeddedShaderPbrFrag)
 	if err != nil {
 		return fmt.Errorf("unable to load shader: %w", err)
 	}

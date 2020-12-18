@@ -9,13 +9,13 @@ import (
 
 type Model struct {
 	name             string
-	meshes           []*Mesh
+	meshes           []*mesh
 	initialTransform mgl32.Mat4
 }
 
 func NewModel() *Model {
 	return &Model{
-		meshes:           make([]*Mesh, 0),
+		meshes:           make([]*mesh, 0),
 		initialTransform: mgl32.Ident4(),
 	}
 }

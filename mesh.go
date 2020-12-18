@@ -4,7 +4,7 @@ import (
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
-type Mesh struct {
+type mesh struct {
 	name string
 
 	vao uint32
@@ -32,7 +32,7 @@ type Mesh struct {
 	shader   *Shader
 }
 
-func (m *Mesh) Use() {
+func (m *mesh) Use() {
 	gl.BindVertexArray(m.vao)
 
 	// TODO: Shouldn't be necessary to bind buffers here, it's stored in the VAO.
@@ -75,7 +75,7 @@ func (m *Mesh) Use() {
 	m.shader.Use()
 }
 
-func (m *Mesh) Unuse() {
+func (m *mesh) Unuse() {
 	gl.BindVertexArray(0)
 
 	if m.albedoTexture != nil {

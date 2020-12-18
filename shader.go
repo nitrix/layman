@@ -76,29 +76,34 @@ func (s *Shader) Unuse() {
 	gl.UseProgram(0)
 }
 
-func LoadShader(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, error) {
+func LoadShaderFromFiles(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, error) {
+	vertexShaderSource, err := ioutil.ReadFile(vertexShaderFilepath)
+	if err != nil {
+		return nil, err
+	}
+
+	fragmentShaderSource, err := ioutil.ReadFile(fragmentShaderFilepath)
+	if err != nil {
+		return nil, err
+	}
+
+	return LoadShaderFromMemory(string(vertexShaderSource), string(fragmentShaderSource))
+}
+
+func LoadShaderFromMemory(vertexShaderSource string, fragmentShaderSource string) (*Shader, error) {
 	shader := &Shader{}
 
-	buf, err := ioutil.ReadFile(vertexShaderFilepath)
-	if err != nil {
-		return shader, err
-	}
-	vertexShaderSource := string(buf) + "\x00"
-
-	buf, err = ioutil.ReadFile(fragmentShaderFilepath)
-	if err != nil {
-		return shader, err
-	}
-	fragmentShaderSource := string(buf) + "\x00"
+	vertexShaderSource += "\x00"
+	fragmentShaderSource += "\x00"
 
 	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
-		return shader, err
+		return nil, err
 	}
 
 	fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	if err != nil {
-		return shader, err
+		return nil, err
 	}
 
 	shader.programId = gl.CreateProgram()
@@ -116,7 +121,7 @@ func LoadShader(vertexShaderFilepath, fragmentShaderFilepath string) (*Shader, e
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetProgramInfoLog(shader.programId, logLength, nil, gl.Str(log))
 
-		return shader, fmt.Errorf("failed to link program: %v", log)
+		return nil, fmt.Errorf("failed to link program: %v", log)
 	}
 
 	gl.DeleteShader(vertexShader)
@@ -203,7 +208,7 @@ func (s *Shader) BindUniformProjection(projection mgl32.Mat4) {
 	gl.UniformMatrix4fv(s.uniformProjection, 1, false, &projection[0])
 }
 
-func (s *Shader) BindUniformCamera(camera *Camera) {
+func (s *Shader) BindUniformCamera(camera *camera) {
 	gl.UniformMatrix4fv(s.uniformView, 1, false, &camera.viewMatrix[0])
 	gl.UniformMatrix3fv(s.uniformCameraPosition, 1, false, &camera.position[0])
 }

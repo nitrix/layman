@@ -7,13 +7,13 @@ import (
 	"runtime"
 )
 
-type Window struct {
+type window struct {
 	glfwWindow      *glfw.Window
 	resizeCallbacks []func()
 	elapsed float32
 }
 
-func NewWindow(width, height int, title string, fullscreen bool) (*Window, error) {
+func NewWindow(width, height int, title string, fullscreen bool) (*window, error) {
 	// GLFW event handling must happen on the main thread.
 	runtime.LockOSThread()
 
@@ -46,8 +46,8 @@ func NewWindow(width, height int, title string, fullscreen bool) (*Window, error
 		return nil, fmt.Errorf("unable to create glfw window: %w", err)
 	}
 
-	window := &Window{}
-	window.glfwWindow = glfwWindow
+	w := &window{}
+	w.glfwWindow = glfwWindow
 
 	// Switch context.
 	glfwWindow.MakeContextCurrent()
@@ -58,39 +58,47 @@ func NewWindow(width, height int, title string, fullscreen bool) (*Window, error
 	}
 
 	// Setup callbacks.
-	glfwWindow.SetFramebufferSizeCallback(func(w *glfw.Window, width int, height int) {
-		for _, callback := range window.resizeCallbacks {
+	glfwWindow.SetFramebufferSizeCallback(func(_ *glfw.Window, _ int, _ int) {
+		for _, callback := range w.resizeCallbacks {
 			callback()
 		}
 	})
 
 	// 1 = Swap every 1 frame rendered (defaults to V-Sync's FPS).
 	// 0 = Disable V-Sync.
-	glfw.SwapInterval(1)
+	glfw.SwapInterval(0)
 
-	return window, nil
+	return w, nil
 }
 
-func (w *Window) Fullscreen() {
+func (w *window) Fullscreen() {
 	monitor := glfw.GetPrimaryMonitor()
 	videoMode := monitor.GetVideoMode()
 
 	w.glfwWindow.SetMonitor(monitor, 0, 0, videoMode.Width, videoMode.Height, videoMode.RefreshRate)
 }
 
-func (w Window) Version() string {
+func (w *window) SetTitle(title string) {
+	w.glfwWindow.SetTitle(title)
+}
+
+func (w *window) SetSize(width, height int) {
+	w.glfwWindow.SetSize(width, height)
+}
+
+func (w window) Version() string {
 	return gl.GoStr(gl.GetString(gl.VERSION))
 }
 
-func (w Window) Dimensions() (int, int) {
+func (w window) Dimensions() (int, int) {
 	return w.glfwWindow.GetFramebufferSize()
 }
 
-func (w Window) Close() {
+func (w window) Close() {
 	w.glfwWindow.SetShouldClose(true)
 }
 
-func (w *Window) Run(renderFunc func()) {
+func (w *window) Run(renderFunc func()) {
 	previousTime := glfw.GetTime()
 
 	for !w.glfwWindow.ShouldClose() {
@@ -110,10 +118,10 @@ func (w *Window) Run(renderFunc func()) {
 	}
 }
 
-func (w Window) Elapsed() float32 {
+func (w window) Elapsed() float32 {
 	return w.elapsed
 }
 
-func (w *Window) OnResize(callback func()) {
+func (w *window) OnResize(callback func()) {
 	w.resizeCallbacks = append(w.resizeCallbacks, callback)
 }

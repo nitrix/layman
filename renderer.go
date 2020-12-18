@@ -2,15 +2,22 @@ package laygl
 
 import "C"
 import (
+	_ "embed"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"unsafe"
 )
 
+//go:embed shaders/hdr.vert
+var embeddedShaderHdrVert string
+
+//go:embed shaders/hdr.frag
+var embeddedShaderHdrFrag string
+
 const AntiAliasingSamples = 8
 const IBLSamples = 32
 
-type Renderer struct {
+type renderer struct {
 	projection mgl32.Mat4
 	environment *Environment
 	framebuffer *Framebuffer
@@ -33,8 +40,8 @@ var bayerMatrix = []uint8 {
 	63, 31, 55, 23, 61, 29, 53, 21,
 }
 
-func NewRenderer(window *Window) (*Renderer, error) {
-	renderer := &Renderer{}
+func NewRenderer(window *window) (*renderer, error) {
+	renderer := &renderer{}
 
 	gl.ClearColor(0, 0, 0, 1.0)
 
@@ -53,7 +60,7 @@ func NewRenderer(window *Window) (*Renderer, error) {
 	renderer.framebuffer = NewFramebuffer(window.Dimensions())
 	gl.GenVertexArrays(1, &renderer.dummyVao)
 
-	renderer.hdrShader, err = LoadShader("shaders/hdr.vert", "shaders/hdr.frag")
+	renderer.hdrShader, err = LoadShaderFromMemory(embeddedShaderHdrVert, embeddedShaderHdrFrag)
 	if err != nil {
 		return nil, err
 	}
@@ -76,11 +83,11 @@ func NewRenderer(window *Window) (*Renderer, error) {
 	return renderer, nil
 }
 
-func (r *Renderer) Wireframe(enabled bool) {
+func (r *renderer) Wireframe(enabled bool) {
 	r.wireframe = enabled
 }
 
-func (r *Renderer) Resize(width, height int) {
+func (r *renderer) Resize(width, height int) {
 	r.width, r.height = width, height
 	r.projection = mgl32.Perspective(mgl32.DegToRad(45.0), float32(width)/float32(height), 0.1, 1000.0)
 	gl.Viewport(0, 0, int32(width), int32(height))
@@ -89,12 +96,12 @@ func (r *Renderer) Resize(width, height int) {
 	r.framebuffer = NewFramebuffer(width, height)
 }
 
-func (r *Renderer) Render(scene *Scene) {
+func (r *renderer) Render(scene *scene) {
 	r.renderEntities(scene)
 	r.postProcessing()
 }
 
-func (r *Renderer) postProcessing() {
+func (r *renderer) postProcessing() {
 	gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 
 	r.hdrShader.Use()
@@ -115,7 +122,7 @@ func (r *Renderer) postProcessing() {
 	r.hdrShader.Unuse()
 }
 
-func (r *Renderer) renderEntities(scene *Scene) {
+func (r *renderer) renderEntities(scene *scene) {
 	if r.wireframe {
 		gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	}
@@ -130,7 +137,7 @@ func (r *Renderer) renderEntities(scene *Scene) {
 
 			// Prepare the shader.
 			mesh.shader.BindUniformProjection(r.projection)
-			mesh.shader.BindUniformCamera(scene.activeCamera)
+			mesh.shader.BindUniformCamera(scene.camera)
 			mesh.shader.BindUniformLights(scene.lights)
 			mesh.shader.BindUniformEnvironment(r.environment)
 			mesh.shader.BindUniformTextureSamplers(
