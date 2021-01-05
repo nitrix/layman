@@ -35,6 +35,9 @@ func NewWindow(width, height int, title string, fullscreen bool) (*window, error
 
 	if !fullscreen {
 		monitor = nil
+
+		// Workaround to prevent stutter on Windows, when in windowed mode.
+		glfw.WindowHint(glfw.Samples, 4)
 	}
 
 	glfw.WindowHint(glfw.Resizable, glfw.True)
