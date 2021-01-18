@@ -2,7 +2,7 @@ package laygl
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"runtime"
 )
@@ -41,9 +41,10 @@ func NewWindow(width, height int, title string, fullscreen bool) (*window, error
 	}
 
 	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 6)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 2)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
 	glfwWindow, err := glfw.CreateWindow(width, height, title, monitor, nil)
 	if err != nil {
