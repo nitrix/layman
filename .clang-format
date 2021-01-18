@@ -1,0 +1,27 @@
+---
+AlignAfterOpenBracket: AlwaysBreak
+AlignConsecutiveMacros: 'true'
+AlignTrailingComments: 'false'
+AllowShortCaseLabelsOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: WithoutElse
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+ColumnLimit: '0'
+ExperimentalAutoDetectBinPacking: 'false'
+IncludeBlocks: Preserve
+IndentCaseLabels: 'true'
+IndentPPDirectives: BeforeHash
+IndentWidth: '4'
+KeepEmptyLinesAtTheStartOfBlocks: 'false'
+Language: Cpp
+MacroBlockBegin: ^((BEGIN|START)_.*|.*_(BEGIN|START))$
+MacroBlockEnd: ^((END|STOP)_.*|.*_(END|STOP))$
+MaxEmptyLinesToKeep: '1'
+NamespaceIndentation: Inner
+SpaceAfterCStyleCast: 'true'
+Standard: Cpp11
+TabWidth: '4'
+UseTab: ForIndentation
+
+...

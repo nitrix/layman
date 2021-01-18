@@ -1,11 +1,22 @@
-## Layman OpenGL (laygl)
+# Layman Game Engine (layman)
 
 A simple 3D engine for the layman.
 
 ![Screenshot](docs/screenshot.png)
 
-### Currently implemented
+## Features
 
+- TODO
+
+## Planned
+
+- Physically Based Rendering (metallic/roughness workflow).
+- Modern deferred OpenGL pipeline.
+- Support glTF 2.0 file format.
+- Multiple window support.
+
+- Image Based Lighting (IBL).
+- Flat terrain.
 - Creating a window and renderer with a modern OpenGL context.
 - High resolution clock for elapsed-time calculation.
 - Physically Based Rendering (metallic/roughness workflow).
@@ -17,13 +28,16 @@ A simple 3D engine for the layman.
 - Mipmapping / anisotropic filtering.
 - Wireframe mode.
 - Directional and point lights.
-
-### Short term
-
+- High resolution clock for elapsed-time calculation.
+- Materials.
+- Normal maps.
+- Anti-aliasing (MSAA 8x multi-sampling).
+- Back-face culling optimization.
+- Mipmapping / anisotropic filtering.
+- Wireframe mode.
+- Directional and point lights.
 - Image Based Lighting (IBL).
 - Flat terrain.
-
-### Long term
 
 - Transparency
 - Fog
@@ -53,9 +67,6 @@ A simple 3D engine for the layman.
 - Lens flare
 - Occlusion queries
 - Water
-
-### Not clear yet
-
 - Runtime keybinding system to map actions to GLFW key constants.
 - Associating different materials to different mesh parts of a model.
 - Loading materials from files.
