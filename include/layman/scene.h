@@ -3,12 +3,6 @@
 
 #include <stdbool.h>
 
-struct layman_scene {
-    const struct layman_entity **entities;
-    size_t entity_count;
-    size_t entity_capacity;
-};
-
 /**
  * @brief Creates a scene.
  * 
@@ -43,5 +37,7 @@ void layman_scene_destroy(struct layman_scene *scene);
  * @return Returns `true` on success or `false` otherwise.
  */
 bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_entity *entity);
+
+void layman_scene_render(const struct layman_scene *scene);
 
 #endif

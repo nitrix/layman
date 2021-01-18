@@ -7,6 +7,12 @@
 // Scenes can only grow in size. The idea being that if there was ever at some point X entities,
 // it's equally likely in the future to have just as many entities again.
 
+struct layman_scene {
+	const struct layman_entity **entities;
+	size_t entity_count;
+	size_t entity_capacity;
+};
+
 struct layman_scene *layman_scene_create(void) {
 	struct layman_scene *scene = malloc(sizeof *scene);
 	if (!scene) {
@@ -43,4 +49,10 @@ bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_ent
 	scene->entity_count++;
 
 	return true;
+}
+
+void layman_scene_render(const struct layman_scene *scene) {
+	for (size_t i = 0; i < scene->entity_count; i++) {
+		layman_entity_render(scene->entities[i]);
+	}
 }

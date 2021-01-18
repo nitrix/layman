@@ -8,7 +8,6 @@ int main(void) {
 	struct layman_window *window = NULL;
 	struct layman_renderer *renderer = NULL;
 	struct layman_scene *scene = NULL;
-	struct layman_shader *shader = NULL;
 	struct layman_model *model = NULL;
 	struct layman_entity *entity = NULL;
 
@@ -19,9 +18,7 @@ int main(void) {
 		goto cleanup;
 	}
 
-	layman_window_use(window);
-
-	renderer = layman_renderer_create();
+	renderer = layman_renderer_create(window);
 	if (!renderer) {
 		fprintf(stderr, "Unable to create the renderer\n");
 		exit_code = EXIT_FAILURE;
@@ -35,12 +32,7 @@ int main(void) {
 		goto cleanup;
 	}
 
-	shader = layman_shader_load_from_file("shaders/pbr.vert", "shaders/pbr.frag");
-	if (!shader) {
-		fprintf(stderr, "Unable to create the shader\n");
-		exit_code = EXIT_FAILURE;
-		goto cleanup;
-	}
+	layman_window_use(window);
 
 	model = layman_model_load("C:\\Users\\nitrix\\Desktop\\Stuff\\DamagedHelmet.glb");
 	if (!model) {
@@ -49,31 +41,26 @@ int main(void) {
 		goto cleanup;
 	}
 
-	entity = layman_entity_create();
+	entity = layman_entity_create_from_model(model);
 	if (!entity) {
 		fprintf(stderr, "Unable to create an entity\n");
 		exit_code = EXIT_FAILURE;
 		goto cleanup;
 	}
-	entity->model = model;
 
 	layman_scene_add_entity(scene, entity);
 
-	layman_shader_use(shader);
 	while (!layman_window_closed(window)) {
 		layman_window_poll_events(window, NULL);
-		layman_renderer_clear(renderer);
 		layman_renderer_render(renderer, scene);
 		layman_window_refresh(window);
 	}
-	layman_shader_unuse(shader);
 
 	layman_window_unuse(window);
 
 cleanup:
 	if (entity) layman_entity_destroy(entity);
 	if (model) layman_model_destroy(model);
-	if (shader) layman_shader_destroy(shader);
 	if (scene) layman_scene_destroy(scene);
 	if (renderer) layman_renderer_destroy(renderer);
 	if (window) layman_window_destroy(window);

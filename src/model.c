@@ -4,6 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct layman_model {
+	struct layman_mesh **meshes;
+	size_t meshes_count;
+
+	struct layman_material **materials;
+	size_t materials_count;
+};
+
 bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;
 
@@ -139,6 +147,8 @@ struct layman_model *layman_model_load(const char *filepath) {
 
 	model->meshes = NULL;
 	model->meshes_count = 0;
+	model->materials = NULL;
+	model->materials_count = 0;
 
 	bool loaded = load_meshes(model, gltf);
 
@@ -155,4 +165,16 @@ struct layman_model *layman_model_load(const char *filepath) {
 void layman_model_destroy(struct layman_model *model) {
 	unload_meshes(model);
 	free(model);
+}
+
+void layman_model_render(const struct layman_model *model) {
+	for (size_t i = 0; i < model->meshes_count; i++) {
+		// TODO: Use shader.
+		// TODO: Use material.
+
+		layman_mesh_render(model->meshes[i]);
+
+		// TODO: Unuse material.
+		// TODO: Unuse shader.
+	}
 }

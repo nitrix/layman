@@ -9,7 +9,6 @@ struct layman_mesh {
 	GLuint vbo_normals;
 	GLuint ebo_indices;
 	size_t indices_count;
-	struct layman_material *material;
 };
 
 struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t vertices_count, size_t vertices_stride, const float *normals, size_t normals_count, size_t normals_stride, const unsigned short *indices, size_t indices_count) {
@@ -38,8 +37,6 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 3 * sizeof(unsigned short), indices, GL_STATIC_DRAW);
 	mesh->indices_count = indices_count;
 
-	mesh->material = NULL;
-
 	return mesh;
 }
 
@@ -50,19 +47,8 @@ void layman_mesh_destroy(struct layman_mesh *mesh) {
 	glDeleteVertexArrays(1, &mesh->vao);
 }
 
-void layman_mesh_use(const struct layman_mesh *mesh) {
+void layman_mesh_render(const struct layman_mesh *mesh) {
 	glBindVertexArray(mesh->vao);
-}
-
-void layman_mesh_unuse(const struct layman_mesh *mesh) {
-	(void) mesh; // Unused.
+	glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
-}
-
-size_t layman_mesh_indices_count(const struct layman_mesh *mesh) {
-	return mesh->indices_count;
-}
-
-size_t layman_mesh_triangle_count(const struct layman_mesh *mesh) {
-	return mesh->indices_count / 3;
 }

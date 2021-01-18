@@ -14,10 +14,6 @@ enum layman_mesh_attribute {
 struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t vertices_count, size_t vertices_stride, const float *normals, size_t normals_count, size_t normals_stride, const unsigned short *indices, size_t indices_count);
 void layman_mesh_destroy(struct layman_mesh *mesh);
 
-void layman_mesh_use(const struct layman_mesh *mesh);
-void layman_mesh_unuse(const struct layman_mesh *mesh);
-
-size_t layman_mesh_triangle_count(const struct layman_mesh *mesh);
-size_t layman_mesh_indices_count(const struct layman_mesh *mesh);
+void layman_mesh_render(const struct layman_mesh *mesh);
 
 #endif
