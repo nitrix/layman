@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 #define GAMMA 2.2
 

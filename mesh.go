@@ -1,7 +1,7 @@
 package laygl
 
 import (
-	"github.com/go-gl/gl/v3.2-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type mesh struct {
@@ -38,19 +38,19 @@ func (m *mesh) Use() {
 	// TODO: Shouldn't be necessary to bind buffers here, it's stored in the VAO.
 
 	// Vertices
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.verticesBufferId)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.verticesBufferId)
 
 	// Texture uvs
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.uvsBufferId)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.uvsBufferId)
 
 	// Normals
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.normalsBufferId)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.normalsBufferId)
 
 	// Faces
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.indicesBufferId)
+	//gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.indicesBufferId)
 
 	// Tangents
-	gl.BindBuffer(gl.ARRAY_BUFFER, m.tangentBufferId)
+	//gl.BindBuffer(gl.ARRAY_BUFFER, m.tangentBufferId)
 
 	if m.albedoTexture != nil {
 		m.albedoTexture.Use()

@@ -2,7 +2,7 @@ package laygl
 
 import (
 	"fmt"
-	"github.com/go-gl/gl/v3.2-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/nitrix/laygl/lights"
 	"io/ioutil"
@@ -69,7 +69,6 @@ const (
 
 func (s *Shader) Use() {
 	gl.UseProgram(s.programId)
-	s.bindAttributes()
 }
 
 func (s *Shader) Unuse() {
@@ -110,6 +109,9 @@ func LoadShaderFromMemory(vertexShaderSource string, fragmentShaderSource string
 
 	gl.AttachShader(shader.programId, vertexShader)
 	gl.AttachShader(shader.programId, fragmentShader)
+
+	shader.bindAttributes() // This MUST happen before linking.
+
 	gl.LinkProgram(shader.programId)
 
 	var status int32

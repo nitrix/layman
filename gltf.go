@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/go-gl/gl/v3.2-core/gl"
+	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/qmuntal/gltf"
@@ -92,9 +92,9 @@ func (g *Gltf) loadMesh(m *gltf.Mesh) ([]*mesh, error) {
 			}
 		}
 
-		if g.mesh.tangents == nil || len(g.mesh.tangents) == 0 {
-			return nil, fmt.Errorf("missing tangents")
-		}
+		//if g.mesh.tangents == nil || len(g.mesh.tangents) == 0 {
+		//	return nil, fmt.Errorf("missing tangents")
+		//}
 
 		err := g.loadIndices(g.document.Accessors[*primitive.Indices])
 		if err != nil {
@@ -136,14 +136,14 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&vertices))
 		sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
 		sliceHeader.Len = len(data) / int(unsafe.Sizeof(float32(0)))
-		sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(float32(0)))
+		sliceHeader.Cap = sliceHeader.Len
 		g.mesh.vertices = vertices
 
 		gl.GenBuffers(1, &g.mesh.verticesBufferId)
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.verticesBufferId)
-		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(vertices), gl.STATIC_DRAW)
+		gl.VertexAttribPointer(ShaderAttributeVertexCoords, 3, gl.FLOAT, false, 0, gl.PtrOffset(0))
 		gl.EnableVertexAttribArray(ShaderAttributeVertexCoords)
-		gl.VertexAttribPointer(ShaderAttributeVertexCoords, 3, gl.FLOAT, false, int32(bufferView.ByteStride), gl.PtrOffset(0))
 	}
 
 	// Texture UVs.
@@ -156,20 +156,20 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : accessor.ByteOffset+bufferView.ByteOffset+bufferView.ByteLength]
 
 		var uvs []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&uvs))
 		sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
 		sliceHeader.Len = len(data) / int(unsafe.Sizeof(float32(0)))
-		sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(float32(0)))
+		sliceHeader.Cap = sliceHeader.Len
 		g.mesh.uvs = uvs
 
 		gl.GenBuffers(1, &g.mesh.uvsBufferId)
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.uvsBufferId)
-		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(uvs), gl.STATIC_DRAW)
+		gl.VertexAttribPointer(ShaderAttributeTextureCoords, 2, gl.FLOAT, false, 0, gl.PtrOffset(0))
 		gl.EnableVertexAttribArray(ShaderAttributeTextureCoords)
-		gl.VertexAttribPointer(ShaderAttributeTextureCoords, 2, gl.FLOAT, false, 2*4, gl.PtrOffset(0))
 	}
 
 	// Normals.
@@ -180,20 +180,20 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : accessor.ByteOffset+bufferView.ByteOffset+bufferView.ByteLength]
 
 		var normals []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&normals))
 		sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
 		sliceHeader.Len = len(data) / int(unsafe.Sizeof(float32(0)))
-		sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(float32(0)))
+		sliceHeader.Cap = sliceHeader.Len
 		g.mesh.normals = normals
 
 		gl.GenBuffers(1, &g.mesh.normalsBufferId)
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.normalsBufferId)
-		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(normals), gl.STATIC_DRAW)
+		gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, 0, gl.PtrOffset(0))
 		gl.EnableVertexAttribArray(ShaderAttributeNormals)
-		gl.VertexAttribPointer(ShaderAttributeNormals, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
 	}
 
 	// Tangents.
@@ -204,20 +204,20 @@ func (g *Gltf) loadAttribute(name string, accessor *gltf.Accessor) error {
 
 		bufferView := g.document.BufferViews[*accessor.BufferView]
 		buffer := g.document.Buffers[bufferView.Buffer]
-		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : bufferView.ByteOffset+bufferView.ByteLength]
+		data := buffer.Data[bufferView.ByteOffset+accessor.ByteOffset : accessor.ByteOffset+bufferView.ByteOffset+bufferView.ByteLength]
 
 		var tangents []float32
 		sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&tangents))
 		sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
 		sliceHeader.Len = len(data) / int(unsafe.Sizeof(float32(0)))
-		sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(float32(0)))
+		sliceHeader.Cap = sliceHeader.Len
 		g.mesh.tangents = tangents
 
 		gl.GenBuffers(1, &g.mesh.tangentBufferId)
 		gl.BindBuffer(gl.ARRAY_BUFFER, g.mesh.tangentBufferId)
-		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+		gl.BufferData(gl.ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(tangents), gl.STATIC_DRAW)
+		gl.VertexAttribPointer(ShaderAttributeTangents, 4, gl.FLOAT, false, 0, gl.PtrOffset(0))
 		gl.EnableVertexAttribArray(ShaderAttributeTangents)
-		gl.VertexAttribPointer(ShaderAttributeTangents, 4, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
 	}
 
 	return nil
@@ -238,12 +238,12 @@ func (g *Gltf) loadIndices(accessor *gltf.Accessor) error {
 	sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&indices))
 	sliceHeader.Data = (uintptr)(unsafe.Pointer(&data[0]))
 	sliceHeader.Len = len(data) / int(unsafe.Sizeof(uint16(0)))
-	sliceHeader.Cap = cap(data) / int(unsafe.Sizeof(uint16(0)))
+	sliceHeader.Cap = sliceHeader.Len
 	g.mesh.indices = indices
 
 	gl.GenBuffers(1, &g.mesh.indicesBufferId)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.mesh.indicesBufferId)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(data), gl.STATIC_DRAW)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, int(bufferView.ByteLength), gl.Ptr(indices), gl.STATIC_DRAW)
 
 	g.mesh.indiceCount = accessor.Count
 

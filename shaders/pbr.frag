@@ -2,7 +2,7 @@
 
 #define PI 3.1415926535897932384626433832795
 #define MAX_POINT_LIGHTS 4
-#define NUM_IBL_SAMPLES 32
+#define NUM_IBL_SAMPLES 1
 #define GAMMA 2.2
 
 struct DirectionalLight {
