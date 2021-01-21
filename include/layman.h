@@ -18,6 +18,7 @@
  *  
  */
 
+#include "layman/application.h"
 #include "layman/entity.h"
 #include "layman/material.h"
 #include "layman/mesh.h"

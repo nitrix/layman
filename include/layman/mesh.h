@@ -11,9 +11,22 @@ enum layman_mesh_attribute {
 	LAYMAN_MESH_ATTRIBUTE_TANGENT,
 };
 
-struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t vertices_count, size_t vertices_stride, const float *normals, size_t normals_count, size_t normals_stride, const unsigned short *indices, size_t indices_count);
+// TODO: Documentation.
+struct layman_mesh *layman_mesh_create_from_raw(
+	// Vertices.
+	const float *vertices, size_t vertices_count, size_t vertices_stride,
+	// Normals.
+	const float *normals, size_t normals_count, size_t normals_stride,
+	// UVs.
+	const float *uvs, size_t uvs_count, size_t uvs_stride,
+	// Indices.
+	const unsigned short *indices, size_t indices_count
+);
+
+// TODO: Documentation.
 void layman_mesh_destroy(struct layman_mesh *mesh);
 
+// TODO: Documentation.
 void layman_mesh_render(const struct layman_mesh *mesh);
 
 #endif

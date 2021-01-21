@@ -7,11 +7,12 @@ struct layman_mesh {
 	GLuint vao;
 	GLuint vbo_positions;
 	GLuint vbo_normals;
+	GLuint vbo_uvs;
 	GLuint ebo_indices;
 	size_t indices_count;
 };
 
-struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t vertices_count, size_t vertices_stride, const float *normals, size_t normals_count, size_t normals_stride, const unsigned short *indices, size_t indices_count) {
+struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t vertices_count, size_t vertices_stride, const float *normals, size_t normals_count, size_t normals_stride, const float *uvs, size_t uvs_count, size_t uvs_stride, const unsigned short *indices, size_t indices_count) {
 	struct layman_mesh *mesh = malloc(sizeof *mesh);
 	if (!mesh) {
 		return NULL;
@@ -23,14 +24,20 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	glGenBuffers(1, &mesh->vbo_positions);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_positions);
 	glBufferData(GL_ARRAY_BUFFER, vertices_count * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_POSITION);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_POSITION, 3, GL_FLOAT, false, vertices_stride, 0);
+	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_POSITION);
 
 	glGenBuffers(1, &mesh->vbo_normals);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
 	glBufferData(GL_ARRAY_BUFFER, normals_count * 3 * sizeof(float), normals, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_NORMAL);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_NORMAL, 3, GL_FLOAT, false, normals_stride, 0);
+	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_NORMAL);
+
+	glGenBuffers(1, &mesh->vbo_uvs);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_uvs);
+	glBufferData(GL_ARRAY_BUFFER, uvs_count * 2 * sizeof(float), uvs, GL_STATIC_DRAW);
+	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_UV, 2, GL_FLOAT, false, uvs_stride, 0);
+	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_UV);
 
 	glGenBuffers(1, &mesh->ebo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo_indices);

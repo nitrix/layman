@@ -7,9 +7,6 @@
 struct layman_model {
 	struct layman_mesh **meshes;
 	size_t meshes_count;
-
-	struct layman_material **materials;
-	size_t materials_count;
 };
 
 bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
@@ -77,7 +74,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 						normals_count = attribute->data->count;
 						normals_stride = attribute->data->stride;
 						break;
-					case cgltf_attribute_type_texcoord: // TODO: Only use the first UV set.
+					case cgltf_attribute_type_texcoord:
 						if (attribute->data->type != cgltf_type_vec2) {
 							break;
 						}
@@ -100,12 +97,22 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			indices_stride = primitive->indices->stride;
 
 			// Create the mesh from raw data.
-			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, indices, indices_count);
+			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, uvs, uvs_count, uvs_stride, indices, indices_count);
 			if (!model->meshes[final_mesh_i]) {
 				return false;
 			}
 
-			// TODO: Load additional mesh data.
+			// Load material.
+			struct layman_material *material = layman_material_create();
+
+			// Base color factor.
+			cgltf_float *base_color_factor = primitive->material->pbr_metallic_roughness.base_color_factor;
+			material->base_color_factor = LAYMAN_VECTOR_3F(base_color_factor[0], base_color_factor[1], base_color_factor[2]);
+			// Base color texture
+			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
+			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;
+			size_t base_color_texture_size = primitive->material->pbr_metallic_roughness.base_color_texture.texture->image->buffer_view->size;
+			material->base_color_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, base_color_texture_data, base_color_texture_size);
 
 			final_mesh_i++;
 		}
@@ -147,8 +154,6 @@ struct layman_model *layman_model_load(const char *filepath) {
 
 	model->meshes = NULL;
 	model->meshes_count = 0;
-	model->materials = NULL;
-	model->materials_count = 0;
 
 	bool loaded = load_meshes(model, gltf);
 
@@ -169,12 +174,7 @@ void layman_model_destroy(struct layman_model *model) {
 
 void layman_model_render(const struct layman_model *model) {
 	for (size_t i = 0; i < model->meshes_count; i++) {
-		// TODO: Use shader.
-		// TODO: Use material.
-
-		layman_mesh_render(model->meshes[i]);
-
-		// TODO: Unuse material.
-		// TODO: Unuse shader.
+		struct layman_mesh *mesh = model->meshes[i];
+		layman_mesh_render(mesh);
 	}
 }

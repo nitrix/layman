@@ -51,8 +51,9 @@ bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_ent
 	return true;
 }
 
-void layman_scene_render(const struct layman_scene *scene) {
+void layman_scene_render_entities(const struct layman_scene *scene) {
 	for (size_t i = 0; i < scene->entity_count; i++) {
-		layman_entity_render(scene->entities[i]);
+		const struct layman_entity *entity = scene->entities[i];
+		layman_entity_render(entity);
 	}
 }

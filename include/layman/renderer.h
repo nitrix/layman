@@ -2,11 +2,14 @@
 #define LAYMAN_RENDERER_H
 
 #include "scene.h"
-#include "window.h"
 
-struct layman_renderer *layman_renderer_create(const struct layman_window *window);
+// TODO: Documentation.
+struct layman_renderer *layman_renderer_create(void);
+
+// TODO: Documentation.
 void layman_renderer_destroy(struct layman_renderer *renderer);
 
+// TODO: Documentation.
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_scene *scene);
 
 #endif

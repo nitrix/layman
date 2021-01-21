@@ -1,3 +1,4 @@
+#include "layman.h"
 #include <glad/glad.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -114,6 +115,10 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 
 	glAttachShader(program_id, vertex_shader_id);
 	glAttachShader(program_id, fragment_shader_id);
+
+	// Bind attributes. Must be before linkage.
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "position");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_UV, "uv");
 
 	glLinkProgram(program_id);
 

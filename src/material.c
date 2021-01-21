@@ -1,18 +1,6 @@
 #include "layman.h"
 #include <stdlib.h>
 
-struct layman_material {
-	struct layman_vector_3f base_color_factor;
-	struct layman_texture *base_color_texture;
-	struct layman_texture *metallic_roughness_texture;
-	float metallic_factor;
-	float roughness_factor;
-	struct layman_texture *normal_texture;
-	struct layman_texture *occlusion_texture;
-	struct layman_texture *emissive_texture;
-	struct layman_vector_3f emissive_factor;
-};
-
 struct layman_material *layman_material_create(void) {
 	struct layman_material *material = malloc(sizeof *material);
 	if (!material) {
@@ -33,5 +21,13 @@ struct layman_material *layman_material_create(void) {
 }
 
 void layman_material_destroy(struct layman_material *material) {
+	#define SAFE_DESTROY_TEXTURE(t) if (t) { layman_texture_destroy(t); t = NULL; }
+
+	SAFE_DESTROY_TEXTURE(material->base_color_texture);
+	SAFE_DESTROY_TEXTURE(material->metallic_roughness_texture);
+	SAFE_DESTROY_TEXTURE(material->normal_texture);
+	SAFE_DESTROY_TEXTURE(material->occlusion_texture);
+	SAFE_DESTROY_TEXTURE(material->emissive_texture);
+
 	free(material);
 }

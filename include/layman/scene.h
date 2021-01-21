@@ -38,6 +38,7 @@ void layman_scene_destroy(struct layman_scene *scene);
  */
 bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_entity *entity);
 
-void layman_scene_render(const struct layman_scene *scene);
+// TODO: Documentation.
+void layman_scene_render_entities(const struct layman_scene *scene);
 
 #endif

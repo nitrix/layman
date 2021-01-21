@@ -9,6 +9,7 @@ ADD_SUBDIRECTORY(lib/gltf)
 
 ADD_LIBRARY(
     layman
+    src/application.c
     src/entity.c
     src/material.c
     src/mesh.c
@@ -21,7 +22,7 @@ ADD_LIBRARY(
     src/window.c
 )
 
-TARGET_INCLUDE_DIRECTORIES(layman PUBLIC include)
+TARGET_INCLUDE_DIRECTORIES(layman PUBLIC include lib/stb)
 TARGET_LINK_LIBRARIES(layman PRIVATE glad glfw gltf)
 TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")

@@ -5,11 +5,20 @@
 #include "vector.h"
 
 /**
+ * @brief Creates an entity.
+ * 
+ * @remark Entities are manually managed and must be destroyed with layman_entity_destroy().
+ * 
+ * @return A pointer to an entity on success or NULL otherwise.
+ **/
+struct layman_entity *layman_entity_create(void);
+
+/**
  * @brief Creates an entity from a model.
  * 
  * @param[in] model A pointer to a model.
- * The model must remain alive for the entire lifetime of the entity.
  * 
+ * @remark The model must remain alive for the entire lifetime of the entity.
  * @remark Entities are manually managed and must be destroyed with layman_entity_destroy().
  * 
  * @return A pointer to an entity on success or NULL otherwise.
@@ -23,7 +32,7 @@ struct layman_entity *layman_entity_create_from_model(const struct layman_model 
  */
 void layman_entity_destroy(struct layman_entity *entity);
 
-// TODO
+// TODO: Documentation.
 void layman_entity_render(const struct layman_entity *entity);
 
 #endif
