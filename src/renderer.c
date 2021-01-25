@@ -97,6 +97,8 @@ void layman_renderer_use(struct layman_renderer *renderer) {
 
 	//glFrontFace(GL_CW);
 	//glFrontFace(GL_CCW);
+
+	glEnable(GL_MULTISAMPLE);
 }
 
 void layman_renderer_unuse(struct layman_renderer *renderer) {
