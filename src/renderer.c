@@ -28,7 +28,7 @@ struct layman_renderer {
 
 struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
 	float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
-	float scale_y = (1.0f / tanf(renderer->fov)) * aspect_ratio;
+	float scale_y = (1.0f / tanf(renderer->fov / 2.0f / 180.0f * M_PI)) * aspect_ratio;
 	float scale_x = scale_y / aspect_ratio;
 	float frustrum_length = renderer->near_plane - renderer->far_plane;
 
@@ -61,7 +61,7 @@ struct layman_renderer *layman_renderer_create(void) {
 	renderer->viewport_height = 720;
 
 	// TODO: Change the FOV.
-	renderer->fov = 0.610865f; // 70 FOV
+	renderer->fov = 90.0f;
 	renderer->far_plane = 1000.0f;
 	renderer->near_plane = 0.1f;
 
