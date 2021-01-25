@@ -1,6 +1,7 @@
 #ifndef LAYMAN_SCENE_H
 #define LAYMAN_SCENE_H
 
+#include "entity.h"
 #include <stdbool.h>
 
 /**

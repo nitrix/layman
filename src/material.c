@@ -21,13 +21,17 @@ struct layman_material *layman_material_create(void) {
 }
 
 void layman_material_destroy(struct layman_material *material) {
-	#define SAFE_DESTROY_TEXTURE(t) if (t) { layman_texture_destroy(t); t = NULL; }
+	if (material->base_color_texture) layman_texture_destroy(material->base_color_texture);
+	if (material->metallic_roughness_texture) layman_texture_destroy(material->metallic_roughness_texture);
+	if (material->normal_texture) layman_texture_destroy(material->normal_texture);
+	if (material->occlusion_texture) layman_texture_destroy(material->occlusion_texture);
+	if (material->emissive_texture) layman_texture_destroy(material->emissive_texture);
 
-	SAFE_DESTROY_TEXTURE(material->base_color_texture);
-	SAFE_DESTROY_TEXTURE(material->metallic_roughness_texture);
-	SAFE_DESTROY_TEXTURE(material->normal_texture);
-	SAFE_DESTROY_TEXTURE(material->occlusion_texture);
-	SAFE_DESTROY_TEXTURE(material->emissive_texture);
+	material->base_color_texture = NULL;
+	material->metallic_roughness_texture = NULL;
+	material->normal_texture = NULL;
+	material->occlusion_texture = NULL;
+	material->emissive_texture = NULL;
 
 	free(material);
 }

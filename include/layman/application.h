@@ -1,18 +1,14 @@
 #ifndef LAYMAN_APPLICATION_H
 #define LAYMAN_APPLICATION_H
 
-#include "entity.h"
-#include "model.h"
 #include "renderer.h"
 #include "scene.h"
-#include "shader.h"
 #include "window.h"
 
 struct layman_application {
 	struct layman_window *window;
 	struct layman_renderer *renderer;
 	struct layman_scene *scene;
-	struct layman_shader *shader;
 };
 
 struct layman_application *layman_application_create(int width, int height, const char *title);

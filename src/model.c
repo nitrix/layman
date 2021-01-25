@@ -52,8 +52,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			size_t normals_stride = 0;
 			const unsigned short *indices = NULL;
 			size_t indices_count = 0;
-			size_t indices_stride = 0;
-			const float *uvs = NULL;
+			float *uvs = NULL;
 			size_t uvs_count = 0;
 			size_t uvs_stride = 0;
 
@@ -94,7 +93,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 
 			indices = gltf->bin + primitive->indices->buffer_view->offset;
 			indices_count = primitive->indices->count;
-			indices_stride = primitive->indices->stride;
+
+			// Flip uvs on the Y axis.
+			for (size_t i = 0; i < uvs_count; i += 2) {
+				uvs[i + 1] = 1 - uvs[i + 1];
+			}
 
 			// Create the mesh from raw data.
 			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, uvs, uvs_count, uvs_stride, indices, indices_count);

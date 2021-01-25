@@ -12,6 +12,7 @@ ADD_LIBRARY(
     src/application.c
     src/entity.c
     src/material.c
+    src/matrix.c
     src/mesh.c
     src/model.c
     src/renderer.c

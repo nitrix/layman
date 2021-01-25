@@ -56,9 +56,9 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 	glfwWindowHint(GLFW_RESIZABLE, true);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, 0); // Disable multisampling.
+	glfwWindowHint(GLFW_SAMPLES, 4); // Multisampling.
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
 
@@ -87,7 +87,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids a tearing artifact.
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	// Center the window.
 	glfwSetWindowPos(window->glfw_window, video_mode->width / 2 - width / 2, video_mode->height / 2 - height / 2);

@@ -71,6 +71,11 @@ A simple 3D engine for the layman.
 - Associating different materials to different mesh parts of a model.
 - Loading materials from files.
 
+
+## References
+
+- [Real Shading in Unreal Engine 4](http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf) by Epic Games.
+
 ## License
 
 This is free and unencumbered software released into the public domain. See the [UNLICENSE](UNLICENSE) file for more details.

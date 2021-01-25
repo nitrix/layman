@@ -21,6 +21,7 @@
 #include "layman/application.h"
 #include "layman/entity.h"
 #include "layman/material.h"
+#include "layman/matrix.h"
 #include "layman/mesh.h"
 #include "layman/model.h"
 #include "layman/renderer.h"

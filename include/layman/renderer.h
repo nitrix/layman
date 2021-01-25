@@ -10,6 +10,12 @@ struct layman_renderer *layman_renderer_create(void);
 void layman_renderer_destroy(struct layman_renderer *renderer);
 
 // TODO: Documentation.
+void layman_renderer_use(struct layman_renderer *renderer);
+
+// TODO: Documentation.
+void layman_renderer_unuse(struct layman_renderer *renderer);
+
+// TODO: Documentation.
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_scene *scene);
 
 #endif
