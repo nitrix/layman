@@ -55,6 +55,9 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			float *uvs = NULL;
 			size_t uvs_count = 0;
 			size_t uvs_stride = 0;
+			const float *tangents = NULL;
+			size_t tangents_count = 0;
+			size_t tangents_stride = 0;
 
 			for (size_t attribute_i = 0; attribute_i < primitive->attributes_count; attribute_i++) {
 				const cgltf_attribute *attribute = primitive->attributes + attribute_i;
@@ -73,6 +76,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 						normals_count = attribute->data->count;
 						normals_stride = attribute->data->stride;
 						break;
+					case cgltf_attribute_type_tangent:
+						tangents = gltf->bin + attribute->data->buffer_view->offset;
+						tangents_count = attribute->data->count;
+						tangents_stride = attribute->data->stride;
+						break;
 					case cgltf_attribute_type_texcoord:
 						if (attribute->data->type != cgltf_type_vec2) {
 							break;
@@ -86,6 +94,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 				}
 			}
 
+			if (tangents_count == 0) {
+				fprintf(stderr, "Mesh is missing tangents\n");
+				return false;
+			}
+
 			if (primitive->indices->component_type != cgltf_component_type_r_16u) {
 				fprintf(stderr, "Unsupported mesh indices type\n");
 				return false;
@@ -94,13 +107,13 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			indices = gltf->bin + primitive->indices->buffer_view->offset;
 			indices_count = primitive->indices->count;
 
-			// Flip uvs on the Y axis.
+			// Flip UVs on the Y axis.
 			for (size_t i = 0; i < uvs_count; i += 2) {
 				uvs[i + 1] = 1 - uvs[i + 1];
 			}
 
 			// Create the mesh from raw data.
-			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, uvs, uvs_count, uvs_stride, indices, indices_count);
+			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, uvs, uvs_count, uvs_stride, indices, indices_count, tangents, tangents_count, tangents_stride);
 			if (!model->meshes[final_mesh_i]) {
 				return false;
 			}
@@ -116,6 +129,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;
 			size_t base_color_texture_size = primitive->material->pbr_metallic_roughness.base_color_texture.texture->image->buffer_view->size;
 			material->base_color_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, base_color_texture_data, base_color_texture_size);
+			// Normal texture
+			cgltf_texture *normal_texture = primitive->material->normal_texture.texture;
+			const void *normal_texture_data = gltf->bin + normal_texture->image->buffer_view->offset;
+			size_t normal_texture_size = primitive->material->normal_texture.texture->image->buffer_view->size;
+			material->normal_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, normal_texture_data, normal_texture_size);
 
 			final_mesh_i++;
 		}

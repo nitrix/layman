@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 int main(void) {
-	struct layman_application *app = layman_application_create(1280, 720, "Example");
+	// struct layman_application *app = layman_application_create(1280, 720, "Example", false);
+	struct layman_application *app = layman_application_create(0, 0, "Example", true);
 	if (!app) {
 		fprintf(stderr, "Unable to create the layman application\n");
 		return EXIT_FAILURE;

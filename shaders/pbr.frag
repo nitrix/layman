@@ -70,15 +70,15 @@ void main() {
 	float metalness = texture(metalnessTexture, UV).r;
 	float roughness = texture(roughnessTexture, UV).r;
 
-	color = vec4(albedo, 1);
-	return;
-
 	// Outgoing light direction (vector from world-space fragment position to the "eye").
 	vec3 Lo = normalize(eyePosition - Position);
 
 	// Get current fragment's normal and transform to world space.
 	vec3 N = normalize(2.0 * texture(normalTexture, UV).rgb - 1.0);
 	N = normalize(TangentBasis * N);
+
+	color = vec4(N, 1);
+	return;
 
 	// Angle between surface normal and outgoing light direction.
 	float cosLo = max(0.0, dot(N, Lo));

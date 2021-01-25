@@ -112,8 +112,8 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
 	glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
 	struct layman_matrix_4f sceneRotationMatrix = layman_matrix_4f_identity();
-	layman_matrix_4f_rotate_x(&sceneRotationMatrix, -M_PI_2);
-	layman_matrix_4f_rotate_y(&sceneRotationMatrix, M_PI_2 * elapsed);
+	layman_matrix_4f_rotate_x(&sceneRotationMatrix, M_PI);
+	layman_matrix_4f_rotate_y(&sceneRotationMatrix, M_PI * elapsed * 0.5f);
 	layman_matrix_4f_translate(&sceneRotationMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
 	glUniformMatrix4fv(renderer->sceneRotationMatrixLocation, 1, false, sceneRotationMatrix.d);
 

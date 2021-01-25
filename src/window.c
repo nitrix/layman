@@ -31,7 +31,7 @@ static void decrement_refcount(void) {
 	}
 }
 
-struct layman_window *layman_window_create(int width, int height, const char *title) {
+struct layman_window *layman_window_create(int width, int height, const char *title, bool fullscreen) {
 	struct layman_window *window = malloc(sizeof *window);
 	if (!window) {
 		return NULL;
@@ -63,7 +63,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
 
 	// Create the actual window using the GLFW library.
-	window->glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
+	window->glfw_window = glfwCreateWindow(width, height, title, fullscreen ? primary_monitor : NULL, NULL);
 	if (!window->glfw_window) {
 		free(window);
 		decrement_refcount();
@@ -87,7 +87,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids a tearing artifact.
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	// Center the window.
 	glfwSetWindowPos(window->glfw_window, video_mode->width / 2 - width / 2, video_mode->height / 2 - height / 2);

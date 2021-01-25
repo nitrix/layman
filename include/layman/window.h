@@ -9,13 +9,15 @@
  * @param[in] width The width of the window.
  * @param[in] height The height of the window.
  * @param[in] title The title of the window.
+ * @param[in] fullscreen Whether or not to be in fullscreen mode.
  *
  * @remark UTF-8 titles are supported.
+ * @remarks Widths and heights of 0 defaults to the primary monitor's current resolution.
  * @remark [Thread safety] This function must only be called from the main thread.
  * 
  * @return A pointer to the newly created window or NULL on error.
  */
-struct layman_window *layman_window_create(int width, int height, const char *title);
+struct layman_window *layman_window_create(int width, int height, const char *title, bool fullscreen);
 
 /**
  * @brief Destroys a window.

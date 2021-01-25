@@ -14,5 +14,6 @@ struct layman_vector_3f {
 
 void layman_vector_3f_add_3f(const struct layman_vector_3f *a, const struct layman_vector_3f *b, struct layman_vector_3f *r);
 void layman_vector_3f_sub_3f(const struct layman_vector_3f *a, const struct layman_vector_3f *b, struct layman_vector_3f *r);
+void layman_vector_3f_cross_3f(const struct layman_vector_3f *a, const struct layman_vector_3f *b, struct layman_vector_3f *r);
 
 #endif

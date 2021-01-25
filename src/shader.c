@@ -119,6 +119,9 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 	// Bind attributes. Must be before linkage.
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "position");
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_UV, "uv");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_NORMAL, "normal");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_TANGENT, "tangent");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_BITANGENT, "bitangent");
 
 	glLinkProgram(program_id);
 

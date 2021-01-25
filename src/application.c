@@ -1,6 +1,6 @@
 #include "layman.h"
 
-struct layman_application *layman_application_create(int width, int height, const char *title) {
+struct layman_application *layman_application_create(int width, int height, const char *title, bool fullscreen) {
 	struct layman_application *app = malloc(sizeof *app);
 	if (!app) {
 		return NULL;
@@ -10,7 +10,7 @@ struct layman_application *layman_application_create(int width, int height, cons
 	app->renderer = NULL;
 	app->scene = NULL;
 
-	app->window = layman_window_create(width, height, title);
+	app->window = layman_window_create(width, height, title, fullscreen);
 	if (!app->window) goto failure;
 
 	layman_window_use(app->window);
