@@ -1,4 +1,8 @@
 #include "layman.h"
+#include <GLFW/glfw3.h>
+#include <stdio.h>
+
+// FIXME: I'm starting to question the usefulness of this abstraction. It's becoming thinner by the second...
 
 struct layman_application *layman_application_create(int width, int height, const char *title, bool fullscreen) {
 	struct layman_application *app = malloc(sizeof *app);
@@ -49,10 +53,21 @@ void layman_application_unuse(struct layman_application *app) {
 void layman_application_run(struct layman_application *app) {
 	layman_renderer_use(app->renderer);
 
+	int fps = 0;
+	double last_time = glfwGetTime();
+
 	while (!layman_window_closed(app->window)) {
 		layman_window_poll_events(app->window, NULL);
 		layman_renderer_render(app->renderer, app->scene);
 		layman_window_refresh(app->window);
+
+		fps++;
+		double current_time = glfwGetTime();
+		if (current_time > last_time + 1) {
+			printf("FPS: %d\n", fps);
+			last_time = current_time;
+			fps = 0;
+		}
 	}
 
 	layman_renderer_unuse(app->renderer);

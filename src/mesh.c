@@ -62,6 +62,7 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	size_t bitangents_stride = tangents_stride;
 
 	for (size_t i = 0; i < tangents_count; i++) {
+		// FIXME: Dirty conversion?
 		const struct layman_vector_3f *a = normals + i * 3;
 		const struct layman_vector_3f *b = tangents + i * 3;
 		struct layman_vector_3f *r = bitangents + i * 3;
