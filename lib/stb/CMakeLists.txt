@@ -1,0 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(stb)
+
+ADD_LIBRARY(stb_image src/stb_image.c)
+TARGET_INCLUDE_DIRECTORIES(stb_image PUBLIC include)

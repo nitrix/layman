@@ -52,7 +52,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			size_t normals_stride = 0;
 			const unsigned short *indices = NULL;
 			size_t indices_count = 0;
-			float *uvs = NULL;
+			const float *uvs = NULL;
 			size_t uvs_count = 0;
 			size_t uvs_stride = 0;
 			const float *tangents = NULL;
@@ -116,8 +116,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			indices_count = primitive->indices->count;
 
 			// Flip UVs on the Y axis.
+			// glTF provides them read-only, but if we're careful, we can actually mutate them in-place instead of copying all that data.
+			// TODO: This should be a uniform in the vertex shader to flip the axis instead.
+			float *uvs_violation = (float *) uvs; // const-correctness violation!
 			for (size_t i = 0; i < uvs_count; i += 2) {
-				uvs[i + 1] = 1 - uvs[i + 1];
+				uvs_violation[i + 1] = 1 - uvs_violation[i + 1];
 			}
 
 			// Create the mesh from raw data.
