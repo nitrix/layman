@@ -21,9 +21,9 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 void layman_texture_destroy(struct layman_texture *texture);
 
 // TODO: Documentation.
-void layman_texture_use(const struct layman_texture *texture);
+void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy);
 
 // TODO: Documentation.
-void layman_texture_unuse(const struct layman_texture *texture);
+void layman_texture_switch(const struct layman_texture *new_texture, struct layman_texture *old_texture);
 
 #endif

@@ -157,6 +157,11 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			size_t normal_texture_size = primitive->material->normal_texture.texture->image->buffer_view->size;
 			material->normal_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, normal_texture_data, normal_texture_size);
 
+			layman_texture_switch(material->base_color_texture, NULL);
+			layman_texture_switch(material->normal_texture, NULL);
+
+			// TODO: The material needs to move to the mesh!
+
 			final_mesh_i++;
 		}
 	}

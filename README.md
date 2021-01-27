@@ -6,7 +6,7 @@ A simple 3D engine for the layman.
 
 ## Features
 
-- TODO
+- Anisotropic filtering.
 
 ## Planned
 
@@ -25,15 +25,16 @@ A simple 3D engine for the layman.
 - Normal maps.
 - Anti-aliasing (MSAA 8x multi-sampling).
 - Back-face culling optimization.
-- Mipmapping / anisotropic filtering.
+- Mipmapping.
 - Wireframe mode.
 - Directional and point lights.
 - High resolution clock for elapsed-time calculation.
 - Materials.
+- Samplers (wrapping? clamp/linear, etc).
 - Normal maps.
 - Anti-aliasing (MSAA 8x multi-sampling).
 - Back-face culling optimization.
-- Mipmapping / anisotropic filtering.
+- Mipmapping.
 - Wireframe mode.
 - Directional and point lights.
 - Image Based Lighting (IBL).

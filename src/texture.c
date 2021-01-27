@@ -1,6 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "layman.h"
 #include "stb_image.h"
+#include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stdlib.h>
 
@@ -40,14 +41,28 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb888);
 
 	// FIXME: Not always linear? What about wrapping too?
+	bool generate_mipmaps = false; // TODO: Implement mipmaps and texture wrapping.
+	if (generate_mipmaps) {
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+	} else {
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
+	// TODO: Hardcoded and I don't like it.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// FIXME: Mipmaps? Anisotropic filtering?
+	// FIXME: Mipmaps?
 	// gl.GenerateMipmap(gl.TEXTURE_2D)
 	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
-	layman_texture_use(texture); // FIXME
+	// Anisotropic filtering.
+	layman_texture_anisotropic_filtering(texture, 4.0f);
+
+	// TODO: Is it normal that the texture remains in use?
+	// layman_texture_use(texture); // FIXME
 
 	// FIXME: Dirty hack. Uniforms should happen in shader/renderer.
 	GLint currentProgram = 0;
@@ -60,14 +75,40 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	return texture;
 }
 
-void layman_texture_use(const struct layman_texture *texture) {
-	// This is actually the recommended way to enumerate that constant.
-	// You use the texture unit 0 and add your offset to it.
-	glActiveTexture(GL_TEXTURE0 + texture->kind);
-	glBindTexture(GL_TEXTURE_2D, texture->id);
+void layman_texture_switch(const struct layman_texture *new_texture, struct layman_texture *old_texture) {
+	if (old_texture) {
+		GLint unit;
+		glGetIntegerv(GL_ACTIVE_TEXTURE, &unit);
+		old_texture->kind = unit;
+		GLint id;
+		glGetIntegerv(GL_TEXTURE_2D, &id);
+		old_texture->id = id;
+	}
+
+	glActiveTexture(GL_TEXTURE0 + new_texture->kind);
+	glBindTexture(GL_TEXTURE_2D, new_texture->id);
 }
 
-void layman_texture_unuse(const struct layman_texture *texture) {
-	glActiveTexture(GL_TEXTURE0 + texture->kind);
-	glBindTexture(GL_TEXTURE_2D, 0);
+void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy) {
+	// Ensure the driver supports the anisotropic extension before we attempt to do anything.
+	if (glfwExtensionSupported("GL_EXT_texture_filter_anisotropic") == GLFW_FALSE) {
+		return;
+	}
+
+	// Temporarily switch texture and save the previous one.
+	struct layman_texture previous_texture;
+	layman_texture_switch(texture, &previous_texture);
+
+	// Ask OpenGL what is the maximum anisotropy we can use.
+	GLfloat max_anisotropy = 1.0f; // Fallback in case the call fails.
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+
+	if (anisotropy <= max_anisotropy) {
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+	} else {
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+	}
+
+	// Restore previous texture.
+	layman_texture_switch(&previous_texture, NULL);
 }
