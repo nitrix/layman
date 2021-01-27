@@ -25,6 +25,7 @@ char *read_whole_file(const char *filepath) {
 				free(content);
 				return NULL;
 			}
+
 			content = new_content;
 			capacity += 1024;
 		}
@@ -50,16 +51,16 @@ char *read_whole_file(const char *filepath) {
 
 /**
  * Compiles a shader.
- * 
- * @param[in] type The type of shader. 
- * 	- GL_COMPUTE_SHADER
- * 	- GL_VERTEX_SHADER
- * 	- GL_TESS_CONTROL_SHADER
- * 	- GL_TESS_EVALUATION_SHADER
- * 	- GL_GEOMETRY_SHADER
- * 	- GL_FRAGMENT_SHADER
+ *
+ * @param[in] type The type of shader.
+ *      - GL_COMPUTE_SHADER
+ *      - GL_VERTEX_SHADER
+ *      - GL_TESS_CONTROL_SHADER
+ *      - GL_TESS_EVALUATION_SHADER
+ *      - GL_GEOMETRY_SHADER
+ *      - GL_FRAGMENT_SHADER
  * @param[in] source The source of the shader.
- * 
+ *
  * @return The compiled shader id or `0` on error.
  */
 GLuint compile_shader(GLenum type, const char *filepath) {
@@ -99,7 +100,6 @@ GLuint compile_shader(GLenum type, const char *filepath) {
 struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath) {
 	GLint vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_filepath);
 	GLint fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_filepath);
-
 	if (!vertex_shader_id || !fragment_shader_id) {
 		glDeleteShader(vertex_shader_id);
 		glDeleteShader(fragment_shader_id);

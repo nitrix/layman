@@ -15,15 +15,21 @@ struct layman_application *layman_application_create(int width, int height, cons
 	app->scene = NULL;
 
 	app->window = layman_window_create(width, height, title, fullscreen);
-	if (!app->window) goto failure;
+	if (!app->window) {
+		goto failure;
+	}
 
 	layman_window_use(app->window);
 
 	app->renderer = layman_renderer_create();
-	if (!app->renderer) goto failure;
+	if (!app->renderer) {
+		goto failure;
+	}
 
 	app->scene = layman_scene_create();
-	if (!app->scene) goto failure;
+	if (!app->scene) {
+		goto failure;
+	}
 
 	layman_window_unuse(app->window);
 
@@ -35,9 +41,17 @@ failure:
 }
 
 void layman_application_destroy(struct layman_application *app) {
-	if (app->window) layman_window_destroy(app->window);
-	if (app->renderer) layman_renderer_destroy(app->renderer);
-	if (app->scene) layman_scene_destroy(app->scene);
+	if (app->window) {
+		layman_window_destroy(app->window);
+	}
+
+	if (app->renderer) {
+		layman_renderer_destroy(app->renderer);
+	}
+
+	if (app->scene) {
+		layman_scene_destroy(app->scene);
+	}
 
 	free(app);
 }
@@ -63,6 +77,7 @@ void layman_application_run(struct layman_application *app) {
 
 		fps++;
 		double current_time = glfwGetTime();
+
 		if (current_time > last_time + 1) {
 			printf("FPS: %d\n", fps);
 			last_time = current_time;

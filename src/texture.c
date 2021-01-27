@@ -44,8 +44,8 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// FIXME: Mipmaps? Anisotropic filtering?
-	//gl.GenerateMipmap(gl.TEXTURE_2D)
-	//gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	// gl.GenerateMipmap(gl.TEXTURE_2D)
+	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
 	layman_texture_use(texture); // FIXME
 

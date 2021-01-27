@@ -25,30 +25,30 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 
 	glGenBuffers(1, &mesh->vbo_positions);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_positions);
-	glBufferData(GL_ARRAY_BUFFER, vertices_count * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices_count * 3 * sizeof (float), vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_POSITION, 3, GL_FLOAT, false, vertices_stride, 0);
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_POSITION);
 
 	glGenBuffers(1, &mesh->vbo_normals);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_normals);
-	glBufferData(GL_ARRAY_BUFFER, normals_count * 3 * sizeof(float), normals, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals_count * 3 * sizeof (float), normals, GL_STATIC_DRAW);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_NORMAL, 3, GL_FLOAT, false, normals_stride, 0);
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_NORMAL);
 
 	glGenBuffers(1, &mesh->vbo_uvs);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_uvs);
-	glBufferData(GL_ARRAY_BUFFER, uvs_count * 2 * sizeof(float), uvs, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uvs_count * 2 * sizeof (float), uvs, GL_STATIC_DRAW);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_UV, 2, GL_FLOAT, false, uvs_stride, 0);
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_UV);
 
 	glGenBuffers(1, &mesh->ebo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo_indices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 3 * sizeof(unsigned short), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 3 * sizeof (unsigned short), indices, GL_STATIC_DRAW);
 	mesh->indices_count = indices_count;
 
 	glGenBuffers(1, &mesh->vbo_tangents);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_tangents);
-	glBufferData(GL_ARRAY_BUFFER, tangents_count * 3 * sizeof(float), tangents, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, tangents_count * 3 * sizeof (float), tangents, GL_STATIC_DRAW);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_TANGENT, 3, GL_FLOAT, false, tangents_stride, 0);
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_TANGENT);
 
@@ -58,6 +58,7 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	if (!bitangents) {
 		// TODO: Handle failure.
 	}
+
 	size_t bitangents_count = tangents_count;
 	size_t bitangents_stride = tangents_stride;
 
@@ -71,7 +72,7 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 
 	glGenBuffers(1, &mesh->vbo_bitangents);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_bitangents);
-	glBufferData(GL_ARRAY_BUFFER, bitangents_count * 3 * sizeof(float), bitangents, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, bitangents_count * 3 * sizeof (float), bitangents, GL_STATIC_DRAW);
 	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_BITANGENT, 3, GL_FLOAT, false, bitangents_stride, 0);
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_BITANGENT);
 

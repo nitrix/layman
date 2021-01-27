@@ -33,12 +33,13 @@ struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer
 	float frustrum_length = renderer->near_plane - renderer->far_plane;
 
 	struct layman_matrix_4f m = {
-	    .d = {
-	        [0] = scale_x,
-	        [5] = scale_y,
-	        [10] = ((renderer->far_plane + renderer->near_plane) / frustrum_length),
-	        [11] = -1,
-	        [14] = ((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)},
+		.d = {
+			[0] = scale_x,
+			[5] = scale_y,
+			[10] = ((renderer->far_plane + renderer->near_plane) / frustrum_length),
+			[11] = -1,
+			[14] = ((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
+		},
 	};
 
 	return m;
@@ -87,16 +88,16 @@ void layman_renderer_use(struct layman_renderer *renderer) {
 	renderer->sceneRotationMatrixLocation = glGetUniformLocation(programId, "sceneRotationMatrix");
 
 	// FIXME: Wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_FRONT);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	//glFrontFace(GL_CW);
-	//glFrontFace(GL_CCW);
+	// glFrontFace(GL_CW);
+	// glFrontFace(GL_CCW);
 
 	glEnable(GL_MULTISAMPLE);
 }

@@ -15,7 +15,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 	// Find out how many meshes there are.
 	for (size_t i = 0; i < gltf->meshes_count; i++) {
 		for (size_t j = 0; j < gltf->meshes[i].primitives_count; j++) {
-			// Only consider meshes with triangle primitives.
+			// But only consider meshes with triangle primitives.
 			if (gltf->meshes[i].primitives[j].type == cgltf_primitive_type_triangles) {
 				mesh_count++;
 			}
@@ -38,7 +38,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 		for (size_t primitive_i = 0; primitive_i < gltf->meshes[mesh_i].primitives_count; primitive_i++) {
 			const cgltf_primitive *primitive = gltf->meshes[mesh_i].primitives + primitive_i;
 
-			// Only consider triangle primitives.
+			// Only support triangle primitives.
 			if (primitive->type != cgltf_primitive_type_triangles) {
 				continue;
 			}
@@ -63,34 +63,42 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 				const cgltf_attribute *attribute = primitive->attributes + attribute_i;
 
 				switch (attribute->type) {
-					case cgltf_attribute_type_position:
-						if (attribute->data->type != cgltf_type_vec3) {
-							break;
-						}
-						vertices = gltf->bin + attribute->data->buffer_view->offset;
-						vertices_count = attribute->data->count;
-						vertices_stride = attribute->data->stride;
-						break;
-					case cgltf_attribute_type_normal:
-						normals = gltf->bin + attribute->data->buffer_view->offset;
-						normals_count = attribute->data->count;
-						normals_stride = attribute->data->stride;
-						break;
-					case cgltf_attribute_type_tangent:
-						tangents = gltf->bin + attribute->data->buffer_view->offset;
-						tangents_count = attribute->data->count;
-						tangents_stride = attribute->data->stride;
-						break;
-					case cgltf_attribute_type_texcoord:
-						if (attribute->data->type != cgltf_type_vec2) {
-							break;
-						}
-						uvs = gltf->bin + attribute->data->buffer_view->offset;
-						uvs_count = attribute->data->count;
-						uvs_stride = attribute->data->stride;
-						break;
-					default:
-						break;
+				    case cgltf_attribute_type_position:
+
+					    if (attribute->data->type != cgltf_type_vec3) {
+						    break;
+					    }
+
+					    vertices = gltf->bin + attribute->data->buffer_view->offset;
+					    vertices_count = attribute->data->count;
+					    vertices_stride = attribute->data->stride;
+					    break;
+
+				    case cgltf_attribute_type_normal:
+					    normals = gltf->bin + attribute->data->buffer_view->offset;
+					    normals_count = attribute->data->count;
+					    normals_stride = attribute->data->stride;
+					    break;
+
+				    case cgltf_attribute_type_tangent:
+					    tangents = gltf->bin + attribute->data->buffer_view->offset;
+					    tangents_count = attribute->data->count;
+					    tangents_stride = attribute->data->stride;
+					    break;
+
+				    case cgltf_attribute_type_texcoord:
+
+					    if (attribute->data->type != cgltf_type_vec2) {
+						    break;
+					    }
+
+					    uvs = gltf->bin + attribute->data->buffer_view->offset;
+					    uvs_count = attribute->data->count;
+					    uvs_stride = attribute->data->stride;
+					    break;
+
+				    default:
+					    break;
 				}
 			}
 
@@ -113,7 +121,18 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			}
 
 			// Create the mesh from raw data.
-			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(vertices, vertices_count, vertices_stride, normals, normals_count, normals_stride, uvs, uvs_count, uvs_stride, indices, indices_count, tangents, tangents_count, tangents_stride);
+			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(
+			        // Vertices.
+			        vertices, vertices_count, vertices_stride,
+			        // Normals.
+			        normals, normals_count, normals_stride,
+			        // UVs.
+			        uvs, uvs_count, uvs_stride,
+			        // Indices.
+			        indices, indices_count,
+			        // Tangents.
+			        tangents, tangents_count, tangents_stride);
+
 			if (!model->meshes[final_mesh_i]) {
 				return false;
 			}
@@ -167,7 +186,6 @@ struct layman_model *layman_model_load(const char *filepath) {
 	cgltf_data *gltf = NULL;
 	cgltf_options options = {0};
 	cgltf_result result = cgltf_parse_file(&options, filepath, &gltf);
-
 	if (result != cgltf_result_success) {
 		free(model);
 		return NULL;

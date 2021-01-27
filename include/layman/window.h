@@ -14,7 +14,7 @@
  * @remark UTF-8 titles are supported.
  * @remarks Widths and heights of 0 defaults to the primary monitor's current resolution.
  * @remark [Thread safety] This function must only be called from the main thread.
- * 
+ *
  * @return A pointer to the newly created window or NULL on error.
  */
 struct layman_window *layman_window_create(int width, int height, const char *title, bool fullscreen);
@@ -49,10 +49,10 @@ bool layman_window_closed(const struct layman_window *window);
 
 /**
  * @brief Poll for input events.
- * 
+ *
  * The events are handled by callbacks that must have been previously configured.
  * In case they weren't configured, dummy callbacks are used as a fallback to discard the events.
- * 
+ *
  * @param[in] window A pointer to the window.
  * @param[in] custom Custom user pointer that is passed back to the user during event callbacks.
  */
@@ -60,10 +60,10 @@ void layman_window_poll_events(const struct layman_window *window, void *custom)
 
 /**
  * @brief Refreshes the window.
- * 
+ *
  * Due to double-buffering, things drawn to the window aren't shown immediately.
  * A window refresh is necessary to switch between those the two (active/inactive) buffers.
- * 
+ *
  * @param[in] window A pointer to the window.
  */
 void layman_window_refresh(const struct layman_window *window);
