@@ -13,6 +13,9 @@ enum layman_mesh_attribute {
 };
 
 // TODO: Documentation.
+struct layman_mesh *layman_mesh_create(void);
+
+// TODO: Documentation.
 struct layman_mesh *layman_mesh_create_from_raw(
         // Vertices.
         const float *vertices, size_t vertices_count, size_t vertices_stride,
@@ -28,7 +31,6 @@ struct layman_mesh *layman_mesh_create_from_raw(
 // TODO: Documentation.
 void layman_mesh_destroy(struct layman_mesh *mesh);
 
-// TODO: Documentation.
-void layman_mesh_render(const struct layman_mesh *mesh);
+void layman_mesh_assign_material(struct layman_mesh *mesh, const struct layman_material *material);
 
 #endif

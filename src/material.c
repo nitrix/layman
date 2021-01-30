@@ -1,4 +1,4 @@
-#include "layman.h"
+#include "layman2.h"
 #include <stdlib.h>
 
 struct layman_material *layman_material_create(void) {
@@ -48,4 +48,17 @@ void layman_material_destroy(struct layman_material *material) {
 	material->emissive_texture = NULL;
 
 	free(material);
+}
+
+void layman_material_use(const struct layman_material *material) {
+	// TODO: More of them.
+	layman_texture_switch(material->base_color_texture, NULL);
+	layman_texture_switch(material->normal_texture, NULL);
+	layman_texture_switch(material->metallic_roughness_texture, NULL);
+	layman_texture_switch(material->occlusion_texture, NULL);
+	layman_texture_switch(material->emissive_texture, NULL);
+}
+
+void layman_material_unuse(const struct layman_material *material) {
+	(void) material; // Unused.
 }

@@ -15,7 +15,8 @@ int main(void) {
 	// TODO: No hardcoded models.
 	struct layman_model *model = layman_model_load("C:\\Users\\nitrix\\Desktop\\Stuff\\DamagedHelmet.glb");
 	if (!model) {
-		// TODO: Handle error.
+		fprintf(stderr, "Unable to load model\n");
+		return EXIT_FAILURE; // TODO: Handle error better.
 	}
 
 	struct layman_entity *entity = layman_entity_create_from_model(model);

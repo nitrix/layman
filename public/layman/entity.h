@@ -32,7 +32,4 @@ struct layman_entity *layman_entity_create_from_model(const struct layman_model 
  */
 void layman_entity_destroy(struct layman_entity *entity);
 
-// TODO: Documentation.
-void layman_entity_render(const struct layman_entity *entity);
-
 #endif

@@ -1,14 +1,9 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "layman.h"
+#include "layman2.h"
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stdlib.h>
-
-struct layman_texture {
-	GLuint id;
-	enum layman_texture_kind kind;
-};
 
 struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {
 	struct layman_texture *texture = malloc(sizeof *texture);
@@ -24,6 +19,10 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {
 
 void layman_texture_destroy(struct layman_texture *texture) {
 	free(texture);
+}
+
+enum layman_texture_kind layman_texture_kind(const struct layman_texture *texture) {
+	return texture->kind;
 }
 
 // FIXME: The whole thing.
@@ -54,12 +53,33 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	// If not mip-mapped, force to non-mip-mapped sampler.
+	/*
+	   if (!generateMipmaps && (gltfSamplerObj.minFilter != WebGl.context.NEAREST) && (gltfSamplerObj.minFilter != WebGl.context.LINEAR))
+	   {
+	        if ((gltfSamplerObj.minFilter == WebGl.context.NEAREST_MIPMAP_NEAREST) || (gltfSamplerObj.minFilter == WebGl.context.NEAREST_MIPMAP_LINEAR))
+	        {
+	                WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, WebGl.context.NEAREST);
+	        }
+	        else
+	        {
+	                WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, WebGl.context.LINEAR);
+	        }
+	   }
+	   else
+	   {
+	        WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, gltfSamplerObj.minFilter);
+	   }
+	   WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MAG_FILTER, gltfSamplerObj.magFilter);
+	 */
+
 	// FIXME: Mipmaps?
 	// gl.GenerateMipmap(gl.TEXTURE_2D)
 	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 
 	// Anisotropic filtering.
-	layman_texture_anisotropic_filtering(texture, 4.0f);
+	// This is plenty high and will get capped on systems that don't support it.
+	layman_texture_anisotropic_filtering(texture, 16);
 
 	// TODO: Is it normal that the texture remains in use?
 	// layman_texture_use(texture); // FIXME
@@ -85,8 +105,10 @@ void layman_texture_switch(const struct layman_texture *new_texture, struct laym
 		old_texture->id = id;
 	}
 
-	glActiveTexture(GL_TEXTURE0 + new_texture->kind);
-	glBindTexture(GL_TEXTURE_2D, new_texture->id);
+	if (new_texture) {
+		glActiveTexture(GL_TEXTURE0 + new_texture->kind);
+		glBindTexture(GL_TEXTURE_2D, new_texture->id);
+	}
 }
 
 void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy) {
@@ -100,7 +122,7 @@ void layman_texture_anisotropic_filtering(struct layman_texture *texture, float 
 	layman_texture_switch(texture, &previous_texture);
 
 	// Ask OpenGL what is the maximum anisotropy we can use.
-	GLfloat max_anisotropy = 1.0f; // Fallback in case the call fails.
+	GLfloat max_anisotropy = 1.0; // Fallback in case the call fails.
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 
 	if (anisotropy <= max_anisotropy) {

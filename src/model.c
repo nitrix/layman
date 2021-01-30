@@ -1,13 +1,8 @@
 #include "gltf.h"
-#include "layman.h"
+#include "layman2.h"
 #include <glad/glad.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-struct layman_model {
-	struct layman_mesh **meshes;
-	size_t meshes_count;
-};
 
 bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;
@@ -64,7 +59,6 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 
 				switch (attribute->type) {
 				    case cgltf_attribute_type_position:
-
 					    if (attribute->data->type != cgltf_type_vec3) {
 						    break;
 					    }
@@ -75,19 +69,26 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 					    break;
 
 				    case cgltf_attribute_type_normal:
+					    if (attribute->data->type != cgltf_type_vec3) {
+						    break;
+					    }
+
 					    normals = gltf->bin + attribute->data->buffer_view->offset;
 					    normals_count = attribute->data->count;
 					    normals_stride = attribute->data->stride;
 					    break;
 
 				    case cgltf_attribute_type_tangent:
+					    if (attribute->data->type != cgltf_type_vec4) {
+						    break;
+					    }
+
 					    tangents = gltf->bin + attribute->data->buffer_view->offset;
 					    tangents_count = attribute->data->count;
 					    tangents_stride = attribute->data->stride;
 					    break;
 
 				    case cgltf_attribute_type_texcoord:
-
 					    if (attribute->data->type != cgltf_type_vec2) {
 						    break;
 					    }
@@ -124,7 +125,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			}
 
 			// Create the mesh from raw data.
-			model->meshes[final_mesh_i] = layman_mesh_create_from_raw(
+			struct layman_mesh *mesh = layman_mesh_create_from_raw(
 			        // Vertices.
 			        vertices, vertices_count, vertices_stride,
 			        // Normals.
@@ -136,7 +137,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			        // Tangents.
 			        tangents, tangents_count, tangents_stride);
 
-			if (!model->meshes[final_mesh_i]) {
+			if (!mesh) {
 				return false;
 			}
 
@@ -150,19 +151,32 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
 			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;
 			size_t base_color_texture_size = primitive->material->pbr_metallic_roughness.base_color_texture.texture->image->buffer_view->size;
-			material->base_color_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, base_color_texture_data, base_color_texture_size);
+			material->base_color_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_ALBEDO, base_color_texture_data, base_color_texture_size);
 			// Normal texture
 			cgltf_texture *normal_texture = primitive->material->normal_texture.texture;
 			const void *normal_texture_data = gltf->bin + normal_texture->image->buffer_view->offset;
 			size_t normal_texture_size = primitive->material->normal_texture.texture->image->buffer_view->size;
-			material->normal_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_ALBEDO, normal_texture_data, normal_texture_size);
+			material->normal_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_NORMAL, normal_texture_data, normal_texture_size);
+			// Metallic/roughness texture
+			cgltf_texture *metallic_roughness_texture = primitive->material->pbr_metallic_roughness.metallic_roughness_texture.texture;
+			const void *metallic_roughness_texture_data = gltf->bin + metallic_roughness_texture->image->buffer_view->offset;
+			size_t metallic_roughness_texture_size = primitive->material->pbr_metallic_roughness.metallic_roughness_texture.texture->image->buffer_view->size;
+			material->metallic_roughness_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_METALLIC_ROUGHNESS, metallic_roughness_texture_data, metallic_roughness_texture_size);
+			// Occlusion texture
+			cgltf_texture *occlusion_texture = primitive->material->occlusion_texture.texture;
+			const void *occlusion_texture_data = gltf->bin + occlusion_texture->image->buffer_view->offset;
+			size_t occlusion_texture_size = primitive->material->occlusion_texture.texture->image->buffer_view->size;
+			material->occlusion_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_OCCLUSION, occlusion_texture_data, occlusion_texture_size);
+			// Emission texture
+			cgltf_texture *emission_texture = primitive->material->emissive_texture.texture;
+			const void *emission_texture_data = gltf->bin + emission_texture->image->buffer_view->offset;
+			size_t emission_texture_size = primitive->material->emissive_texture.texture->image->buffer_view->size;
+			material->emissive_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_EMISSION, emission_texture_data, emission_texture_size);
 
-			layman_texture_switch(material->base_color_texture, NULL);
-			layman_texture_switch(material->normal_texture, NULL);
+			layman_mesh_assign_material(mesh, material);
+			// FIXME: Leaking the material?!
 
-			// TODO: The material needs to move to the mesh!
-
-			final_mesh_i++;
+			model->meshes[final_mesh_i++] = mesh;
 		}
 	}
 
@@ -217,11 +231,4 @@ struct layman_model *layman_model_load(const char *filepath) {
 void layman_model_destroy(struct layman_model *model) {
 	unload_meshes(model);
 	free(model);
-}
-
-void layman_model_render(const struct layman_model *model) {
-	for (size_t i = 0; i < model->meshes_count; i++) {
-		struct layman_mesh *mesh = model->meshes[i];
-		layman_mesh_render(mesh);
-	}
 }

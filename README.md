@@ -6,7 +6,8 @@ A simple 3D engine for the layman.
 
 ## Features
 
-- Anisotropic filtering.
+- MSAA multisampling (4x).
+- Anisotropic filtering (16x).
 
 ## Planned
 

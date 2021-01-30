@@ -1,4 +1,4 @@
-#include "layman.h"
+#include "layman2.h"
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <math.h>
@@ -9,8 +9,6 @@
 #define M_PI_2 1.57079632679489661923
 
 struct layman_renderer {
-	struct layman_shader *pbr_shader;
-
 	// Viewport.
 	int viewport_width;
 	int viewport_height;
@@ -51,12 +49,6 @@ struct layman_renderer *layman_renderer_create(void) {
 		return NULL;
 	}
 
-	renderer->pbr_shader = layman_shader_load_from_file("shaders/pbr.vert", "shaders/pbr.frag");
-	if (!renderer->pbr_shader) {
-		free(renderer);
-		return NULL;
-	}
-
 	// TODO: Dynamic dimensions.
 	renderer->viewport_width = 1280;
 	renderer->viewport_height = 720;
@@ -78,14 +70,9 @@ void layman_renderer_destroy(struct layman_renderer *renderer) {
 }
 
 void layman_renderer_use(struct layman_renderer *renderer) {
-	layman_shader_use(renderer->pbr_shader);
-	glClearColor(0, 0, 0, 1); // Black.
+	(void) renderer; // Unused.
 
-	// FIXME: Camel case, and not a good way to obtain uniform locations. Should be here.
-	GLint programId;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &programId);
-	renderer->viewProjectionMatrixLocation = glGetUniformLocation(programId, "viewProjectionMatrix");
-	renderer->sceneRotationMatrixLocation = glGetUniformLocation(programId, "sceneRotationMatrix");
+	glClearColor(0, 0, 0, 1); // Black.
 
 	// FIXME: Wireframe
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -103,7 +90,7 @@ void layman_renderer_use(struct layman_renderer *renderer) {
 }
 
 void layman_renderer_unuse(struct layman_renderer *renderer) {
-	layman_shader_unuse(renderer->pbr_shader);
+	(void) renderer; // Unused.
 }
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_scene *scene) {
@@ -112,17 +99,48 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	double current_time = glfwGetTime();
 	double elapsed = current_time - renderer->start_time;
 
-	struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
-	glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
-	struct layman_matrix_4f sceneRotationMatrix = layman_matrix_4f_identity();
-	layman_matrix_4f_rotate_x(&sceneRotationMatrix, M_PI);
-	layman_matrix_4f_rotate_y(&sceneRotationMatrix, M_PI * elapsed * 0.5f);
-	layman_matrix_4f_translate(&sceneRotationMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
-	glUniformMatrix4fv(renderer->sceneRotationMatrixLocation, 1, false, sceneRotationMatrix.d);
-
 	// Clear the screen.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Render entities.
-	layman_scene_render_entities(scene);
+	// Render all entities.
+	for (size_t i = 0; i < scene->entity_count; i++) {
+		const struct layman_entity *entity = scene->entities[i];
+
+		// Render all meshes.
+		for (size_t i = 0; i < entity->model->meshes_count; i++) {
+			struct layman_mesh *mesh = entity->model->meshes[i];
+
+			// Render mesh.
+			{
+				glBindVertexArray(mesh->vao);
+				layman_shader_use(mesh->shader);
+				layman_material_use(mesh->material);
+
+				// Uniforms.
+				layman_shader_bind_uniform_material(mesh->shader, mesh->material);
+
+				// TODO: Horrible, please don't do this every frames!
+				if (renderer->viewProjectionMatrixLocation == -1) {
+					renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "viewProjectionMatrix");
+					renderer->sceneRotationMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "sceneRotationMatrix");
+				}
+
+				// TODO: More uniforms, tidy this up.
+				struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
+				glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
+				struct layman_matrix_4f sceneRotationMatrix = layman_matrix_4f_identity();
+				layman_matrix_4f_rotate_x(&sceneRotationMatrix, M_PI);
+				layman_matrix_4f_rotate_y(&sceneRotationMatrix, M_PI * elapsed * 0.5f);
+				layman_matrix_4f_translate(&sceneRotationMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
+				glUniformMatrix4fv(renderer->sceneRotationMatrixLocation, 1, false, sceneRotationMatrix.d);
+
+				// Render.
+				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
+
+				layman_material_unuse(mesh->material);
+				layman_shader_unuse(mesh->shader);
+				glBindVertexArray(0);
+			}
+		}
+	}
 }
