@@ -13,7 +13,7 @@ int main(void) {
 	layman_application_use(app);
 
 	// TODO: No hardcoded models.
-	struct layman_model *model = layman_model_load("C:\\Users\\nitrix\\Desktop\\Stuff\\DamagedHelmet.glb");
+	struct layman_model *model = layman_model_load("DamagedHelmet.glb");
 	if (!model) {
 		fprintf(stderr, "Unable to load model\n");
 		return EXIT_FAILURE; // TODO: Handle error better.

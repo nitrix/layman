@@ -7,7 +7,7 @@ struct layman_material *layman_material_create(void) {
 		return NULL;
 	}
 
-	material->base_color_factor = LAYMAN_VECTOR_3F(0, 0, 0);
+	material->base_color_factor = LAYMAN_VECTOR_4F(1, 1, 1, 1);
 	material->base_color_texture = NULL;
 	material->metallic_roughness_texture = NULL;
 	material->metallic_factor = 0.0f;
@@ -15,7 +15,7 @@ struct layman_material *layman_material_create(void) {
 	material->normal_texture = NULL;
 	material->occlusion_texture = NULL;
 	material->emissive_texture = NULL;
-	material->emissive_factor = LAYMAN_VECTOR_3F(0, 0, 0);
+	material->emissive_factor = LAYMAN_VECTOR_3F(1, 1, 1);
 
 	return material;
 }

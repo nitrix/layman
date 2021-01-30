@@ -18,6 +18,7 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {
 }
 
 void layman_texture_destroy(struct layman_texture *texture) {
+	glDeleteTextures(1, &texture->id);
 	free(texture);
 }
 
@@ -32,26 +33,62 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 		return NULL;
 	}
 
-	int x, y, c;
-	unsigned char *rgb888 = stbi_load_from_memory(data, size, &x, &y, &c, 3); // FIXME: Error handling.
+	int w, h, c;
+	unsigned char *image = stbi_load_from_memory(data, size, &w, &h, &c, 0); // FIXME: Error handling.
 
 	glGenTextures(1, &texture->id);
 	glBindTexture(GL_TEXTURE_2D, texture->id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb888);
 
 	// FIXME: Not always linear? What about wrapping too?
-	bool generate_mipmaps = false; // TODO: Implement mipmaps and texture wrapping.
-	if (generate_mipmaps) {
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-	} else {
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// bool generate_mipmaps = false; // TODO: Implement mipmaps and texture wrapping.
+	// if (generate_mipmaps) {
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+	// } else {
+	// The glTF documentation doesn't specify what to use when samplers aren't specified.
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	// }
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	GLenum format;
+	switch (c) {
+	    /*
+	       case 1: {
+	       // Gray
+	       format = GL_LUMINANCE;
+	       break;
+	       }
+	       case 2: {
+	       // Gray and Alpha
+	       format = GL_LUMINANCE_ALPHA;
+	       break;
+	       }
+	     */
+	    case 3: {
+		    // RGB
+		    format = GL_RGB;
+		    break;
+	    }
+
+	    case 4: {
+		    // RGBA
+		    format = GL_RGBA;
+		    break;
+	    }
 	}
 
-	// TODO: Hardcoded and I don't like it.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// If not mip-mapped, force to non-mip-mapped sampler.
 	/*
@@ -73,18 +110,21 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	   WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MAG_FILTER, gltfSamplerObj.magFilter);
 	 */
 
-	// FIXME: Mipmaps?
-	// gl.GenerateMipmap(gl.TEXTURE_2D)
-	// gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	// Mipmaping.
+	// glGenerateMipmap(GL_TEXTURE_2D);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Anisotropic filtering.
 	// This is plenty high and will get capped on systems that don't support it.
-	layman_texture_anisotropic_filtering(texture, 16);
+	// layman_texture_anisotropic_filtering(texture, 16);
 
 	// TODO: Is it normal that the texture remains in use?
 	// layman_texture_use(texture); // FIXME
 
-	free(rgb888);
+	// TODO: Should we free this?
+	stbi_image_free(image);
 
 	return texture;
 }

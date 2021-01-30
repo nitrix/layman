@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// FIXME: This function is a disaster.
 char *read_shader_file(const char *filepath) {
 	FILE *file = fopen(filepath, "r");
 	if (!file) {
@@ -27,15 +28,15 @@ char *read_shader_file(const char *filepath) {
 			const char *bracket_end = strchr(line, '>');
 
 			const char *dir_end = strrchr(filepath, '/') + 1;
-			size_t size = snprintf(NULL, 0, "%.*s/%.*s", dir_end - filepath - 1, filepath, bracket_end - bracket_start - 1, bracket_start + 1);
-			char *new_filepath = malloc(size);
+			size_t length = snprintf(NULL, 0, "%.*s/%.*s", (int) (dir_end - filepath - 1), filepath, (int) (bracket_end - bracket_start - 1), bracket_start + 1);
+			char *new_filepath = malloc(length + 1);
 			if (!new_filepath) {
 				free(content);
 				fclose(file);
 				return NULL;
 			}
 
-			sprintf(new_filepath, "%.*s/%.*s", dir_end - filepath - 1, filepath, bracket_end - bracket_start - 1, bracket_start + 1);
+			sprintf(new_filepath, "%.*s/%.*s", (int) (dir_end - filepath - 1), filepath, (int) (bracket_end - bracket_start - 1), bracket_start + 1);
 
 			char *other_content = read_shader_file(new_filepath);
 			if (!other_content) {
@@ -120,16 +121,29 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 
 	const char *prefix =
 	        "#version 410\n"
+
+	        "#define HAS_BASE_COLOR_MAP 1\n"
 	        "#define HAS_NORMALS 1\n"
 	        "#define HAS_TANGENTS 1\n"
+	        "#define HAS_NORMAL_MAP 1\n"
+	        "#define HAS_OCCLUSION_MAP 1\n"
+	        "#define HAS_EMISSIVE_MAP 1\n"
 	        "#define HAS_UV_SET1 1\n"
 	        "#define MATERIAL_METALLICROUGHNESS 1\n"
+	        // "#define MATERIAL_UNLIT 1\n"
+
 	        "#define DEBUG_OUTPUT 1\n"
-	        "#define DEBUG_NORMAL 1\n"
+	        // "#define DEBUG_BASECOLOR 1\n"
+	        // "#define DEBUG_NORMAL 1\n"
+	        // "#define DEBUG_OCCLUSION 1\n"
+	        "#define DEBUG_FDIFFUSE 1\n"
+	        // "#define DEBUG_FSPECULAR 1\n"
+	        // "#define DEBUG_FEMISSIVE 1\n"
+
 	        "#define DUMMY 1\n";
 
 	size_t new_length = snprintf(NULL, 0, "%s\n%s", prefix, content);
-	char *new_content = malloc(new_length);
+	char *new_content = malloc(new_length + 1);
 	if (!new_content) {
 		// TODO: Handle error.
 	}
@@ -159,11 +173,13 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 }
 
 static void find_uniforms(struct layman_shader *shader) {
-	shader->uniform_base_color_texture = glGetUniformLocation(shader->program_id, "u_BaseColorSampler");
-	shader->uniform_normal_texture = glGetUniformLocation(shader->program_id, "u_NormalSampler");
-	shader->uniform_metallic_roughness_texture = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
-	shader->uniform_occlusion_texture = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
-	shader->uniform_emissive_texture = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
+	shader->uniform_base_color_factor = glGetUniformLocation(shader->program_id, "u_BaseColorFactor");
+	shader->uniform_base_color_sampler = glGetUniformLocation(shader->program_id, "u_BaseColorSampler");
+	shader->uniform_normal_sampler = glGetUniformLocation(shader->program_id, "u_NormalSampler");
+	shader->uniform_metallic_roughness_sampler = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
+	shader->uniform_occlusion_sampler = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
+	shader->uniform_emissive_sampler = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
+	shader->uniform_emissive_factor = glGetUniformLocation(shader->program_id, "u_EmissiveFactor");
 }
 
 struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath) {
@@ -240,13 +256,13 @@ void layman_shader_unuse(const struct layman_shader *shader) {
 
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material) {
 	// TODO: These other uniforms.
-	glUniform3fv(shader->uniform_base_color_factor, 1, material->base_color_factor.d);
-	glUniform1i(shader->uniform_base_color_texture, material->base_color_texture->kind);
-	glUniform1i(shader->uniform_metallic_roughness_texture, material->metallic_roughness_texture->kind);
-	// float metallic_factor;
-	// float roughness_factor;
-	glUniform1i(shader->uniform_normal_texture, material->normal_texture->kind);
-	glUniform1i(shader->uniform_occlusion_texture, material->occlusion_texture->kind);
-	glUniform1i(shader->uniform_emissive_texture, material->emissive_texture->kind);
-	// struct layman_vector_3f emissive_factor;
+	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor.d);
+	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->kind);
+	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->kind);
+	// TODO: float metallic_factor;
+	// TODO: float roughness_factor;
+	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->kind);
+	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
+	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
+	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor.d);
 }

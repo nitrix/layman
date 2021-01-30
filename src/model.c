@@ -116,14 +116,6 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			indices = gltf->bin + primitive->indices->buffer_view->offset;
 			indices_count = primitive->indices->count;
 
-			// Flip UVs on the Y axis.
-			// glTF provides them read-only, but if we're careful, we can actually mutate them in-place instead of copying all that data.
-			// TODO: This should be a uniform in the vertex shader to flip the axis instead.
-			float *uvs_violation = (float *) uvs; // const-correctness violation!
-			for (size_t i = 0; i < uvs_count; i += 2) {
-				uvs_violation[i + 1] = 1 - uvs_violation[i + 1];
-			}
-
 			// Create the mesh from raw data.
 			struct layman_mesh *mesh = layman_mesh_create_from_raw(
 			        // Vertices.
@@ -146,7 +138,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 
 			// Base color factor.
 			cgltf_float *base_color_factor = primitive->material->pbr_metallic_roughness.base_color_factor;
-			material->base_color_factor = LAYMAN_VECTOR_3F(base_color_factor[0], base_color_factor[1], base_color_factor[2]);
+			material->base_color_factor = LAYMAN_VECTOR_4F(base_color_factor[0], base_color_factor[1], base_color_factor[2], base_color_factor[3]);
 			// Base color texture
 			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
 			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;

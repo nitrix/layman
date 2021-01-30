@@ -35,7 +35,7 @@ struct layman_mesh {
 };
 
 struct layman_material {
-	struct layman_vector_3f base_color_factor;
+	struct layman_vector_4f base_color_factor;
 	struct layman_texture *base_color_texture;
 	struct layman_texture *metallic_roughness_texture;
 	float metallic_factor;
@@ -56,11 +56,12 @@ struct layman_shader {
 
 	// Uniforms.
 	GLint uniform_base_color_factor;
-	GLint uniform_base_color_texture;
-	GLint uniform_normal_texture;
-	GLint uniform_metallic_roughness_texture;
-	GLint uniform_occlusion_texture;
-	GLint uniform_emissive_texture;
+	GLint uniform_base_color_sampler;
+	GLint uniform_normal_sampler;
+	GLint uniform_metallic_roughness_sampler;
+	GLint uniform_occlusion_sampler;
+	GLint uniform_emissive_sampler;
+	GLint uniform_emissive_factor;
 };
 
 #endif
