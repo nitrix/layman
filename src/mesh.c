@@ -3,28 +3,30 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-float *generate_bitangents(const float *normals, const float *tangents, size_t tangents_count) {
-	float *bitangents = malloc(tangents_count * 3 * sizeof *bitangents);
-	if (!bitangents) {
-		return NULL;
-	}
+/*
+   float *generate_bitangents(const float *normals, const float *tangents, size_t tangents_count) {
+        float *bitangents = malloc(tangents_count * 3 * sizeof *bitangents);
+        if (!bitangents) {
+                return NULL;
+        }
 
-	// Bitangents are generated from normals and tangents.
-	// bitangent = cross(normal, tangent.xyz) * tangent.w
+        // Bitangents are generated from normals and tangents.
+        // bitangent = cross(normal, tangent.xyz) * tangent.w
 
-	for (size_t i = 0; i < tangents_count; i++) {
-		// FIXME: Dirty conversion?
-		// FIXME: Formatting.
-		struct layman_vector_3f *normal = (struct layman_vector_3f *) (normals + i * 3);
-		struct layman_vector_3f *tangent3f = (struct layman_vector_3f *) (tangents + i * 4);
-		struct layman_vector_4f *tangent4f = (struct layman_vector_4f *) (tangents + i * 4);
-		struct layman_vector_3f *bitangent = (struct layman_vector_3f *) (bitangents + i * 3);
-		layman_vector_3f_cross_3f(normal, tangent3f, bitangent);
-		layman_vector_3f_multiply_1f(bitangent, tangent4f->d[3], bitangent);
-	}
+        for (size_t i = 0; i < tangents_count; i++) {
+                // FIXME: Dirty conversion?
+                // FIXME: Formatting.
+                struct layman_vector_3f *normal = (struct layman_vector_3f *) (normals + i * 3);
+                struct layman_vector_3f *tangent3f = (struct layman_vector_3f *) (tangents + i * 4);
+                struct layman_vector_4f *tangent4f = (struct layman_vector_4f *) (tangents + i * 4);
+                struct layman_vector_3f *bitangent = (struct layman_vector_3f *) (bitangents + i * 3);
+                layman_vector_3f_cross_3f(normal, tangent3f, bitangent);
+                layman_vector_3f_multiply_1f(bitangent, tangent4f->d[3], bitangent);
+        }
 
-	return bitangents;
-}
+        return bitangents;
+   }
+ */
 
 struct layman_mesh *layman_mesh_create(void) {
 	struct layman_mesh *mesh = malloc(sizeof *mesh);
@@ -59,14 +61,16 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	}
 
 	// These bitangents will be needed later, but are more convenient to generate here for error handling reasons.
-	float *bitangents = generate_bitangents(normals, tangents, tangents_count);
-	size_t bitangents_count = tangents_count;
-	size_t bitangents_stride = tangents_stride;
+	/*
+	   float *bitangents = generate_bitangents(normals, tangents, tangents_count);
+	   size_t bitangents_count = tangents_count;
+	   size_t bitangents_stride = tangents_stride;
 
-	if (!bitangents) {
-		free(mesh);
-		return NULL;
-	}
+	   if (!bitangents) {
+	        free(mesh);
+	        return NULL;
+	   }
+	 */
 
 	// Vertex Array Object (VAO).
 	// This contains all of the following buffers below and the preferred way to switch between them all at once when rendering models.
@@ -110,15 +114,17 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_TANGENT);
 
 	// Bitangents.
-	glGenBuffers(1, &mesh->vbo_bitangents);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_bitangents);
-	glBufferData(GL_ARRAY_BUFFER, bitangents_count * 3 * sizeof (float), bitangents, GL_STATIC_DRAW);
-	glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_BITANGENT, 3, GL_FLOAT, false, bitangents_stride, 0);
-	glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_BITANGENT);
+	/*
+	   glGenBuffers(1, &mesh->vbo_bitangents);
+	   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_bitangents);
+	   glBufferData(GL_ARRAY_BUFFER, bitangents_count * 3 * sizeof (float), bitangents, GL_STATIC_DRAW);
+	   glVertexAttribPointer(LAYMAN_MESH_ATTRIBUTE_BITANGENT, 3, GL_FLOAT, false, bitangents_stride, 0);
+	   glEnableVertexAttribArray(LAYMAN_MESH_ATTRIBUTE_BITANGENT);
+	 */
 
 	// Once the data has been copied to the GPU, we no longer need to hold onto it. We only cleanup what we created though.
 	// (The function parameters remains the caller's responsability, we don't take ownership).
-	free(bitangents);
+	// free(bitangents);
 
 	return mesh;
 }

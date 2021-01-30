@@ -84,12 +84,6 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	// TODO: Is it normal that the texture remains in use?
 	// layman_texture_use(texture); // FIXME
 
-	// FIXME: Dirty hack. Uniforms should happen in shader/renderer.
-	GLint currentProgram = 0;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-	GLint location = glGetUniformLocation(currentProgram, "albedo_map");
-	glUniform1i(location, texture->kind);
-
 	free(rgb888);
 
 	return texture;

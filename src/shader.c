@@ -30,23 +30,27 @@ char *read_shader_file(const char *filepath) {
 			size_t size = snprintf(NULL, 0, "%.*s/%.*s", dir_end - filepath - 1, filepath, bracket_end - bracket_start - 1, bracket_start + 1);
 			char *new_filepath = malloc(size);
 			if (!new_filepath) {
-				// TODO: Handle error.
+				free(content);
+				fclose(file);
+				return NULL;
 			}
 
 			sprintf(new_filepath, "%.*s/%.*s", dir_end - filepath - 1, filepath, bracket_end - bracket_start - 1, bracket_start + 1);
 
-			printf("Including `%s`...\n", new_filepath);
-
 			char *other_content = read_shader_file(new_filepath);
 			if (!other_content) {
-				// TODO: Handle error.
+				free(content);
+				fclose(file);
+				return NULL;
 			}
 
 			size_t other_content_size = strlen(other_content);
 
 			char *new_content = realloc(content, content_size + other_content_size);
 			if (!new_content) {
-				// TODO: Handle error.
+				free(content);
+				fclose(file);
+				return NULL;
 			}
 
 			memcpy(new_content + content_size, other_content, other_content_size);
@@ -58,7 +62,9 @@ char *read_shader_file(const char *filepath) {
 		} else {
 			char *new_content = realloc(content, content_size + read);
 			if (!new_content) {
-				// TODO: Handle error.
+				free(content);
+				fclose(file);
+				return NULL;
 			}
 
 			// Append to the new content.
@@ -80,6 +86,8 @@ char *read_shader_file(const char *filepath) {
 
 	content = new_content;
 	content[content_size] = '\0';
+
+	fclose(file);
 
 	return content;
 }
@@ -110,13 +118,23 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 		return 0;
 	}
 
-	size_t new_length = snprintf(NULL, 0, "#version 410\n%s", content);
+	const char *prefix =
+	        "#version 410\n"
+	        "#define HAS_NORMALS 1\n"
+	        "#define HAS_TANGENTS 1\n"
+	        "#define HAS_UV_SET1 1\n"
+	        "#define MATERIAL_METALLICROUGHNESS 1\n"
+	        "#define DEBUG_OUTPUT 1\n"
+	        "#define DEBUG_NORMAL 1\n"
+	        "#define DUMMY 1\n";
+
+	size_t new_length = snprintf(NULL, 0, "%s\n%s", prefix, content);
 	char *new_content = malloc(new_length);
 	if (!new_content) {
 		// TODO: Handle error.
 	}
 
-	sprintf(new_content, "#version 410\n%s", content);
+	sprintf(new_content, "%s\n%s", prefix, content);
 	free(content);
 
 	const char *const source = new_content;
@@ -141,11 +159,11 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 }
 
 static void find_uniforms(struct layman_shader *shader) {
-	shader->uniform_base_color_texture = glGetUniformLocation(shader->program_id, "albedoTexture");
-	shader->uniform_normal_texture = glGetUniformLocation(shader->program_id, "normalTexture");
-	shader->uniform_metallic_roughness_texture = glGetUniformLocation(shader->program_id, "metallicRoughnessTexture");
-	shader->uniform_occlusion_texture = glGetUniformLocation(shader->program_id, "occlusionTexture");
-	shader->uniform_emissive_texture = glGetUniformLocation(shader->program_id, "emissiveTexture");
+	shader->uniform_base_color_texture = glGetUniformLocation(shader->program_id, "u_BaseColorSampler");
+	shader->uniform_normal_texture = glGetUniformLocation(shader->program_id, "u_NormalSampler");
+	shader->uniform_metallic_roughness_texture = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
+	shader->uniform_occlusion_texture = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
+	shader->uniform_emissive_texture = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
 }
 
 struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath) {
@@ -168,11 +186,11 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 	glAttachShader(program_id, fragment_shader_id);
 
 	// Bind attributes. Must be before linkage.
-	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "position");
-	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_UV, "uv");
-	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_NORMAL, "normal");
-	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_TANGENT, "tangent");
-	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_BITANGENT, "bitangent");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "a_Position");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_UV, "a_UV1");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_NORMAL, "a_Normal");
+	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_TANGENT, "a_Tangent");
+	// glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_BITANGENT, "bitangent");
 
 	glLinkProgram(program_id);
 

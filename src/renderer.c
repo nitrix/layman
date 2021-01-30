@@ -21,7 +21,8 @@ struct layman_renderer {
 	// TODO: Temporary.
 	double start_time;
 	GLint viewProjectionMatrixLocation;
-	GLint sceneRotationMatrixLocation;
+	GLint modelMatrixLocation;
+	GLint normalMatrixLocation;
 };
 
 struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
@@ -60,7 +61,8 @@ struct layman_renderer *layman_renderer_create(void) {
 
 	renderer->start_time = glfwGetTime();
 	renderer->viewProjectionMatrixLocation = -1;
-	renderer->sceneRotationMatrixLocation = -1;
+	renderer->modelMatrixLocation = -1;
+	renderer->normalMatrixLocation = -1;
 
 	return renderer;
 }
@@ -121,18 +123,21 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 
 				// TODO: Horrible, please don't do this every frames!
 				if (renderer->viewProjectionMatrixLocation == -1) {
-					renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "viewProjectionMatrix");
-					renderer->sceneRotationMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "sceneRotationMatrix");
+					renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
+					renderer->modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
+					renderer->normalMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_NormalMatrix");
 				}
 
 				// TODO: More uniforms, tidy this up.
 				struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
 				glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
-				struct layman_matrix_4f sceneRotationMatrix = layman_matrix_4f_identity();
-				layman_matrix_4f_rotate_x(&sceneRotationMatrix, M_PI);
-				layman_matrix_4f_rotate_y(&sceneRotationMatrix, M_PI * elapsed * 0.5f);
-				layman_matrix_4f_translate(&sceneRotationMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
-				glUniformMatrix4fv(renderer->sceneRotationMatrixLocation, 1, false, sceneRotationMatrix.d);
+				struct layman_matrix_4f modelMatrix = layman_matrix_4f_identity();
+				layman_matrix_4f_rotate_x(&modelMatrix, M_PI);
+				layman_matrix_4f_rotate_y(&modelMatrix, M_PI * elapsed * 0.5f);
+				layman_matrix_4f_translate(&modelMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
+				glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, modelMatrix.d);
+				struct layman_matrix_4f normalMatrix = layman_matrix_4f_identity();
+				glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, normalMatrix.d);
 
 				// Render.
 				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);

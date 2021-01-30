@@ -77,6 +77,13 @@ A simple 3D engine for the layman.
 ## References
 
 - [Real Shading in Unreal Engine 4](http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf) by Epic Games.
+- [Physically Based Shading at Disney](http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf)
+- [README.md - Environment Maps](https://github.com/KhronosGroup/glTF-WebGL-PBR/#environment-maps)
+- ["An Inexpensive BRDF Model for Physically based Rendering](https://www.cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf) by Christophe Schlick
+- ["KHR_materials_clearcoat"](https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_clearcoat)
+- ["KHR_materials_specular"](https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_specular)
+- ["KHR_materials_subsurface"](https://github.com/KhronosGroup/glTF/pull/1766)
+- ["KHR_materials_thinfilm"](https://github.com/ux3d/glTF/tree/extensions/KHR_materials_thinfilm/extensions/2.0/Khronos/KHR_materials_thinfilm)
 
 ## License
 
