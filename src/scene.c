@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define LIGHTS_MAX 4
 #define ENTITIES_CAPACITY_STEP 16
 
 // Scenes can only grow in size. The idea being that if there was ever at some point X entities,
@@ -16,6 +17,9 @@ struct layman_scene *layman_scene_create(void) {
 	scene->entities = NULL;
 	scene->entity_count = 0;
 	scene->entity_capacity = 0;
+
+	scene->lights = NULL;
+	scene->lights_count = 0;
 
 	return scene;
 }
@@ -41,6 +45,19 @@ bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_ent
 
 	scene->entities[scene->entity_count] = entity;
 	scene->entity_count++;
+
+	return true;
+}
+
+bool layman_scene_add_light(struct layman_scene *scene, const struct layman_light *light) {
+	const struct layman_light **new_lights = realloc(scene->lights, (scene->lights_count + 1) * sizeof *scene->lights);
+	if (!new_lights) {
+		return false;
+	}
+
+	new_lights[scene->lights_count] = light;
+	scene->lights = new_lights;
+	scene->lights_count++;
 
 	return true;
 }

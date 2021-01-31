@@ -19,7 +19,9 @@
  */
 
 #include "layman/application.h"
+#include "layman/camera.h"
 #include "layman/entity.h"
+#include "layman/light.h"
 #include "layman/material.h"
 #include "layman/matrix.h"
 #include "layman/mesh.h"

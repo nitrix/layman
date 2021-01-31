@@ -1,6 +1,7 @@
 #ifndef LAYMAN_RENDERER_H
 #define LAYMAN_RENDERER_H
 
+#include "camera.h"
 #include "scene.h"
 
 // TODO: Documentation.
@@ -16,6 +17,6 @@ void layman_renderer_use(struct layman_renderer *renderer);
 void layman_renderer_unuse(struct layman_renderer *renderer);
 
 // TODO: Documentation.
-void layman_renderer_render(struct layman_renderer *renderer, const struct layman_scene *scene);
+void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene);
 
 #endif

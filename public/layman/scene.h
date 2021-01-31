@@ -2,6 +2,7 @@
 #define LAYMAN_SCENE_H
 
 #include "entity.h"
+#include "light.h"
 #include <stdbool.h>
 
 /**
@@ -38,5 +39,8 @@ void layman_scene_destroy(struct layman_scene *scene);
  * @return Returns `true` on success or `false` otherwise.
  */
 bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_entity *entity);
+
+// TODO: Documentation.
+bool layman_scene_add_light(struct layman_scene *scene, const struct layman_light *light);
 
 #endif

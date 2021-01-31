@@ -8,6 +8,9 @@ struct layman_scene {
 	const struct layman_entity **entities;
 	size_t entity_count;
 	size_t entity_capacity;
+
+	const struct layman_light **lights;
+	size_t lights_count;
 };
 
 struct layman_entity {
@@ -51,10 +54,12 @@ struct layman_texture {
 	enum layman_texture_kind kind;
 };
 
+#define MAX_LIGHTS 4
+
 struct layman_shader {
 	GLuint program_id;
 
-	// Uniforms.
+	// Material uniforms.
 	GLint uniform_base_color_factor;
 	GLint uniform_base_color_sampler;
 	GLint uniform_normal_sampler;
@@ -62,6 +67,31 @@ struct layman_shader {
 	GLint uniform_occlusion_sampler;
 	GLint uniform_emissive_sampler;
 	GLint uniform_emissive_factor;
+
+	// Camera uniforms.
+	GLint uniform_camera;
+
+	// Light uniforms.
+	GLint uniform_lights_type[MAX_LIGHTS];
+	GLint uniform_lights_position[MAX_LIGHTS];
+	GLint uniform_lights_direction[MAX_LIGHTS];
+	GLint uniform_lights_color[MAX_LIGHTS];
+	GLint uniform_lights_intensity[MAX_LIGHTS];
+};
+
+struct layman_camera {
+	struct layman_vector_3f position;
+};
+
+struct layman_light {
+	enum layman_light_type type;
+	struct layman_vector_3f position;
+	struct layman_vector_3f direction;
+	float range;
+	struct layman_vector_3f color;
+	float intensity;
+	float innerConeCos;
+	float outerConeCos;
 };
 
 #endif

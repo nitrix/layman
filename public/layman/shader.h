@@ -16,4 +16,7 @@ void layman_shader_unuse(const struct layman_shader *shader);
 // TODO: Documentation.
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material);
 
+// TODO: Documentation.
+void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera);
+
 #endif

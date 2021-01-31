@@ -12,6 +12,7 @@ struct layman_application *layman_application_create(int width, int height, cons
 
 	app->window = NULL;
 	app->renderer = NULL;
+	app->camera = NULL;
 	app->scene = NULL;
 
 	app->window = layman_window_create(width, height, title, fullscreen);
@@ -23,6 +24,11 @@ struct layman_application *layman_application_create(int width, int height, cons
 
 	app->renderer = layman_renderer_create();
 	if (!app->renderer) {
+		goto failure;
+	}
+
+	app->camera = layman_camera_create();
+	if (!app->camera) {
 		goto failure;
 	}
 
@@ -49,6 +55,10 @@ void layman_application_destroy(struct layman_application *app) {
 		layman_renderer_destroy(app->renderer);
 	}
 
+	if (app->camera) {
+		layman_camera_destroy(app->camera);
+	}
+
 	if (app->scene) {
 		layman_scene_destroy(app->scene);
 	}
@@ -72,7 +82,7 @@ void layman_application_run(struct layman_application *app) {
 
 	while (!layman_window_closed(app->window)) {
 		layman_window_poll_events(app->window, NULL);
-		layman_renderer_render(app->renderer, app->scene);
+		layman_renderer_render(app->renderer, app->camera, app->scene);
 		layman_window_refresh(app->window);
 
 		fps++;

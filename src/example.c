@@ -24,7 +24,13 @@ int main(void) {
 		// TODO: Handle error.
 	}
 
+	struct layman_light *light = layman_light_create(LAYMAN_LIGHT_TYPE_DIRECTIONAL);
+	if (!entity) {
+		// TODO: Handle error.
+	}
+
 	layman_scene_add_entity(app->scene, entity);
+	layman_scene_add_light(app->scene, light);
 
 	layman_application_run(app); // Main loop.
 

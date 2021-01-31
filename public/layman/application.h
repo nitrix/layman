@@ -8,6 +8,7 @@
 struct layman_application {
 	struct layman_window *window;
 	struct layman_renderer *renderer;
+	struct layman_camera *camera;
 	struct layman_scene *scene;
 };
 

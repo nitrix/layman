@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_STR(x) # x
+#define EVAL_TO_STR(x) TO_STR(x)
+
 // FIXME: This function is a disaster.
 char *read_shader_file(const char *filepath) {
 	FILE *file = fopen(filepath, "r");
@@ -122,23 +125,26 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	const char *prefix =
 	        "#version 410\n"
 
-	        "#define HAS_BASE_COLOR_MAP 1\n"
-	        "#define HAS_NORMALS 1\n"
-	        "#define HAS_TANGENTS 1\n"
-	        "#define HAS_NORMAL_MAP 1\n"
-	        "#define HAS_OCCLUSION_MAP 1\n"
-	        "#define HAS_EMISSIVE_MAP 1\n"
-	        "#define HAS_UV_SET1 1\n"
-	        "#define MATERIAL_METALLICROUGHNESS 1\n"
-	        // "#define MATERIAL_UNLIT 1\n"
+	        "#define HAS_BASE_COLOR_MAP\n"
+	        "#define HAS_NORMALS\n"
+	        "#define HAS_TANGENTS\n"
+	        "#define HAS_NORMAL_MAP\n"
+	        "#define HAS_OCCLUSION_MAP\n"
+	        "#define HAS_EMISSIVE_MAP\n"
+	        "#define HAS_UV_SET1\n"
+	        "#define MATERIAL_METALLICROUGHNESS\n"
+	        // "#define MATERIAL_UNLIT\n"
 
-	        "#define DEBUG_OUTPUT 1\n"
-	        // "#define DEBUG_BASECOLOR 1\n"
-	        // "#define DEBUG_NORMAL 1\n"
-	        // "#define DEBUG_OCCLUSION 1\n"
-	        "#define DEBUG_FDIFFUSE 1\n"
-	        // "#define DEBUG_FSPECULAR 1\n"
-	        // "#define DEBUG_FEMISSIVE 1\n"
+	        "#define USE_PUNCTUAL\n"
+	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
+
+	        // "#define DEBUG_OUTPUT\n"
+	        // "#define DEBUG_BASECOLOR\n"
+	        // "#define DEBUG_NORMAL\n"
+	        // "#define DEBUG_OCCLUSION\n"
+	        // "#define DEBUG_FDIFFUSE\n"
+	        // "#define DEBUG_FSPECULAR\n"
+	        // "#define DEBUG_FEMISSIVE\n"
 
 	        "#define DUMMY 1\n";
 
@@ -180,6 +186,25 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_occlusion_sampler = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
 	shader->uniform_emissive_sampler = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
 	shader->uniform_emissive_factor = glGetUniformLocation(shader->program_id, "u_EmissiveFactor");
+	shader->uniform_camera = glGetUniformLocation(shader->program_id, "u_Camera");
+
+	char name[100];
+	for (size_t i = 0; i < MAX_LIGHTS; i++) {
+		sprintf(name, "u_Lights[%d].type", i);
+		shader->uniform_lights_type[i] = glGetUniformLocation(shader->program_id, name);
+
+		sprintf(name, "u_Lights[%d].position", i);
+		shader->uniform_lights_position[i] = glGetUniformLocation(shader->program_id, name);
+
+		sprintf(name, "u_Lights[%d].direction", i);
+		shader->uniform_lights_direction[i] = glGetUniformLocation(shader->program_id, name);
+
+		sprintf(name, "u_Lights[%d].color", i);
+		shader->uniform_lights_color[i] = glGetUniformLocation(shader->program_id, name);
+
+		sprintf(name, "u_Lights[%d].intensity", i);
+		shader->uniform_lights_intensity[i] = glGetUniformLocation(shader->program_id, name);
+	}
 }
 
 struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath) {
@@ -265,4 +290,33 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
 	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
 	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor.d);
+}
+
+void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
+	glUniform3fv(shader->uniform_camera, 1, camera->position.d);
+}
+
+void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const struct layman_light **lights, size_t count) {
+	for (size_t i = 0; i < count; i++) {
+		// TODO: This doesn't clean up old light uniforms when they're removed!
+		if (i >= MAX_LIGHTS) {
+			break;
+		}
+
+		const struct layman_light *light = lights[i];
+
+		switch (light->type) {
+		    case LAYMAN_LIGHT_TYPE_DIRECTIONAL:
+			    for (size_t i = 0; i < MAX_LIGHTS; i++) {
+				    glUniform1i(shader->uniform_lights_type[i], light->type);
+				    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
+				    glUniform3fv(shader->uniform_lights_direction[i], 1, light->direction.d);
+				    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
+				    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
+			    }
+
+		    // TODO: The other types of lights.
+		    default: break;
+		}
+	}
 }

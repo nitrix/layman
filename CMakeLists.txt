@@ -11,7 +11,9 @@ ADD_SUBDIRECTORY(lib/stb)
 ADD_LIBRARY(
     layman
     src/application.c
+    src/camera.c
     src/entity.c
+    src/light.c
     src/material.c
     src/matrix.c
     src/mesh.c

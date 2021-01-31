@@ -23,6 +23,9 @@ struct layman_renderer {
 	GLint viewProjectionMatrixLocation;
 	GLint modelMatrixLocation;
 	GLint normalMatrixLocation;
+	GLint exposureLocation;
+
+	float exposure;
 };
 
 struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
@@ -64,6 +67,8 @@ struct layman_renderer *layman_renderer_create(void) {
 	renderer->modelMatrixLocation = -1;
 	renderer->normalMatrixLocation = -1;
 
+	renderer->exposure = 1;
+
 	return renderer;
 }
 
@@ -95,7 +100,7 @@ void layman_renderer_unuse(struct layman_renderer *renderer) {
 	(void) renderer; // Unused.
 }
 
-void layman_renderer_render(struct layman_renderer *renderer, const struct layman_scene *scene) {
+void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
 	(void) renderer; // Unused.
 
 	double current_time = glfwGetTime();
@@ -120,15 +125,19 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 
 				// Uniforms.
 				layman_shader_bind_uniform_material(mesh->shader, mesh->material);
+				layman_shader_bind_uniform_camera(mesh->shader, camera);
+				layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
 
 				// TODO: Horrible, please don't do this every frames!
 				if (renderer->viewProjectionMatrixLocation == -1) {
 					renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
 					renderer->modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
 					renderer->normalMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_NormalMatrix");
+					renderer->exposureLocation = glGetUniformLocation(mesh->shader->program_id, "u_Exposure");
 				}
 
 				// TODO: More uniforms, tidy this up.
+				// TODO: Should all move into the model file and stuff.
 				struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
 				glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
 				struct layman_matrix_4f modelMatrix = layman_matrix_4f_identity();
@@ -138,6 +147,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 				glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, modelMatrix.d);
 				struct layman_matrix_4f normalMatrix = layman_matrix_4f_identity();
 				glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, normalMatrix.d);
+				glUniform1f(renderer->exposureLocation, renderer->exposure);
 
 				// Render.
 				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
