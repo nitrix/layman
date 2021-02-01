@@ -13,6 +13,7 @@ ADD_LIBRARY(
     src/application.c
     src/camera.c
     src/entity.c
+    src/environment.c
     src/light.c
     src/material.c
     src/matrix.c

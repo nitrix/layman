@@ -10,9 +10,10 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
+	// TODO: Hide everything stateful. No use/unuse in the public API.
 	layman_application_use(app);
 
-	// TODO: No hardcoded models.
+	// TODO: No hardcoded filepaths.
 	struct layman_model *model = layman_model_load("DamagedHelmet.glb");
 	if (!model) {
 		fprintf(stderr, "Unable to load model\n");
@@ -21,12 +22,21 @@ int main(void) {
 
 	struct layman_entity *entity = layman_entity_create_from_model(model);
 	if (!entity) {
-		// TODO: Handle error.
+		fprintf(stderr, "Unable to create entity\n");
+		return EXIT_FAILURE; // TODO: Handle error better.
 	}
 
 	struct layman_light *light = layman_light_create(LAYMAN_LIGHT_TYPE_DIRECTIONAL);
-	if (!entity) {
-		// TODO: Handle error.
+	if (!light) {
+		fprintf(stderr, "Unable to create light\n");
+		return EXIT_FAILURE; // TODO: Handle error better.
+	}
+
+	// TODO: No hardcoded filepaths.
+	struct layman_environment *environment = layman_environment_create_from_hdr("pisa.hdr");
+	if (!environment) {
+		fprintf(stderr, "Unable to create environment\n");
+		return EXIT_FAILURE; // TODO: Handle error better.
 	}
 
 	layman_scene_add_entity(app->scene, entity);
@@ -36,9 +46,10 @@ int main(void) {
 
 	layman_application_unuse(app);
 
+	layman_environment_destroy(environment);
+	layman_light_destroy(light);
 	layman_entity_destroy(entity);
 	layman_model_destroy(model);
-
 	layman_application_destroy(app);
 
 	return EXIT_SUCCESS;
