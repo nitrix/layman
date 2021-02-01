@@ -31,7 +31,7 @@ TARGET_INCLUDE_DIRECTORIES(layman PRIVATE private)
 TARGET_LINK_LIBRARIES(layman PRIVATE glad glfw gltf stb_image)
 TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
-TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g>")
+TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
 TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
 
 # This tells GLFW to not include OpenGL, we use Glad for that.

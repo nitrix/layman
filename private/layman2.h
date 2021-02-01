@@ -45,6 +45,7 @@ struct layman_material {
 	float roughness_factor;
 	struct layman_texture *normal_texture;
 	struct layman_texture *occlusion_texture;
+	float occlusion_strength;
 	struct layman_texture *emissive_texture;
 	struct layman_vector_3f emissive_factor;
 };
@@ -65,6 +66,7 @@ struct layman_shader {
 	GLint uniform_normal_sampler;
 	GLint uniform_metallic_roughness_sampler;
 	GLint uniform_occlusion_sampler;
+	GLint uniform_occlusion_strength;
 	GLint uniform_emissive_sampler;
 	GLint uniform_emissive_factor;
 

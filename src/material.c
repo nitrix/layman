@@ -10,10 +10,11 @@ struct layman_material *layman_material_create(void) {
 	material->base_color_factor = LAYMAN_VECTOR_4F(1, 1, 1, 1);
 	material->base_color_texture = NULL;
 	material->metallic_roughness_texture = NULL;
-	material->metallic_factor = 0.0f;
-	material->roughness_factor = 0.0f;
+	material->metallic_factor = 0; // FIXME?
+	material->roughness_factor = 0; // FIXME?
 	material->normal_texture = NULL;
 	material->occlusion_texture = NULL;
+	material->occlusion_strength = 1;
 	material->emissive_texture = NULL;
 	material->emissive_factor = LAYMAN_VECTOR_3F(1, 1, 1);
 

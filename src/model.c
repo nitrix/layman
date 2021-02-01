@@ -103,11 +103,6 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 				}
 			}
 
-			if (tangents_count == 0) {
-				fprintf(stderr, "Mesh is missing tangents\n");
-				return false;
-			}
-
 			if (primitive->indices->component_type != cgltf_component_type_r_16u) {
 				fprintf(stderr, "Unsupported mesh indices type\n");
 				return false;

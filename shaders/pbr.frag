@@ -524,7 +524,7 @@ void main()
         float rangeAttenuation = 1.0;
         float spotAttenuation = 1.0;
 
-        if(light.type != LightType_Directional)
+        if (light.type != LightType_Directional)
         {
             pointToLight = light.position - v_Position;
         }
@@ -540,7 +540,7 @@ void main()
         }
 
         vec3 intensity = rangeAttenuation * spotAttenuation * light.intensity * light.color;
-
+        
         vec3 l = normalize(pointToLight);   // Direction from surface point to light
         vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
         float NdotL = clampedDot(n, l);
@@ -553,7 +553,7 @@ void main()
         {
             // Calculation of analytical light
             //https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#acknowledgments AppendixB
-            f_diffuse += intensity * NdotL *  BRDF_lambertian(materialInfo.f0, materialInfo.f90, materialInfo.albedoColor, VdotH);
+            f_diffuse += intensity * NdotL * BRDF_lambertian(materialInfo.f0, materialInfo.f90, materialInfo.albedoColor, VdotH);
 
             #ifdef MATERIAL_ANISOTROPY
             vec3 h = normalize(l + v);

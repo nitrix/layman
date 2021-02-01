@@ -125,16 +125,19 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	const char *prefix =
 	        "#version 410\n"
 
+	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
 	        "#define HAS_BASE_COLOR_MAP\n"
 	        "#define HAS_NORMALS\n"
-	        "#define HAS_TANGENTS\n"
+	        // "#define HAS_TANGENTS\n"
 	        "#define HAS_NORMAL_MAP\n"
 	        "#define HAS_OCCLUSION_MAP\n"
 	        "#define HAS_EMISSIVE_MAP\n"
 	        "#define HAS_UV_SET1\n"
+
 	        "#define MATERIAL_METALLICROUGHNESS\n"
 	        // "#define MATERIAL_UNLIT\n"
 
+	        "#define USE_IBL\n"
 	        "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
@@ -184,6 +187,7 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_normal_sampler = glGetUniformLocation(shader->program_id, "u_NormalSampler");
 	shader->uniform_metallic_roughness_sampler = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
 	shader->uniform_occlusion_sampler = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
+	shader->uniform_occlusion_strength = glGetUniformLocation(shader->program_id, "u_OcclusionStrength");
 	shader->uniform_emissive_sampler = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
 	shader->uniform_emissive_factor = glGetUniformLocation(shader->program_id, "u_EmissiveFactor");
 	shader->uniform_camera = glGetUniformLocation(shader->program_id, "u_Camera");
@@ -231,7 +235,6 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_UV, "a_UV1");
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_NORMAL, "a_Normal");
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_TANGENT, "a_Tangent");
-	// glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_BITANGENT, "bitangent");
 
 	glLinkProgram(program_id);
 
@@ -288,6 +291,7 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 	// TODO: float roughness_factor;
 	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->kind);
 	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
+	glUniform1f(shader->uniform_occlusion_strength, material->occlusion_strength);
 	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
 	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor.d);
 }
@@ -307,13 +311,19 @@ void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const
 
 		switch (light->type) {
 		    case LAYMAN_LIGHT_TYPE_DIRECTIONAL:
-			    for (size_t i = 0; i < MAX_LIGHTS; i++) {
-				    glUniform1i(shader->uniform_lights_type[i], light->type);
-				    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
-				    glUniform3fv(shader->uniform_lights_direction[i], 1, light->direction.d);
-				    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
-				    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
-			    }
+			    glUniform1i(shader->uniform_lights_type[i], light->type);
+			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
+			    glUniform3fv(shader->uniform_lights_direction[i], 1, light->direction.d);
+			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
+			    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
+			    break;
+
+		    case LAYMAN_LIGHT_TYPE_POINT:
+			    glUniform1i(shader->uniform_lights_type[i], light->type);
+			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
+			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
+			    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
+			    break;
 
 		    // TODO: The other types of lights.
 		    default: break;
