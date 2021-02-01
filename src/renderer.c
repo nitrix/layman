@@ -151,6 +151,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 				glUniform1f(renderer->exposureLocation, renderer->exposure);
 
 				// Render.
+				// FIXME: Support more than just unsigned shorts.
 				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
 
 				layman_material_unuse(mesh->material);

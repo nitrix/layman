@@ -140,6 +140,8 @@ void layman_texture_switch(const struct layman_texture *new_texture, struct laym
 	}
 
 	if (new_texture) {
+		// This is actually the recommended way to enumerate that constant.
+		// You use the texture unit 0 and add your offset to it.
 		glActiveTexture(GL_TEXTURE0 + new_texture->kind);
 		glBindTexture(GL_TEXTURE_2D, new_texture->id);
 	}
