@@ -1,6 +1,6 @@
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
 #include "layman.h"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

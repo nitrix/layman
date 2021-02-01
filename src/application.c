@@ -1,5 +1,5 @@
+#include "GLFW/glfw3.h"
 #include "layman.h"
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 
 // FIXME: I'm starting to question the usefulness of this abstraction. It's becoming thinner by the second...

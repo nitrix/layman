@@ -1,8 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
 #include "layman.h"
 #include "stb_image.h"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
 #include <stdlib.h>
 
 struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {

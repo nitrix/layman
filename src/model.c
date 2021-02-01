@@ -1,6 +1,6 @@
+#include "glad/glad.h"
 #include "gltf.h"
 #include "layman.h"
-#include <glad/glad.h>
 #include <stdio.h>
 #include <stdlib.h>
 
