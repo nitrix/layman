@@ -1,4 +1,4 @@
-#include "layman2.h"
+#include "layman.h"
 #include <stdlib.h>
 
 struct layman_material *layman_material_create(void) {

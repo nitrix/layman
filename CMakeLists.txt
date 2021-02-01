@@ -26,8 +26,10 @@ ADD_LIBRARY(
     src/window.c
 )
 
-TARGET_INCLUDE_DIRECTORIES(layman PUBLIC public)
+# Private includes must happen before public includes to have higher priority.
 TARGET_INCLUDE_DIRECTORIES(layman PRIVATE private)
+TARGET_INCLUDE_DIRECTORIES(layman PUBLIC public)
+
 TARGET_LINK_LIBRARIES(layman PRIVATE glad glfw gltf stb_image)
 TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")

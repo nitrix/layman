@@ -1,4 +1,4 @@
-#include "layman2.h"
+#include "layman.h"
 
 struct layman_light *layman_light_create(enum layman_light_type type) {
 	struct layman_light *light = malloc(sizeof *light);

@@ -1,5 +1,5 @@
-#ifndef LAYMAN_H
-#define LAYMAN_H
+#ifndef LAYMAN_LAYMAN_H
+#define LAYMAN_LAYMAN_H
 
 /**
  *

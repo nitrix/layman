@@ -1,4 +1,4 @@
-#include "layman2.h"
+#include "layman.h"
 
 struct layman_camera *layman_camera_create(void) {
 	struct layman_camera *camera = malloc(sizeof *camera);

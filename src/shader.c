@@ -1,10 +1,10 @@
-#include "layman2.h"
+#include "layman.h"
 #include <glad/glad.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define TO_STR(x) # x
+#define TO_STR(x) #x
 #define EVAL_TO_STR(x) TO_STR(x)
 
 // FIXME: This function is a disaster.
