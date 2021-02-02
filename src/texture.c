@@ -3,9 +3,68 @@
 #include "glad/glad.h"
 #include "layman.h"
 #include "stb_image.h"
+#include <math.h>
 #include <stdlib.h>
 
-struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {
+static int max(int a, int b) {
+	if (a > b) {
+		return a;
+	}
+
+	if (b > a) {
+		return b;
+	}
+
+	return a;
+}
+
+static GLenum from_kind(enum layman_texture_kind kind) {
+	switch (kind) {
+	    case LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR:
+		    return GL_TEXTURE_CUBE_MAP;
+
+	    default:
+		    return GL_TEXTURE_2D;
+	}
+}
+
+static GLenum from_data_format(enum layman_texture_data_format data_format) {
+	switch (data_format) {
+	    case LAYMAN_TEXTURE_DATA_FORMAT_RGB: return GL_RGB;
+
+	    case LAYMAN_TEXTURE_DATA_FORMAT_RGBA: return GL_RGBA;
+	}
+}
+
+static GLenum from_data_internal_format(enum layman_texture_data_internal_format data_internal_format) {
+	switch (data_internal_format) {
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB: return GL_RGB;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA: return GL_RGBA;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB8: return GL_RGB8;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA8: return GL_RGBA8;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F: return GL_RGB16F;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA16F: return GL_RGBA16F;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB32F: return GL_RGB32F;
+
+	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA32F: return GL_RGBA32F;
+	}
+}
+
+static GLenum from_data_type(enum layman_texture_data_type data_type) {
+	switch (data_type) {
+	    case LAYMAN_TEXTURE_DATA_TYPE_FLOAT: return GL_FLOAT;
+
+	    case LAYMAN_TEXTURE_DATA_TYPE_UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
+	}
+}
+
+struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_data_type data_type, enum layman_texture_data_format data_format, enum layman_texture_data_internal_format data_internal_format) {
 	struct layman_texture *texture = malloc(sizeof *texture);
 	if (!texture) {
 		return NULL;
@@ -13,17 +72,48 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind) {
 
 	texture->id = 0;
 	texture->kind = kind;
+	texture->width = width;
+	texture->height = height;
+	texture->levels = levels;
+	texture->data_type = data_type;
+	texture->data_format = data_format;
+	texture->data_internal_format = data_internal_format;
 
+	// Automatic levels when none were provided.
+	if (levels == 0) {
+		levels = 1;
+
+		while ((width | height) >> levels) {
+			levels++;
+		}
+
+		texture->levels = levels;
+	}
+
+	// TODO: Use glCreateTextures instead?
 	glGenTextures(1, &texture->id);
 
 	struct layman_texture previous_texture;
 	layman_texture_switch(texture, &previous_texture);
 
-	// Default wrap behavior and filtering.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	for (size_t i = 0; i < levels; i++) {
+		glTexImage2D(
+		        from_kind(kind),
+		        i,
+		        from_data_internal_format(data_internal_format),
+		        width,
+		        height,
+		        0,
+		        from_data_format(data_format),
+		        from_data_type(data_type),
+		        NULL);
+		width = max(1, (width / 2));
+	}
+
+	glTexParameteri(from_kind(kind), GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(from_kind(kind), GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(from_kind(kind), GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(from_kind(kind), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	layman_texture_switch(&previous_texture, NULL);
 
@@ -39,106 +129,85 @@ enum layman_texture_kind layman_texture_kind(const struct layman_texture *textur
 	return texture->kind;
 }
 
+struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind kind, const char *filepath) {
+	if (kind == LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR) {
+		// Equirectangular things are always flipped down for some reason.
+		stbi_set_flip_vertically_on_load(true);
+
+		int w, h, c;
+		float *data = stbi_loadf(filepath, &w, &h, &c, 0);
+		if (!data) {
+			return NULL;
+		}
+
+		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR, w, h, 1, LAYMAN_TEXTURE_DATA_TYPE_FLOAT, LAYMAN_TEXTURE_DATA_FORMAT_RGB, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F);
+		if (!texture) {
+			stbi_image_free(data);
+			return NULL;
+		}
+
+		layman_texture_provide_data(texture, data);
+
+		stbi_image_free(data);
+
+		return texture;
+	}
+
+	return NULL;
+}
+
 // FIXME: The whole thing.
+// TODO: Should have a create_from_file also.
 struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kind kind, const unsigned char *data, size_t size) {
-	struct layman_texture *texture = layman_texture_create(kind);
-	if (!texture) {
+	int w, h, c;
+
+	unsigned char *decoded = stbi_load_from_memory(data, size, &w, &h, &c, 0);
+	if (!decoded) {
 		return NULL;
 	}
 
-	int w, h, c;
-	unsigned char *image = stbi_load_from_memory(data, size, &w, &h, &c, 0); // FIXME: Error handling.
-
-	struct layman_texture previous_texture;
-	layman_texture_switch(texture, &previous_texture);
-
-	// FIXME: Not always linear? What about wrapping too?
-	// bool generate_mipmaps = false; // TODO: Implement mipmaps and texture wrapping.
-	// if (generate_mipmaps) {
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-	// } else {
-	// The glTF documentation doesn't specify what to use when samplers aren't specified.
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	// }
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	GLenum format;
+	enum layman_texture_data_format data_format;
 	switch (c) {
-	    /*
-	       case 1: {
-	       // Gray
-	       format = GL_LUMINANCE;
-	       break;
-	       }
-	       case 2: {
-	       // Gray and Alpha
-	       format = GL_LUMINANCE_ALPHA;
-	       break;
-	       }
-	     */
 	    case 3: {
-		    // RGB
-		    format = GL_RGB;
+		    data_format = LAYMAN_TEXTURE_DATA_FORMAT_RGB;
 		    break;
 	    }
 
 	    case 4: {
-		    // RGBA
-		    format = GL_RGBA;
+		    data_format = LAYMAN_TEXTURE_DATA_FORMAT_RGBA;
 		    break;
 	    }
+
+	    default:
+		    fprintf(stderr, "Unsupported texture data format\n");
+		    stbi_image_free(decoded);
+		    return NULL;
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, image);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	struct layman_texture *texture = layman_texture_create(kind, w, h, 0, LAYMAN_TEXTURE_DATA_TYPE_UNSIGNED_BYTE, data_format, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA8);
+	if (!texture) {
+		stbi_image_free(decoded);
+		return NULL;
+	}
 
-	layman_texture_switch(&previous_texture, NULL);
+	layman_texture_provide_data(texture, decoded);
 
-	// If not mip-mapped, force to non-mip-mapped sampler.
-	/*
-	   if (!generateMipmaps && (gltfSamplerObj.minFilter != WebGl.context.NEAREST) && (gltfSamplerObj.minFilter != WebGl.context.LINEAR))
-	   {
-	        if ((gltfSamplerObj.minFilter == WebGl.context.NEAREST_MIPMAP_NEAREST) || (gltfSamplerObj.minFilter == WebGl.context.NEAREST_MIPMAP_LINEAR))
-	        {
-	                WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, WebGl.context.NEAREST);
-	        }
-	        else
-	        {
-	                WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, WebGl.context.LINEAR);
-	        }
-	   }
-	   else
-	   {
-	        WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MIN_FILTER, gltfSamplerObj.minFilter);
-	   }
-	   WebGl.context.texParameteri(type, WebGl.context.TEXTURE_MAG_FILTER, gltfSamplerObj.magFilter);
-	 */
+	struct layman_texture previous_texture;
+	layman_texture_switch(texture, &previous_texture);
 
-	// Mipmaping.
-	// glGenerateMipmap(GL_TEXTURE_2D);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Mimapping.
+	if (texture->levels > 1) {
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
 
 	// Anisotropic filtering.
 	// This is plenty high and will get capped on systems that don't support it.
-	// layman_texture_anisotropic_filtering(texture, 16);
+	layman_texture_anisotropic_filtering(texture, 16);
 
-	// TODO: Is it normal that the texture remains in use?
-	// layman_texture_use(texture); // FIXME
+	layman_texture_switch(&previous_texture, NULL);
 
-	// TODO: Should we free this?
-	stbi_image_free(image);
+	// Cleanup.
+	stbi_image_free(decoded);
 
 	return texture;
 }
@@ -147,9 +216,9 @@ void layman_texture_switch(const struct layman_texture *new_texture, struct laym
 	if (old_texture) {
 		GLint unit;
 		glGetIntegerv(GL_ACTIVE_TEXTURE, &unit);
-		old_texture->kind = unit;
+		old_texture->kind = unit - GL_TEXTURE0;
 		GLint id;
-		glGetIntegerv(GL_TEXTURE_2D, &id);
+		glGetIntegerv(from_kind(new_texture->kind), &id); // FIXME: This doesn't make sense.
 		old_texture->id = id;
 	}
 
@@ -157,40 +226,25 @@ void layman_texture_switch(const struct layman_texture *new_texture, struct laym
 		// This is actually the recommended way to enumerate that constant.
 		// You use the texture unit 0 and add your offset to it.
 		glActiveTexture(GL_TEXTURE0 + new_texture->kind);
-		glBindTexture(GL_TEXTURE_2D, new_texture->id);
+		glBindTexture(from_kind(new_texture->kind), new_texture->id);
 	}
 }
 
-void layman_texture_provide_data(struct layman_texture *texture, void *data, int width, int height, enum layman_texture_data_type data_type, enum layman_texture_data_format data_format, enum layman_texture_data_internal_format data_internal_format) {
+// FIXME: Could save these format things in the texture type and not bother with it here.
+void layman_texture_provide_data(struct layman_texture *texture, const void *data) {
 	struct layman_texture previous_texture;
 	layman_texture_switch(texture, &previous_texture);
 
-	GLenum gl_data_type;
-	switch (data_type) {
-	    case LAYMAN_TEXTURE_DATA_TYPE_FLOAT:
-		    gl_data_type = GL_RGB16F;
-		    break;
-	}
-
-	GLenum gl_data_format;
-	switch (data_format) {
-	    case LAYMAN_TEXTURE_DATA_FORMAT_RGB:
-		    gl_data_format = GL_RGB;
-		    break;
-
-	    case LAYMAN_TEXTURE_DATA_FORMAT_RGBA:
-		    gl_data_format = GL_RGBA;
-		    break;
-	}
-
-	GLenum gl_data_internal_format;
-	switch (data_internal_format) {
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F:
-		    gl_data_internal_format = GL_RGB16F;
-		    break;
-	}
-
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_data_internal_format, width, height, 0, gl_data_format, gl_data_type, data);
+	glTexImage2D(
+	        from_kind(texture->kind),
+	        0,
+	        from_data_internal_format(texture->data_internal_format),
+	        texture->width,
+	        texture->height,
+	        0,
+	        from_data_format(texture->data_format),
+	        from_data_type(texture->data_type),
+	        data);
 
 	layman_texture_switch(&previous_texture, NULL);
 }

@@ -2,7 +2,7 @@
 #define LAYMAN_SHADER_H
 
 // TODO: Documentation.
-struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath);
+struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath);
 
 // TODO: Documentation.
 void layman_shader_destroy(struct layman_shader *shader);

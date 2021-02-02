@@ -46,7 +46,7 @@ struct layman_mesh *layman_mesh_create(void) {
 
 	// TODO: Not hardcoded shader please?
 	// TODO: Shader caching based on the #defines that it needs. Each mesh having their own shader is a bit wasteful otherwise.
-	mesh->shader = layman_shader_load_from_file("shaders/pbr/main.vert", "shaders/pbr/main.frag");
+	mesh->shader = layman_shader_load_from_files("shaders/pbr/main.vert", "shaders/pbr/main.frag", NULL);
 	if (!mesh->shader) {
 		free(mesh);
 		return NULL;

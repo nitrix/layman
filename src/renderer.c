@@ -81,19 +81,23 @@ void layman_renderer_use(struct layman_renderer *renderer) {
 
 	glClearColor(0, 0, 0, 1); // Black.
 
-	// FIXME: Wireframe
+	// TODO: Support a wireframe mode.
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	// glEnable(GL_CULL_FACE);
-	// glCullFace(GL_FRONT);
+	// Back face culling.
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
+	// Depth testing.
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	// glFrontFace(GL_CW);
-	// glFrontFace(GL_CCW);
-
+	// Multisampling.
 	glEnable(GL_MULTISAMPLE);
+
+	// Necessary to avoid the seams of the cubemap being visible.
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void layman_renderer_unuse(struct layman_renderer *renderer) {
@@ -154,6 +158,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 				// FIXME: Support more than just unsigned shorts.
 				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
 
+				// Cleanup.
 				layman_material_unuse(mesh->material);
 				layman_shader_unuse(mesh->shader);
 				glBindVertexArray(0);

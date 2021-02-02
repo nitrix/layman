@@ -123,7 +123,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	}
 
 	const char *prefix =
-	        "#version 410\n"
+	        "#version 330\n"
 
 	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
 	        "#define HAS_BASE_COLOR_MAP\n"
@@ -211,12 +211,37 @@ static void find_uniforms(struct layman_shader *shader) {
 	}
 }
 
-struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, const char *fragment_filepath) {
-	GLint vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_filepath);
-	GLint fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_filepath);
-	if (!vertex_shader_id || !fragment_shader_id) {
+struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath) {
+	GLuint vertex_shader_id = 0;
+	GLuint fragment_shader_id = 0;
+	GLuint compute_shader_id = 0;
+	bool something_went_wrong = false;
+
+	if (vertex_filepath) {
+		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_filepath);
+		if (!vertex_shader_id) {
+			something_went_wrong = true;
+		}
+	}
+
+	if (fragment_filepath) {
+		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_filepath);
+		if (!fragment_shader_id) {
+			something_went_wrong = true;
+		}
+	}
+
+	if (compute_filepath) {
+		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_filepath);
+		if (!compute_shader_id) {
+			something_went_wrong = true;
+		}
+	}
+
+	if (something_went_wrong) {
 		glDeleteShader(vertex_shader_id);
 		glDeleteShader(fragment_shader_id);
+		glDeleteShader(compute_shader_id);
 		return NULL;
 	}
 
@@ -224,11 +249,13 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 	if (!program_id) {
 		glDeleteShader(vertex_shader_id);
 		glDeleteShader(fragment_shader_id);
+		glDeleteShader(compute_shader_id);
 		return NULL;
 	}
 
 	glAttachShader(program_id, vertex_shader_id);
 	glAttachShader(program_id, fragment_shader_id);
+	glAttachShader(program_id, compute_shader_id);
 
 	// Bind attributes. Must be before linkage.
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "a_Position");
@@ -254,6 +281,7 @@ struct layman_shader *layman_shader_load_from_file(const char *vertex_filepath, 
 	// Flag shaders for deletion as soon as they get detached (happens upon program deletion).
 	glDeleteShader(vertex_shader_id);
 	glDeleteShader(fragment_shader_id);
+	glDeleteShader(compute_shader_id);
 
 	struct layman_shader *shader = malloc(sizeof *shader);
 	if (!shader) {
