@@ -10,8 +10,7 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	// TODO: Hide everything stateful. No use/unuse in the public API.
-	layman_application_use(app);
+	// TODO: The renderer should need the window, the model/shader should need the renderer to avoid state leaks.
 
 	// TODO: No hardcoded filepaths.
 	struct layman_model *model = layman_model_load("DamagedHelmet.glb");
@@ -43,8 +42,6 @@ int main(void) {
 	layman_scene_add_light(app->scene, light);
 
 	layman_application_run(app); // Main loop.
-
-	layman_application_unuse(app);
 
 	layman_environment_destroy(environment);
 	layman_light_destroy(light);

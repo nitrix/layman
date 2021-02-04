@@ -25,6 +25,10 @@ struct layman_scene *layman_scene_create(void) {
 }
 
 void layman_scene_destroy(struct layman_scene *scene) {
+	if (!scene) {
+		return;
+	}
+
 	free(scene);
 }
 

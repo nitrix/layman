@@ -5,30 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M_PI   3.14159265358979323846
-#define M_PI_2 1.57079632679489661923
+_Thread_local const struct layman_renderer *current_renderer;
 
-struct layman_renderer {
-	// Viewport.
-	int viewport_width;
-	int viewport_height;
-
-	// Projection matrix.
-	float fov;
-	float far_plane;
-	float near_plane;
-
-	// TODO: Temporary.
-	double start_time;
-	GLint viewProjectionMatrixLocation;
-	GLint modelMatrixLocation;
-	GLint normalMatrixLocation;
-	GLint exposureLocation;
-
-	float exposure;
-};
-
-struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
+static struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
 	float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
 	float scale_y = (1.0f / tanf(renderer->fov / 2.0f / 180.0f * M_PI)) * aspect_ratio;
 	float scale_x = scale_y / aspect_ratio;
@@ -73,11 +52,19 @@ struct layman_renderer *layman_renderer_create(void) {
 }
 
 void layman_renderer_destroy(struct layman_renderer *renderer) {
+	if (!renderer) {
+		return;
+	}
+
 	free(renderer);
 }
 
-void layman_renderer_use(struct layman_renderer *renderer) {
-	(void) renderer; // Unused.
+void layman_renderer_switch(const struct layman_renderer *renderer) {
+	if (current_renderer == renderer) {
+		return;
+	} else {
+		current_renderer = renderer;
+	}
 
 	glClearColor(0, 0, 0, 1); // Black.
 
@@ -100,15 +87,48 @@ void layman_renderer_use(struct layman_renderer *renderer) {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-void layman_renderer_unuse(struct layman_renderer *renderer) {
-	(void) renderer; // Unused.
+static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh) {
+	layman_mesh_switch(mesh);
+
+	// Uniforms.
+	layman_shader_bind_uniform_material(mesh->shader, mesh->material);
+	layman_shader_bind_uniform_camera(mesh->shader, camera);
+	layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
+
+	// TODO: Horrible, please don't do this every frames!
+	if (renderer->viewProjectionMatrixLocation == -1) {
+		renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
+		renderer->modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
+		renderer->normalMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_NormalMatrix");
+		renderer->exposureLocation = glGetUniformLocation(mesh->shader->program_id, "u_Exposure");
+	}
+
+	// TODO: More uniforms, tidy this up.
+	// TODO: Should all move into the model file and stuff.
+	double elapsed = layman_renderer_elapsed(renderer);
+	struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
+	glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
+	struct layman_matrix_4f modelMatrix = layman_matrix_4f_identity();
+	layman_matrix_4f_rotate_x(&modelMatrix, -M_PI_2);
+	layman_matrix_4f_rotate_y(&modelMatrix, M_PI * elapsed * 0.25f);
+	layman_matrix_4f_translate(&modelMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
+	glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, modelMatrix.d);
+	// struct layman_matrix_4f normalMatrix = layman_matrix_4f_identity();
+	// glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, normalMatrix.d);
+	glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, modelMatrix.d); // OMG, this fixed the lighting problem!
+	glUniform1f(renderer->exposureLocation, renderer->exposure);
+
+	// Render.
+	// FIXME: Support more than just unsigned shorts.
+	glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
+}
+
+double layman_renderer_elapsed(const struct layman_renderer *renderer) {
+	return glfwGetTime() - renderer->start_time;
 }
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
-	(void) renderer; // Unused.
-
-	double current_time = glfwGetTime();
-	double elapsed = current_time - renderer->start_time;
+	layman_renderer_switch(renderer);
 
 	// Clear the screen.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -122,47 +142,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 			struct layman_mesh *mesh = entity->model->meshes[i];
 
 			// Render mesh.
-			{
-				glBindVertexArray(mesh->vao);
-				layman_shader_use(mesh->shader);
-				layman_material_use(mesh->material);
-
-				// Uniforms.
-				layman_shader_bind_uniform_material(mesh->shader, mesh->material);
-				layman_shader_bind_uniform_camera(mesh->shader, camera);
-				layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
-
-				// TODO: Horrible, please don't do this every frames!
-				if (renderer->viewProjectionMatrixLocation == -1) {
-					renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
-					renderer->modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
-					renderer->normalMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_NormalMatrix");
-					renderer->exposureLocation = glGetUniformLocation(mesh->shader->program_id, "u_Exposure");
-				}
-
-				// TODO: More uniforms, tidy this up.
-				// TODO: Should all move into the model file and stuff.
-				struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
-				glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
-				struct layman_matrix_4f modelMatrix = layman_matrix_4f_identity();
-				layman_matrix_4f_rotate_x(&modelMatrix, -M_PI_2);
-				layman_matrix_4f_rotate_y(&modelMatrix, M_PI * elapsed * 0.25f);
-				layman_matrix_4f_translate(&modelMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
-				glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, modelMatrix.d);
-				// struct layman_matrix_4f normalMatrix = layman_matrix_4f_identity();
-				// glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, normalMatrix.d);
-				glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, modelMatrix.d); // OMG, this fixed the lighting problem!
-				glUniform1f(renderer->exposureLocation, renderer->exposure);
-
-				// Render.
-				// FIXME: Support more than just unsigned shorts.
-				glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
-
-				// Cleanup.
-				layman_material_unuse(mesh->material);
-				layman_shader_unuse(mesh->shader);
-				glBindVertexArray(0);
-			}
+			render_mesh(renderer, camera, scene, mesh);
 		}
 	}
 }

@@ -7,8 +7,10 @@
 #define TO_STR(x) #x
 #define EVAL_TO_STR(x) TO_STR(x)
 
+_Thread_local const struct layman_shader *current_shader;
+
 // FIXME: This function is a disaster.
-char *read_shader_file(const char *filepath) {
+static char *read_shader_file(const char *filepath) {
 	FILE *file = fopen(filepath, "r");
 	if (!file) {
 		return NULL;
@@ -291,6 +293,7 @@ struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath,
 
 	shader->program_id = program_id;
 
+	layman_shader_switch(shader);
 	find_uniforms(shader);
 
 	return shader;
@@ -301,16 +304,19 @@ void layman_shader_destroy(struct layman_shader *shader) {
 	free(shader);
 }
 
-void layman_shader_use(const struct layman_shader *shader) {
+void layman_shader_switch(const struct layman_shader *shader) {
+	if (current_shader == shader) {
+		return;
+	} else {
+		current_shader = shader;
+	}
+
 	glUseProgram(shader->program_id);
 }
 
-void layman_shader_unuse(const struct layman_shader *shader) {
-	(void) shader; // Unused.
-	glUseProgram(0);
-}
-
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material) {
+	layman_shader_switch(shader);
+
 	// TODO: These other uniforms.
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor.d);
 	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->kind);
@@ -325,10 +331,14 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 }
 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
+	layman_shader_switch(shader);
+
 	glUniform3fv(shader->uniform_camera, 1, camera->position.d);
 }
 
 void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const struct layman_light **lights, size_t count) {
+	layman_shader_switch(shader);
+
 	for (size_t i = 0; i < count; i++) {
 		// TODO: This doesn't clean up old light uniforms when they're removed!
 		if (i >= MAX_LIGHTS) {

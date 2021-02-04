@@ -1,11 +1,10 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
+#include "layman.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct layman_window {
-	GLFWwindow *glfw_window;
-};
+_Thread_local const struct layman_window *current_window;
 
 // This is a reference count of windows to abstract away the initialization/termination of the GLFW library.
 // The first window created will automatically initialize the library, while the last window destroyed will automatically terminate it.
@@ -77,9 +76,8 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 		return NULL;
 	}
 
-	// Temporarily make the current thread use the new window's OpenGL context so that we can initialize OpenGL for it.
-	GLFWwindow *previous_context = glfwGetCurrentContext();
-	glfwMakeContextCurrent(window->glfw_window);
+	// Make the current thread use the new window's OpenGL context so that we can initialize OpenGL for it.
+	layman_window_switch(window);
 
 	// Initialize OpenGL.
 	if (!gladLoadGL()) {
@@ -94,9 +92,6 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	// It requires the OpenGL context to be effective on Windows.
 	glfwSwapInterval(1);
 
-	// Revert back to the previous context.
-	glfwMakeContextCurrent(previous_context);
-
 	// Center the window.
 	glfwSetWindowPos(window->glfw_window, video_mode->width / 2 - width / 2, video_mode->height / 2 - height / 2);
 
@@ -108,6 +103,10 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 }
 
 void layman_window_destroy(struct layman_window *window) {
+	if (!window) {
+		return;
+	}
+
 	free(window);
 	decrement_refcount();
 }
@@ -120,13 +119,14 @@ bool layman_window_closed(const struct layman_window *window) {
 	return glfwWindowShouldClose(window->glfw_window) == 1;
 }
 
-void layman_window_use(const struct layman_window *window) {
-	glfwMakeContextCurrent(window->glfw_window);
-}
+void layman_window_switch(const struct layman_window *window) {
+	if (current_window == window) {
+		return;
+	} else {
+		current_window = window;
+	}
 
-void layman_window_unuse(const struct layman_window *window) {
-	(void) window; // Unused.
-	glfwMakeContextCurrent(NULL);
+	glfwMakeContextCurrent(window->glfw_window);
 }
 
 void layman_window_poll_events(const struct layman_window *window) {
@@ -135,5 +135,6 @@ void layman_window_poll_events(const struct layman_window *window) {
 }
 
 void layman_window_refresh(const struct layman_window *window) {
+	layman_window_switch(window);
 	glfwSwapBuffers(window->glfw_window);
 }

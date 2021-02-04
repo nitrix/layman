@@ -8,12 +8,6 @@ struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath,
 void layman_shader_destroy(struct layman_shader *shader);
 
 // TODO: Documentation.
-void layman_shader_use(const struct layman_shader *shader);
-
-// TODO: Documentation.
-void layman_shader_unuse(const struct layman_shader *shader);
-
-// TODO: Documentation.
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material);
 
 // TODO: Documentation.

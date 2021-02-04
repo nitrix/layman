@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+_Thread_local const struct layman_mesh *current_mesh;
+
 /*
    float *generate_bitangents(const float *normals, const float *tangents, size_t tangents_count) {
         float *bitangents = malloc(tangents_count * 3 * sizeof *bitangents);
@@ -52,6 +54,10 @@ struct layman_mesh *layman_mesh_create(void) {
 		return NULL;
 	}
 
+	// Vertex Array Object (VAO).
+	// This contains multiple buffers and is the preferred way to change from one group of buffers to another when rendering models.
+	glGenVertexArrays(1, &mesh->vao);
+
 	return mesh;
 }
 
@@ -61,12 +67,7 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 		return NULL;
 	}
 
-	// Vertex Array Object (VAO).
-	// This contains all of the following buffers below and the preferred way to switch between them all at once when rendering models.
-	// Most buffers get assigned to a shader attribute (aka shader input variables). The once exception is the indice buffer.
-	// That guy gets used by glDrawElements for the rendering, but isn't useful to the shader, as far as I know.
-	glGenVertexArrays(1, &mesh->vao);
-	glBindVertexArray(mesh->vao);
+	layman_mesh_switch(mesh);
 
 	// Vertices.
 	glGenBuffers(1, &mesh->vbo_positions);
@@ -94,6 +95,8 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	}
 
 	// Indices.
+	// Most buffers get assigned to a shader attribute (aka shader input variables). The one exception is the indice buffer.
+	// That guy gets used by glDrawElements for the rendering, but isn't useful to the shader, as far as I know.
 	glGenBuffers(1, &mesh->ebo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo_indices);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 3 * sizeof (unsigned short), indices, GL_STATIC_DRAW);
@@ -113,6 +116,18 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 
 void layman_mesh_assign_material(struct layman_mesh *mesh, const struct layman_material *material) {
 	mesh->material = material;
+}
+
+void layman_mesh_switch(const struct layman_mesh *mesh) {
+	if (current_mesh == mesh) {
+		return;
+	} else {
+		current_mesh = mesh;
+	}
+
+	glBindVertexArray(mesh->vao);
+	layman_shader_switch(mesh->shader);
+	layman_material_switch(mesh->material);
 }
 
 void layman_mesh_destroy(struct layman_mesh *mesh) {

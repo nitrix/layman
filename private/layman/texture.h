@@ -15,4 +15,6 @@ struct layman_texture {
 	enum layman_texture_data_internal_format data_internal_format;
 };
 
+void layman_texture_switch(const struct layman_texture *texture);
+
 #endif

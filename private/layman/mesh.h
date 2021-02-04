@@ -17,4 +17,6 @@ struct layman_mesh {
 	const struct layman_material *material;
 };
 
+void layman_mesh_switch(const struct layman_mesh *mesh);
+
 #endif

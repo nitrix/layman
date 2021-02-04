@@ -68,9 +68,6 @@ void layman_texture_destroy(struct layman_texture *texture);
 void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy);
 
 // TODO: Documentation.
-void layman_texture_switch(const struct layman_texture *new_texture, struct layman_texture *old_texture);
-
-// TODO: Documentation.
 void layman_texture_provide_data(struct layman_texture *texture, const void *data);
 
 #endif

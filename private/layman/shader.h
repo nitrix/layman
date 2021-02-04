@@ -29,4 +29,6 @@ struct layman_shader {
 	GLint uniform_lights_intensity[MAX_LIGHTS];
 };
 
+void layman_shader_switch(const struct layman_shader *shader);
+
 #endif

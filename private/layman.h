@@ -10,8 +10,10 @@
 #include "layman/material.h"
 #include "layman/mesh.h"
 #include "layman/model.h"
+#include "layman/renderer.h"
 #include "layman/scene.h"
 #include "layman/shader.h"
 #include "layman/texture.h"
+#include "layman/window.h"
 
 #endif

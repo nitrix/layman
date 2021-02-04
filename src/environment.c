@@ -25,13 +25,12 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 		return NULL;
 	}
 
-	layman_shader_use(equirect2cube_shader);
-	{
-		glBindTextureUnit(0, equirectangular->id);
-		glBindImageTexture(0, equirectangular->id, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-		glDispatchCompute(equirectangular->width / 32, equirectangular->height / 32, 6);
-	}
-	layman_shader_unuse(equirect2cube_shader);
+	layman_shader_switch(equirect2cube_shader);
+
+	glBindTextureUnit(0, equirectangular->id);
+	glBindImageTexture(0, equirectangular->id, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+	glDispatchCompute(equirectangular->width / 32, equirectangular->height / 32, 6);
+
 	layman_shader_destroy(equirect2cube_shader);
 
 	glGenerateTextureMipmap(cubemap->id);
@@ -77,29 +76,12 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 }
 
 void layman_environment_destroy(struct layman_environment *environment) {
-	if (environment->lambertian) {
-		layman_texture_destroy(environment->lambertian);
-	}
-
-	if (environment->lambertian_lut) {
-		layman_texture_destroy(environment->lambertian_lut);
-	}
-
-	if (environment->ggx) {
-		layman_texture_destroy(environment->ggx);
-	}
-
-	if (environment->ggx_lut) {
-		layman_texture_destroy(environment->ggx_lut);
-	}
-
-	if (environment->charlie) {
-		layman_texture_destroy(environment->charlie);
-	}
-
-	if (environment->charlie_lut) {
-		layman_texture_destroy(environment->charlie_lut);
-	}
+	layman_texture_destroy(environment->lambertian);
+	layman_texture_destroy(environment->lambertian_lut);
+	layman_texture_destroy(environment->ggx);
+	layman_texture_destroy(environment->ggx_lut);
+	layman_texture_destroy(environment->charlie);
+	layman_texture_destroy(environment->charlie_lut);
 
 	free(environment);
 }

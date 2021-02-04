@@ -54,9 +54,8 @@ bool layman_window_closed(const struct layman_window *window);
  * In case they weren't configured, dummy callbacks are used as a fallback to discard the events.
  *
  * @param[in] window A pointer to the window.
- * @param[in] custom Custom user pointer that is passed back to the user during event callbacks.
  */
-void layman_window_poll_events(const struct layman_window *window, void *custom);
+void layman_window_poll_events(const struct layman_window *window);
 
 /**
  * @brief Refreshes the window.
@@ -67,9 +66,5 @@ void layman_window_poll_events(const struct layman_window *window, void *custom)
  * @param[in] window A pointer to the window.
  */
 void layman_window_refresh(const struct layman_window *window);
-
-// TODO: Document these.
-void layman_window_use(const struct layman_window *window);
-void layman_window_unuse(const struct layman_window *window);
 
 #endif

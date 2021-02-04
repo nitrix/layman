@@ -6,6 +6,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+_Thread_local const struct layman_texture *current_texture;
+
 static int max(int a, int b) {
 	if (a > b) {
 		return a;
@@ -93,8 +95,7 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	// TODO: Use glCreateTextures instead?
 	glGenTextures(1, &texture->id);
 
-	struct layman_texture previous_texture;
-	layman_texture_switch(texture, &previous_texture);
+	layman_texture_switch(texture);
 
 	for (size_t i = 0; i < levels; i++) {
 		glTexImage2D(
@@ -115,12 +116,14 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	glTexParameteri(from_kind(kind), GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(from_kind(kind), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	layman_texture_switch(&previous_texture, NULL);
-
 	return texture;
 }
 
 void layman_texture_destroy(struct layman_texture *texture) {
+	if (!texture) {
+		return;
+	}
+
 	glDeleteTextures(1, &texture->id);
 	free(texture);
 }
@@ -192,8 +195,7 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 
 	layman_texture_provide_data(texture, decoded);
 
-	struct layman_texture previous_texture;
-	layman_texture_switch(texture, &previous_texture);
+	layman_texture_switch(texture);
 
 	// Mimapping.
 	if (texture->levels > 1) {
@@ -204,36 +206,28 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 	// This is plenty high and will get capped on systems that don't support it.
 	layman_texture_anisotropic_filtering(texture, 16);
 
-	layman_texture_switch(&previous_texture, NULL);
-
 	// Cleanup.
 	stbi_image_free(decoded);
 
 	return texture;
 }
 
-void layman_texture_switch(const struct layman_texture *new_texture, struct layman_texture *old_texture) {
-	if (old_texture) {
-		GLint unit;
-		glGetIntegerv(GL_ACTIVE_TEXTURE, &unit);
-		old_texture->kind = unit - GL_TEXTURE0;
-		GLint id;
-		glGetIntegerv(from_kind(new_texture->kind), &id); // FIXME: This doesn't make sense.
-		old_texture->id = id;
+void layman_texture_switch(const struct layman_texture *texture) {
+	if (current_texture == texture) {
+		return;
+	} else {
+		current_texture = texture;
 	}
 
-	if (new_texture) {
-		// This is actually the recommended way to enumerate that constant.
-		// You use the texture unit 0 and add your offset to it.
-		glActiveTexture(GL_TEXTURE0 + new_texture->kind);
-		glBindTexture(from_kind(new_texture->kind), new_texture->id);
-	}
+	// This is actually the recommended way to enumerate that constant.
+	// You use the texture unit 0 and add your offset to it.
+	glActiveTexture(GL_TEXTURE0 + texture->kind);
+	glBindTexture(from_kind(texture->kind), texture->id);
 }
 
 // FIXME: Could save these format things in the texture type and not bother with it here.
 void layman_texture_provide_data(struct layman_texture *texture, const void *data) {
-	struct layman_texture previous_texture;
-	layman_texture_switch(texture, &previous_texture);
+	layman_texture_switch(texture);
 
 	glTexImage2D(
 	        from_kind(texture->kind),
@@ -245,8 +239,6 @@ void layman_texture_provide_data(struct layman_texture *texture, const void *dat
 	        from_data_format(texture->data_format),
 	        from_data_type(texture->data_type),
 	        data);
-
-	layman_texture_switch(&previous_texture, NULL);
 }
 
 void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy) {
@@ -255,9 +247,7 @@ void layman_texture_anisotropic_filtering(struct layman_texture *texture, float 
 		return;
 	}
 
-	// Temporarily switch texture and save the previous one.
-	struct layman_texture previous_texture;
-	layman_texture_switch(texture, &previous_texture);
+	layman_texture_switch(texture);
 
 	// Ask OpenGL what is the maximum anisotropy we can use.
 	GLfloat max_anisotropy = 1.0; // Fallback in case the call fails.
@@ -268,7 +258,4 @@ void layman_texture_anisotropic_filtering(struct layman_texture *texture, float 
 	} else {
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
 	}
-
-	// Restore previous texture.
-	layman_texture_switch(&previous_texture, NULL);
 }

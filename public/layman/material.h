@@ -20,8 +20,4 @@ struct layman_material *layman_material_create(void);
  */
 void layman_material_destroy(struct layman_material *material);
 
-void layman_material_use(const struct layman_material *material);
-
-void layman_material_unuse(const struct layman_material *material);
-
 #endif

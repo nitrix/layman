@@ -14,4 +14,6 @@ struct layman_material {
 	struct layman_vector_3f emissive_factor;
 };
 
+void layman_material_switch(const struct layman_material *material);
+
 #endif
