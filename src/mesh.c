@@ -1,6 +1,7 @@
 #include "glad/glad.h"
 #include "layman.h"
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 _Thread_local const struct layman_mesh *current_mesh;
@@ -114,16 +115,14 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	return mesh;
 }
 
-void layman_mesh_assign_material(struct layman_mesh *mesh, const struct layman_material *material) {
-	mesh->material = material;
-}
-
 void layman_mesh_switch(const struct layman_mesh *mesh) {
 	if (current_mesh == mesh) {
 		return;
 	} else {
 		current_mesh = mesh;
 	}
+
+	printf("Mesh switch: %p\n", mesh);
 
 	glBindVertexArray(mesh->vao);
 	layman_shader_switch(mesh->shader);

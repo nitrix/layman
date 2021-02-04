@@ -2,41 +2,28 @@
 #include "stb_image.h"
 #include <stdlib.h>
 
-struct layman_environment {
-	struct layman_texture *lambertian;
-	struct layman_texture *lambertian_lut;
-	struct layman_texture *ggx;
-	struct layman_texture *ggx_lut;
-	struct layman_texture *charlie;
-	struct layman_texture *charlie_lut;
-};
+/*
+   static struct layman_texture *convert_equirectangular_to_cubemap(const struct layman_texture *equirectangular) {
+        // Load & convert equirectangular environment map to a cubemap texture.
+        struct layman_shader *equirect2cube_shader = layman_shader_load_from_files(NULL, NULL, "shaders/equirect2cube/main.comp");
+        if (!equirect2cube_shader) {
+                free(cubemap);
+                return NULL;
+        }
 
-static struct layman_texture *convert_equirectangular_to_cubemap(const struct layman_texture *equirectangular) {
-	// createTexture(GL_TEXTURE_CUBE_MAP, kEnvMapSize, kEnvMapSize, GL_RGBA16F);
-	struct layman_texture *cubemap = layman_texture_create(LAYMAN_TEXTURE_KIND_TEMPORARY_CUBEMAP, 1024, 1024, 0, LAYMAN_TEXTURE_DATA_TYPE_FLOAT, LAYMAN_TEXTURE_DATA_FORMAT_RGBA, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA16F);
-	if (!cubemap) {
-		return NULL;
-	}
+        layman_shader_switch(equirect2cube_shader);
 
-	// Load & convert equirectangular environment map to a cubemap texture.
-	struct layman_shader *equirect2cube_shader = layman_shader_load_from_files(NULL, NULL, "shaders/equirect2cube/main.comp");
-	if (!equirect2cube_shader) {
-		free(cubemap);
-		return NULL;
-	}
+        glBindTextureUnit(0, equirectangular->id);
+        glBindImageTexture(0, equirectangular->id, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+        glDispatchCompute(equirectangular->width / 32, equirectangular->height / 32, 6);
 
-	layman_shader_switch(equirect2cube_shader);
+        layman_shader_destroy(equirect2cube_shader);
 
-	glBindTextureUnit(0, equirectangular->id);
-	glBindImageTexture(0, equirectangular->id, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-	glDispatchCompute(equirectangular->width / 32, equirectangular->height / 32, 6);
+        glGenerateTextureMipmap(cubemap->id);
 
-	layman_shader_destroy(equirect2cube_shader);
-
-	glGenerateTextureMipmap(cubemap->id);
-
-	return cubemap;
-}
+        return cubemap;
+   }
+ */
 
 struct layman_environment *layman_environment_create_from_hdr(const char *filepath) {
 	struct layman_environment *environment = malloc(sizeof *environment);
@@ -51,8 +38,8 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	environment->charlie = NULL;
 	environment->charlie_lut = NULL;
 
-	struct layman_texture *equirectangular = layman_texture_create_from_file(LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR, filepath);
-	if (!equirectangular) {
+	environment->equirectangular = layman_texture_create_from_file(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, filepath);
+	if (!environment->equirectangular) {
 		free(environment);
 		return NULL;
 	}
@@ -70,8 +57,6 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	// TODO: Compute diffuse irradiance cubemap.
 	// TODO: Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.'
 
-	layman_texture_destroy(equirectangular);
-
 	return environment;
 }
 
@@ -83,5 +68,13 @@ void layman_environment_destroy(struct layman_environment *environment) {
 	layman_texture_destroy(environment->charlie);
 	layman_texture_destroy(environment->charlie_lut);
 
+	// layman_texture_destroy(environment->equirectangular);
+
 	free(environment);
+}
+
+void layman_environment_debug(const struct layman_environment *environment) {
+	// enum layman_texture_kind kind = LAYMAN_TEXTURE_KIND_ALBEDO;
+	// glActiveTexture(GL_TEXTURE0 + kind);
+	// glBindTexture(GL_TEXTURE_2D, environment->equirectangular->id);
 }

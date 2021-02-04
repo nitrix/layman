@@ -1,4 +1,5 @@
 #include "layman.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 _Thread_local const struct layman_material *current_material;
@@ -39,6 +40,8 @@ void layman_material_switch(const struct layman_material *material) {
 	} else {
 		current_material = material;
 	}
+
+	printf("Material switch: %p\n", material);
 
 	layman_texture_switch(material->base_color_texture);
 	layman_texture_switch(material->normal_texture);

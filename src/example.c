@@ -31,19 +31,11 @@ int main(void) {
 		return EXIT_FAILURE; // TODO: Handle error better.
 	}
 
-	// TODO: No hardcoded filepaths.
-	struct layman_environment *environment = layman_environment_create_from_hdr("pisa.hdr");
-	if (!environment) {
-		fprintf(stderr, "Unable to create environment\n");
-		return EXIT_FAILURE; // TODO: Handle error better.
-	}
-
 	layman_scene_add_entity(app->scene, entity);
 	layman_scene_add_light(app->scene, light);
 
 	layman_application_run(app); // Main loop.
 
-	layman_environment_destroy(environment);
 	layman_light_destroy(light);
 	layman_entity_destroy(entity);
 	layman_model_destroy(model);

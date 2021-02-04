@@ -22,8 +22,8 @@ static int max(int a, int b) {
 
 static GLenum from_kind(enum layman_texture_kind kind) {
 	switch (kind) {
-	    case LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR:
-		    return GL_TEXTURE_CUBE_MAP;
+	    case LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR:
+		    return GL_TEXTURE_2D;
 
 	    default:
 		    return GL_TEXTURE_2D;
@@ -133,17 +133,25 @@ enum layman_texture_kind layman_texture_kind(const struct layman_texture *textur
 }
 
 struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind kind, const char *filepath) {
-	if (kind == LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR) {
+	// TODO: if extension is .hdr
+	if (kind == LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR) {
 		// Equirectangular things are always flipped down for some reason.
 		stbi_set_flip_vertically_on_load(true);
 
 		int w, h, c;
 		float *data = stbi_loadf(filepath, &w, &h, &c, 0);
 		if (!data) {
+			// Important! Once we're done, we have to revert that setting back, otherwise stbi will
+			// incorrectly flip future images when they get loaded.
+			stbi_set_flip_vertically_on_load(false);
 			return NULL;
 		}
 
-		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_TEMPORARY_EQUIRECTANGULAR, w, h, 1, LAYMAN_TEXTURE_DATA_TYPE_FLOAT, LAYMAN_TEXTURE_DATA_FORMAT_RGB, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F);
+		// Important! Once we're done, we have to revert that setting back, otherwise stbi will
+		// incorrectly flip future images when they get loaded.
+		stbi_set_flip_vertically_on_load(false);
+
+		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, w, h, 1, LAYMAN_TEXTURE_DATA_TYPE_FLOAT, LAYMAN_TEXTURE_DATA_FORMAT_RGB, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F);
 		if (!texture) {
 			stbi_image_free(data);
 			return NULL;
@@ -152,6 +160,10 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 		layman_texture_provide_data(texture, data);
 
 		stbi_image_free(data);
+
+		// TODO: Mimapping?
+		// TODO: Anisotropic filtering?
+		// TODO: All those other things... should that be shared in common with layman_texture_create_from_memory?
 
 		return texture;
 	}
@@ -199,7 +211,7 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 
 	// Mimapping.
 	if (texture->levels > 1) {
-		glGenerateMipmap(GL_TEXTURE_2D);
+		glGenerateMipmap(from_kind(kind));
 	}
 
 	// Anisotropic filtering.
@@ -218,6 +230,8 @@ void layman_texture_switch(const struct layman_texture *texture) {
 	} else {
 		current_texture = texture;
 	}
+
+	printf("Texture switch: %p\n", texture);
 
 	// This is actually the recommended way to enumerate that constant.
 	// You use the texture unit 0 and add your offset to it.

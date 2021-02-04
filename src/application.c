@@ -14,6 +14,7 @@ struct layman_application *layman_application_create(int width, int height, cons
 	app->renderer = NULL;
 	app->camera = NULL;
 	app->scene = NULL;
+	app->environment = NULL;
 
 	app->window = layman_window_create(width, height, title, fullscreen);
 	if (!app->window) {
@@ -35,6 +36,12 @@ struct layman_application *layman_application_create(int width, int height, cons
 		goto failure;
 	}
 
+	// TODO: No hardcoded filepaths.
+	app->environment = layman_environment_create_from_hdr("pisa.hdr");
+	if (!app->environment) {
+		goto failure;
+	}
+
 	return app;
 
 failure:
@@ -47,6 +54,7 @@ void layman_application_destroy(struct layman_application *app) {
 	layman_renderer_destroy(app->renderer);
 	layman_camera_destroy(app->camera);
 	layman_scene_destroy(app->scene);
+	layman_environment_destroy(app->environment);
 
 	free(app);
 }
@@ -60,7 +68,7 @@ void layman_application_run(struct layman_application *app) {
 
 	while (!layman_window_closed(app->window)) {
 		layman_window_poll_events(app->window);
-		layman_renderer_render(app->renderer, app->camera, app->scene);
+		layman_renderer_render(app->renderer, app->camera, app->scene, app->environment);
 		layman_window_refresh(app->window);
 
 		fps++;

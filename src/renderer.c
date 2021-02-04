@@ -87,7 +87,7 @@ void layman_renderer_switch(const struct layman_renderer *renderer) {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh) {
+static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh, const struct layman_environment *environment) {
 	layman_mesh_switch(mesh);
 
 	// Uniforms.
@@ -95,7 +95,10 @@ static void render_mesh(struct layman_renderer *renderer, const struct layman_ca
 	layman_shader_bind_uniform_camera(mesh->shader, camera);
 	layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
 
-	// TODO: Horrible, please don't do this every frames!
+	// FIXME: HORRIBLE HORRIBLE HORRIBLE hack.
+	layman_environment_debug(environment);
+
+	// FIXME: Horrible, please don't do this every frames!
 	if (renderer->viewProjectionMatrixLocation == -1) {
 		renderer->viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
 		renderer->modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
@@ -127,7 +130,7 @@ double layman_renderer_elapsed(const struct layman_renderer *renderer) {
 	return glfwGetTime() - renderer->start_time;
 }
 
-void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
+void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_environment *environment) {
 	layman_renderer_switch(renderer);
 
 	// Clear the screen.
@@ -142,7 +145,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 			struct layman_mesh *mesh = entity->model->meshes[i];
 
 			// Render mesh.
-			render_mesh(renderer, camera, scene, mesh);
+			render_mesh(renderer, camera, scene, mesh, environment);
 		}
 	}
 }

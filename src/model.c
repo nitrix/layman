@@ -160,8 +160,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 			size_t emission_texture_size = primitive->material->emissive_texture.texture->image->buffer_view->size;
 			material->emissive_texture = layman_texture_create_from_memory(LAYMAN_TEXTURE_KIND_EMISSION, emission_texture_data, emission_texture_size);
 
-			layman_mesh_assign_material(mesh, material);
-			// FIXME: Leaking the material?!
+			mesh->material = material; // FIXME: Leaking the material?!
 
 			model->meshes[final_mesh_i++] = mesh;
 		}

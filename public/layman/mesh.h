@@ -30,6 +30,4 @@ struct layman_mesh *layman_mesh_create_from_raw(
 // TODO: Documentation.
 void layman_mesh_destroy(struct layman_mesh *mesh);
 
-void layman_mesh_assign_material(struct layman_mesh *mesh, const struct layman_material *material);
-
 #endif
