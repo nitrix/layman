@@ -1,30 +1,6 @@
-#include "GLFW/glfw3.h"
-#include "glad/glad.h"
 #include "layman.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-_Thread_local const struct layman_renderer *current_renderer;
-
-static struct layman_matrix_4f calculate_projection_matrix(const struct layman_renderer *renderer) {
-	float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
-	float scale_y = (1.0f / tanf(renderer->fov / 2.0f / 180.0f * M_PI)) * aspect_ratio;
-	float scale_x = scale_y / aspect_ratio;
-	float frustrum_length = renderer->near_plane - renderer->far_plane;
-
-	struct layman_matrix_4f m = {
-		.d = {
-			[0] = scale_x,
-			[5] = scale_y,
-			[10] = ((renderer->far_plane + renderer->near_plane) / frustrum_length),
-			[11] = -1,
-			[14] = ((2 * renderer->near_plane * renderer->far_plane) / frustrum_length)
-		},
-	};
-
-	return m;
-}
+thread_local const struct layman_renderer *current_renderer;
 
 struct layman_renderer *layman_renderer_create(void) {
 	struct layman_renderer *renderer = malloc(sizeof *renderer);
@@ -66,6 +42,9 @@ void layman_renderer_switch(const struct layman_renderer *renderer) {
 		current_renderer = renderer;
 	}
 
+	// Resize the viewport, go back to the default framebuffer and clear color for rendering.
+	glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1); // Black.
 
 	// TODO: Support a wireframe mode.
@@ -87,16 +66,26 @@ void layman_renderer_switch(const struct layman_renderer *renderer) {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh, const struct layman_environment *environment) {
+void calculate_projection_matrix(const struct layman_renderer *renderer, mat4 out) {
+	float aspect_ratio = (float) renderer->viewport_width / (float) renderer->viewport_height;
+	float scale_y = (1.0f / tanf(renderer->fov / 2.0f / 180.0f * M_PI)) * aspect_ratio;
+	float scale_x = scale_y / aspect_ratio;
+	float frustrum_length = renderer->near_plane - renderer->far_plane;
+
+	out[0][0] = scale_x;
+	out[1][1] = scale_y;
+	out[2][2] = ((renderer->far_plane + renderer->near_plane) / frustrum_length);
+	out[3][2] = -1;
+	out[2][3] = ((2 * renderer->near_plane * renderer->far_plane) / frustrum_length);
+}
+
+static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh) {
 	layman_mesh_switch(mesh);
 
 	// Uniforms.
 	layman_shader_bind_uniform_material(mesh->shader, mesh->material);
 	layman_shader_bind_uniform_camera(mesh->shader, camera);
 	layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
-
-	// FIXME: HORRIBLE HORRIBLE HORRIBLE hack.
-	layman_environment_debug(environment);
 
 	// FIXME: Horrible, please don't do this every frames!
 	if (renderer->viewProjectionMatrixLocation == -1) {
@@ -109,16 +98,23 @@ static void render_mesh(struct layman_renderer *renderer, const struct layman_ca
 	// TODO: More uniforms, tidy this up.
 	// TODO: Should all move into the model file and stuff.
 	double elapsed = layman_renderer_elapsed(renderer);
-	struct layman_matrix_4f projectionMatrix = calculate_projection_matrix(renderer);
-	glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, projectionMatrix.d); // TODO: Missing view matrix?
-	struct layman_matrix_4f modelMatrix = layman_matrix_4f_identity();
-	layman_matrix_4f_rotate_x(&modelMatrix, -M_PI_2);
-	layman_matrix_4f_rotate_y(&modelMatrix, M_PI * elapsed * 0.25f);
-	layman_matrix_4f_translate(&modelMatrix, LAYMAN_VECTOR_3F(0, 0, -3));
-	glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, modelMatrix.d);
-	// struct layman_matrix_4f normalMatrix = layman_matrix_4f_identity();
-	// glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, normalMatrix.d);
-	glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, modelMatrix.d); // OMG, this fixed the lighting problem!
+
+	mat4 view_matrix, projection_matrix, view_projection_matrix;
+	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -5}, (vec3) { 0, 1, 0}, view_matrix); // FIXME: Static camera for now.
+	glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection_matrix);
+	// glm_mat4_mul(projection_matrix, view_matrix, view_projection_matrix);
+	glm_mat4_mul(view_matrix, projection_matrix, view_projection_matrix);
+	glUniformMatrix4fv(renderer->viewProjectionMatrixLocation, 1, false, view_projection_matrix[0]);
+
+	// Translation, rotation (z, y, x), scale.
+	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
+	glm_translate_z(model_matrix, -3);
+	glm_rotate_y(model_matrix, M_PI * elapsed * 0.25f, model_matrix);
+	glm_rotate_x(model_matrix, M_PI_2, model_matrix);
+	// glm_mat4_scale(model_matrix, 1);
+
+	glUniformMatrix4fv(renderer->modelMatrixLocation, 1, false, model_matrix[0]);
+	glUniformMatrix4fv(renderer->normalMatrixLocation, 1, false, model_matrix[0]);
 	glUniform1f(renderer->exposureLocation, renderer->exposure);
 
 	// Render.
@@ -130,7 +126,7 @@ double layman_renderer_elapsed(const struct layman_renderer *renderer) {
 	return glfwGetTime() - renderer->start_time;
 }
 
-void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_environment *environment) {
+void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
 	layman_renderer_switch(renderer);
 
 	// Clear the screen.
@@ -145,7 +141,7 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 			struct layman_mesh *mesh = entity->model->meshes[i];
 
 			// Render mesh.
-			render_mesh(renderer, camera, scene, mesh, environment);
+			render_mesh(renderer, camera, scene, mesh);
 		}
 	}
 }

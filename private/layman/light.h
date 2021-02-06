@@ -3,10 +3,10 @@
 
 struct layman_light {
 	enum layman_light_type type;
-	struct layman_vector_3f position;
-	struct layman_vector_3f direction;
+	vec3 position;
+	vec3 direction;
 	float range;
-	struct layman_vector_3f color;
+	vec3 color;
 	float intensity;
 	float innerConeCos;
 	float outerConeCos;

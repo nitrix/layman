@@ -1,13 +1,6 @@
-#include "glad/glad.h"
 #include "layman.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#define TO_STR(x) #x
-#define EVAL_TO_STR(x) TO_STR(x)
-
-_Thread_local const struct layman_shader *current_shader;
+thread_local const struct layman_shader *current_shader;
 
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {
@@ -125,7 +118,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	}
 
 	const char *prefix =
-	        "#version 330\n"
+	        "#version 330 core\n"
 
 	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
 	        "#define HAS_BASE_COLOR_MAP\n"
@@ -187,6 +180,7 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_base_color_factor = glGetUniformLocation(shader->program_id, "u_BaseColorFactor");
 	shader->uniform_base_color_sampler = glGetUniformLocation(shader->program_id, "u_BaseColorSampler");
 	shader->uniform_normal_sampler = glGetUniformLocation(shader->program_id, "u_NormalSampler");
+	shader->uniform_normal_scale = glGetUniformLocation(shader->program_id, "u_NormalScale");
 	shader->uniform_metallic_roughness_sampler = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
 	shader->uniform_occlusion_sampler = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
 	shader->uniform_occlusion_strength = glGetUniformLocation(shader->program_id, "u_OcclusionStrength");
@@ -318,22 +312,23 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 	layman_shader_switch(shader);
 
 	// TODO: These other uniforms.
-	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor.d);
+	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
 	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->kind);
 	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->kind);
 	// TODO: float metallic_factor;
 	// TODO: float roughness_factor;
 	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->kind);
+	glUniform1f(shader->uniform_normal_scale, material->normal_scale);
 	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
 	glUniform1f(shader->uniform_occlusion_strength, material->occlusion_strength);
 	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
-	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor.d);
+	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor);
 }
 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
 	layman_shader_switch(shader);
 
-	glUniform3fv(shader->uniform_camera, 1, camera->position.d);
+	glUniform3fv(shader->uniform_camera, 1, camera->position);
 }
 
 void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const struct layman_light **lights, size_t count) {
@@ -350,16 +345,16 @@ void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const
 		switch (light->type) {
 		    case LAYMAN_LIGHT_TYPE_DIRECTIONAL:
 			    glUniform1i(shader->uniform_lights_type[i], light->type);
-			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
-			    glUniform3fv(shader->uniform_lights_direction[i], 1, light->direction.d);
-			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
+			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position);
+			    glUniform3fv(shader->uniform_lights_direction[i], 1, light->direction);
+			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color);
 			    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
 			    break;
 
 		    case LAYMAN_LIGHT_TYPE_POINT:
 			    glUniform1i(shader->uniform_lights_type[i], light->type);
-			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position.d);
-			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color.d);
+			    glUniform3fv(shader->uniform_lights_position[i], 1, light->position);
+			    glUniform3fv(shader->uniform_lights_color[i], 1, light->color);
 			    glUniform1f(shader->uniform_lights_intensity[i], light->intensity);
 			    break;
 

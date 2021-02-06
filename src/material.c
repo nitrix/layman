@@ -1,8 +1,6 @@
 #include "layman.h"
-#include <stdio.h>
-#include <stdlib.h>
 
-_Thread_local const struct layman_material *current_material;
+thread_local const struct layman_material *current_material;
 
 struct layman_material *layman_material_create(void) {
 	struct layman_material *material = malloc(sizeof *material);
@@ -10,16 +8,17 @@ struct layman_material *layman_material_create(void) {
 		return NULL;
 	}
 
-	material->base_color_factor = LAYMAN_VECTOR_4F(1, 1, 1, 1);
+	glm_vec4_one(material->base_color_factor);
 	material->base_color_texture = NULL;
 	material->metallic_roughness_texture = NULL;
 	material->metallic_factor = 0; // FIXME?
 	material->roughness_factor = 0; // FIXME?
 	material->normal_texture = NULL;
+	material->normal_scale = 1;
 	material->occlusion_texture = NULL;
 	material->occlusion_strength = 1;
 	material->emissive_texture = NULL;
-	material->emissive_factor = LAYMAN_VECTOR_3F(1, 1, 1);
+	glm_vec3_one(material->emissive_factor);
 
 	return material;
 }
@@ -40,8 +39,6 @@ void layman_material_switch(const struct layman_material *material) {
 	} else {
 		current_material = material;
 	}
-
-	printf("Material switch: %p\n", material);
 
 	layman_texture_switch(material->base_color_texture);
 	layman_texture_switch(material->normal_texture);

@@ -1,6 +1,4 @@
-#include "GLFW/glfw3.h"
 #include "layman.h"
-#include <stdio.h>
 
 // FIXME: I'm starting to question the usefulness of this abstraction. It's becoming thinner by the second...
 
@@ -68,7 +66,7 @@ void layman_application_run(struct layman_application *app) {
 
 	while (!layman_window_closed(app->window)) {
 		layman_window_poll_events(app->window);
-		layman_renderer_render(app->renderer, app->camera, app->scene, app->environment);
+		layman_renderer_render(app->renderer, app->camera, app->scene);
 		layman_window_refresh(app->window);
 
 		fps++;

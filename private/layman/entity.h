@@ -3,7 +3,7 @@
 
 struct layman_entity {
 	const struct layman_model *model;
-	struct layman_vector_3f position;
+	vec3 position;
 };
 
 #endif

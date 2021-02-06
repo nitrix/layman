@@ -2,7 +2,6 @@
 #define LAYMAN_MATERIAL_H
 
 #include "texture.h"
-#include "vector.h"
 
 /**
  * @brief Creates a default material.

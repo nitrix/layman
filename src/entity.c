@@ -1,5 +1,4 @@
 #include "layman.h"
-#include <stdlib.h>
 
 struct layman_entity *layman_entity_create(void) {
 	struct layman_entity *entity = malloc(sizeof *entity);
@@ -8,7 +7,7 @@ struct layman_entity *layman_entity_create(void) {
 	}
 
 	entity->model = NULL;
-	entity->position = LAYMAN_VECTOR_3F(0, 0, 0);
+	glm_vec3_zero(entity->position);
 
 	return entity;
 }

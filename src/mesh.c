@@ -1,10 +1,6 @@
-#include "glad/glad.h"
 #include "layman.h"
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-_Thread_local const struct layman_mesh *current_mesh;
+thread_local const struct layman_mesh *current_mesh;
 
 /*
    float *generate_bitangents(const float *normals, const float *tangents, size_t tangents_count) {
@@ -121,8 +117,6 @@ void layman_mesh_switch(const struct layman_mesh *mesh) {
 	} else {
 		current_mesh = mesh;
 	}
-
-	printf("Mesh switch: %p\n", mesh);
 
 	glBindVertexArray(mesh->vao);
 	layman_shader_switch(mesh->shader);

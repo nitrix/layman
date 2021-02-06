@@ -1,8 +1,4 @@
-#include "glad/glad.h"
-#include "gltf.h"
 #include "layman.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;
@@ -133,7 +129,7 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 
 			// Base color factor.
 			cgltf_float *base_color_factor = primitive->material->pbr_metallic_roughness.base_color_factor;
-			material->base_color_factor = LAYMAN_VECTOR_4F(base_color_factor[0], base_color_factor[1], base_color_factor[2], base_color_factor[3]);
+			VEC4_ASSIGN(material->base_color_factor, base_color_factor[0], base_color_factor[1], base_color_factor[2], base_color_factor[3]);
 			// Base color texture
 			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
 			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;

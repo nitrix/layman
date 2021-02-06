@@ -7,10 +7,10 @@ struct layman_light *layman_light_create(enum layman_light_type type) {
 	}
 
 	light->type = type;
-	light->position = LAYMAN_VECTOR_3F(0, 0, 0);
-	light->direction = LAYMAN_VECTOR_3F(0, 0, -1);
+	glm_vec3_zero(light->position);
+	VEC3_ASSIGN(light->direction, 0, 0, -1);
 	light->range = 10; // FIXME?
-	light->color = LAYMAN_VECTOR_3F(1, 1, 1);
+	VEC3_ASSIGN(light->color, 1, 1, 1);
 	light->intensity = 1;
 	light->innerConeCos = 1; // FIXME?
 	light->outerConeCos = 1; // FIXME?

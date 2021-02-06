@@ -1,8 +1,5 @@
 #include "layman.h"
-#include <stdbool.h>
-#include <stdlib.h>
 
-#define LIGHTS_MAX 4
 #define ENTITIES_CAPACITY_STEP 16
 
 // Scenes can only grow in size. The idea being that if there was ever at some point X entities,

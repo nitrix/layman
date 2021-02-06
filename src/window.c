@@ -1,10 +1,6 @@
-#include "GLFW/glfw3.h"
-#include "glad/glad.h"
 #include "layman.h"
-#include <stdbool.h>
-#include <stdlib.h>
 
-_Thread_local const struct layman_window *current_window;
+thread_local const struct layman_window *current_window;
 
 // This is a reference count of windows to abstract away the initialization/termination of the GLFW library.
 // The first window created will automatically initialize the library, while the last window destroyed will automatically terminate it.

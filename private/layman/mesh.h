@@ -1,8 +1,6 @@
 #ifndef LAYMAN_PRIVATE_MESH_H
 #define LAYMAN_PRIVATE_MESH_H
 
-#include "glad/glad.h"
-
 struct layman_mesh {
 	GLuint vao;
 	GLuint vbo_positions;

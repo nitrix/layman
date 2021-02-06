@@ -1,8 +1,6 @@
 #ifndef LAYMAN_PRIVATE_WINDOW_H
 #define LAYMAN_PRIVATE_WINDOW_H
 
-#include "GLFW/glfw3.h"
-
 struct layman_window {
 	GLFWwindow *glfw_window;
 };

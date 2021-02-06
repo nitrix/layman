@@ -1,12 +1,6 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include "GLFW/glfw3.h"
-#include "glad/glad.h"
 #include "layman.h"
-#include "stb_image.h"
-#include <math.h>
-#include <stdlib.h>
 
-_Thread_local const struct layman_texture *current_texture;
+thread_local const struct layman_texture *current_texture;
 
 static int max(int a, int b) {
 	if (a > b) {
@@ -157,6 +151,11 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 			return NULL;
 		}
 
+		// TODO: Not sure if these are mendatory.
+		layman_texture_switch(texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 		layman_texture_provide_data(texture, data);
 
 		stbi_image_free(data);
@@ -230,8 +229,6 @@ void layman_texture_switch(const struct layman_texture *texture) {
 	} else {
 		current_texture = texture;
 	}
-
-	printf("Texture switch: %p\n", texture);
 
 	// This is actually the recommended way to enumerate that constant.
 	// You use the texture unit 0 and add your offset to it.

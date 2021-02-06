@@ -2,7 +2,6 @@
 #define LAYMAN_ENTITY_H
 
 #include "model.h"
-#include "vector.h"
 
 /**
  * @brief Creates an entity.

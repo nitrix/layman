@@ -3,6 +3,7 @@ PROJECT(layman C)
 
 SET(C_STANDARD 11)
 
+ADD_SUBDIRECTORY(lib/cglm)
 ADD_SUBDIRECTORY(lib/glad)
 ADD_SUBDIRECTORY(lib/glfw)
 ADD_SUBDIRECTORY(lib/gltf)
@@ -14,16 +15,15 @@ ADD_LIBRARY(
     src/camera.c
     src/entity.c
     src/environment.c
+    src/framebuffer.c
     src/light.c
     src/material.c
-    src/matrix.c
     src/mesh.c
     src/model.c
     src/renderer.c
     src/scene.c
     src/shader.c
     src/texture.c
-    src/vector.c
     src/window.c
 )
 
@@ -31,7 +31,7 @@ ADD_LIBRARY(
 TARGET_INCLUDE_DIRECTORIES(layman PRIVATE private)
 TARGET_INCLUDE_DIRECTORIES(layman PUBLIC public)
 
-TARGET_LINK_LIBRARIES(layman PRIVATE glad glfw gltf stb_image)
+TARGET_LINK_LIBRARIES(layman PRIVATE cglm glad glfw gltf stb_image)
 TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")

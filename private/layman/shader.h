@@ -1,10 +1,6 @@
 #ifndef LAYMAN_PRIVATE_SHADER_H
 #define LAYMAN_PRIVATE_SHADER_H
 
-#include <glad/glad.h>
-
-#define MAX_LIGHTS 4
-
 struct layman_shader {
 	GLuint program_id;
 
@@ -12,6 +8,7 @@ struct layman_shader {
 	GLint uniform_base_color_factor;
 	GLint uniform_base_color_sampler;
 	GLint uniform_normal_sampler;
+	GLint uniform_normal_scale;
 	GLint uniform_metallic_roughness_sampler;
 	GLint uniform_occlusion_sampler;
 	GLint uniform_occlusion_strength;

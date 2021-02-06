@@ -6,7 +6,7 @@ struct layman_camera *layman_camera_create(void) {
 		return NULL;
 	}
 
-	camera->position = LAYMAN_VECTOR_3F(0, 0, 0);
+	glm_vec3_zero(camera->position);
 
 	return camera;
 }
