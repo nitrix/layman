@@ -16,6 +16,9 @@ static int max(int a, int b) {
 
 static GLenum from_kind(enum layman_texture_kind kind) {
 	switch (kind) {
+	    case LAYMAN_TEXTURE_KIND_CUBEMAP:
+		    return GL_TEXTURE_CUBE_MAP;
+
 	    case LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR:
 		    return GL_TEXTURE_2D;
 
@@ -230,10 +233,12 @@ void layman_texture_switch(const struct layman_texture *texture) {
 		current_texture = texture;
 	}
 
-	// This is actually the recommended way to enumerate that constant.
-	// You use the texture unit 0 and add your offset to it.
-	glActiveTexture(GL_TEXTURE0 + texture->kind);
-	glBindTexture(from_kind(texture->kind), texture->id);
+	if (texture) {
+		// This is actually the recommended way to enumerate that constant.
+		// You use the texture unit 0 and add your offset to it.
+		glActiveTexture(GL_TEXTURE0 + texture->kind);
+		glBindTexture(from_kind(texture->kind), texture->id);
+	}
 }
 
 // FIXME: Could save these format things in the texture type and not bother with it here.

@@ -121,21 +121,29 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        "#version 330 core\n"
 
 	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
-	        "#define HAS_BASE_COLOR_MAP\n"
+
+	        // Attributes.
 	        "#define HAS_NORMALS\n"
+	        "#define HAS_UV_SET1\n"
 	        // "#define HAS_TANGENTS\n"
+
+	        // Textures.
+	        "#define HAS_BASE_COLOR_MAP\n"
 	        "#define HAS_NORMAL_MAP\n"
 	        "#define HAS_OCCLUSION_MAP\n"
 	        "#define HAS_EMISSIVE_MAP\n"
-	        "#define HAS_UV_SET1\n"
 
+	        // Material workflow.
 	        "#define MATERIAL_METALLICROUGHNESS\n"
-	        // "#define MATERIAL_UNLIT\n"
+	        // "#define MATERIAL_SPECULARGLOSSINESS\n"
 
-	        "#define USE_IBL\n"
+	        // Lighting.
+	        // "#define MATERIAL_UNLIT\n"
+	        // "#define USE_IBL\n"
 	        "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
+	        // Debugging.
 	        // "#define DEBUG_OUTPUT\n"
 	        // "#define DEBUG_BASECOLOR\n"
 	        // "#define DEBUG_NORMAL\n"
@@ -190,19 +198,19 @@ static void find_uniforms(struct layman_shader *shader) {
 
 	char name[100];
 	for (size_t i = 0; i < MAX_LIGHTS; i++) {
-		sprintf(name, "u_Lights[%d].type", i);
+		sprintf(name, "u_Lights[%zu].type", i);
 		shader->uniform_lights_type[i] = glGetUniformLocation(shader->program_id, name);
 
-		sprintf(name, "u_Lights[%d].position", i);
+		sprintf(name, "u_Lights[%zu].position", i);
 		shader->uniform_lights_position[i] = glGetUniformLocation(shader->program_id, name);
 
-		sprintf(name, "u_Lights[%d].direction", i);
+		sprintf(name, "u_Lights[%zu].direction", i);
 		shader->uniform_lights_direction[i] = glGetUniformLocation(shader->program_id, name);
 
-		sprintf(name, "u_Lights[%d].color", i);
+		sprintf(name, "u_Lights[%zu].color", i);
 		shader->uniform_lights_color[i] = glGetUniformLocation(shader->program_id, name);
 
-		sprintf(name, "u_Lights[%d].intensity", i);
+		sprintf(name, "u_Lights[%zu].intensity", i);
 		shader->uniform_lights_intensity[i] = glGetUniformLocation(shader->program_id, name);
 	}
 }
@@ -305,7 +313,9 @@ void layman_shader_switch(const struct layman_shader *shader) {
 		current_shader = shader;
 	}
 
-	glUseProgram(shader->program_id);
+	if (shader) {
+		glUseProgram(shader->program_id);
+	}
 }
 
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material) {

@@ -118,9 +118,14 @@ void layman_mesh_switch(const struct layman_mesh *mesh) {
 		current_mesh = mesh;
 	}
 
-	glBindVertexArray(mesh->vao);
-	layman_shader_switch(mesh->shader);
-	layman_material_switch(mesh->material);
+	if (mesh) {
+		glBindVertexArray(mesh->vao);
+		layman_shader_switch(mesh->shader);
+		layman_material_switch(mesh->material);
+	} else {
+		layman_shader_switch(NULL);
+		layman_material_switch(NULL);
+	}
 }
 
 void layman_mesh_destroy(struct layman_mesh *mesh) {

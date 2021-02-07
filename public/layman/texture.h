@@ -21,6 +21,7 @@ enum layman_texture_kind {
 
 	// Other things.
 	LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR,
+	LAYMAN_TEXTURE_KIND_CUBEMAP,
 
 	// Keep there.
 	LAYMAN_TEXTURE_KIND_COUNT,

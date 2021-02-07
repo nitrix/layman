@@ -22,10 +22,8 @@ struct layman_scene *layman_scene_create(void) {
 }
 
 void layman_scene_destroy(struct layman_scene *scene) {
-	if (!scene) {
-		return;
-	}
-
+	free(scene->entities);
+	free(scene->lights);
 	free(scene);
 }
 
@@ -61,4 +59,8 @@ bool layman_scene_add_light(struct layman_scene *scene, const struct layman_ligh
 	scene->lights_count++;
 
 	return true;
+}
+
+void layman_scene_assign_environment(struct layman_scene *scene, const struct layman_environment *environment) {
+	scene->environment = environment;
 }

@@ -43,4 +43,7 @@ bool layman_scene_add_entity(struct layman_scene *scene, const struct layman_ent
 // TODO: Documentation.
 bool layman_scene_add_light(struct layman_scene *scene, const struct layman_light *light);
 
+// TODO: Documentation.
+void layman_scene_assign_environment(struct layman_scene *scene, const struct layman_environment *environment);
+
 #endif

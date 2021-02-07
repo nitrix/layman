@@ -2,6 +2,8 @@
 #define LAYMAN_PRIVATE_ENVIRONMENT_H
 
 struct layman_environment {
+	struct layman_texture *cubemap;
+
 	struct layman_texture *lambertian;
 	struct layman_texture *lambertian_lut;
 	struct layman_texture *ggx;

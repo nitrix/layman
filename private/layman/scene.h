@@ -8,6 +8,8 @@ struct layman_scene {
 
 	const struct layman_light **lights;
 	size_t lights_count;
+
+	const struct layman_environment *environment;
 };
 
 #endif

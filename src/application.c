@@ -40,6 +40,8 @@ struct layman_application *layman_application_create(int width, int height, cons
 		goto failure;
 	}
 
+	layman_scene_assign_environment(app->scene, app->environment);
+
 	return app;
 
 failure:

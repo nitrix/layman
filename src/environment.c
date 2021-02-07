@@ -1,8 +1,9 @@
 #include "layman.h"
 
 // TODO: Mesh cube.
-GLuint cubeVAO, cubeVBO;
 void renderCube() {
+	static GLuint cubeVAO, cubeVBO;
+
 	// initialize (if necessary)
 	if (cubeVAO == 0) {
 		float vertices[] = {
@@ -62,14 +63,11 @@ void renderCube() {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *) (3 * sizeof (float)));
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *) (6 * sizeof (float)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
 	}
 
 	// render Cube
 	glBindVertexArray(cubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
 }
 
 static struct layman_texture *convert_equirectangular_to_cubemap(const struct layman_texture *equirectangular) {
@@ -81,7 +79,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 
 	layman_shader_switch(equirect2cube_shader);
 
-	int width = 1024, height = 1024;
+	int width = 2048, height = 2048;
 
 	struct layman_framebuffer *fb = layman_framebuffer_create(width, height);
 	if (!fb) {
@@ -103,7 +101,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	mat4 projection;
-	glm_perspective(90, 1, 0.1, 10.0, projection);
+	glm_perspective(glm_rad(90), 1, 0.1, 1000.0, projection);
 
 	mat4 views[6];
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 1, 0, 0}, (vec3) { 0, -1, 0}, views[0]);
@@ -113,7 +111,6 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, 1}, (vec3) { 0, -1, 0}, views[4]);
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -1}, (vec3) { 0, -1, 0}, views[5]);
 
-	// convert HDR equirectangular environment map to cubemap equivalent
 	layman_shader_switch(equirect2cube_shader);
 	GLint equirectangular_map_location = glGetUniformLocation(equirect2cube_shader->program_id, "equirectangularMap");
 	glUniform1i(equirectangular_map_location, 0);
@@ -133,12 +130,11 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 		renderCube();
 	}
 
-	// --------------------------------------------------------------------------------------
-
 	layman_shader_destroy(equirect2cube_shader);
 
 	struct layman_texture *cubemap = malloc(sizeof *cubemap);
 	cubemap->id = cubemap_id;
+	cubemap->kind = LAYMAN_TEXTURE_KIND_CUBEMAP;
 
 	return cubemap;
 }
@@ -149,6 +145,23 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 		return NULL;
 	}
 
+	struct layman_texture *equirectangular = layman_texture_create_from_file(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, filepath);
+	if (!equirectangular) {
+		free(environment);
+		return NULL;
+	}
+
+	environment->cubemap = convert_equirectangular_to_cubemap(equirectangular);
+	if (!environment->cubemap) {
+		layman_texture_destroy(equirectangular);
+		free(environment);
+	}
+
+	layman_texture_destroy(equirectangular);
+
+	// TODO: Compute pre-filtered specular environment map.
+	// TODO: Compute diffuse irradiance cubemap.
+	// TODO: Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 	environment->lambertian = NULL;
 	environment->lambertian_lut = NULL;
 	environment->ggx = NULL;
@@ -156,30 +169,12 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	environment->charlie = NULL;
 	environment->charlie_lut = NULL;
 
-	struct layman_texture *equirectangular = layman_texture_create_from_file(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, filepath);
-	if (!equirectangular) {
-		free(environment);
-		return NULL;
-	}
-
-	struct layman_texture *cubemap = convert_equirectangular_to_cubemap(equirectangular);
-	if (!cubemap) {
-		layman_texture_destroy(equirectangular);
-		free(environment);
-	}
-
-	layman_texture_destroy(cubemap);
-
-	layman_texture_destroy(equirectangular);
-
-	// TODO: Compute pre-filtered specular environment map.
-	// TODO: Compute diffuse irradiance cubemap.
-	// TODO: Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.'
-
 	return environment;
 }
 
 void layman_environment_destroy(struct layman_environment *environment) {
+	layman_texture_destroy(environment->cubemap);
+
 	layman_texture_destroy(environment->lambertian);
 	layman_texture_destroy(environment->lambertian_lut);
 	layman_texture_destroy(environment->ggx);

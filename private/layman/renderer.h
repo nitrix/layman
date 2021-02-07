@@ -11,13 +11,8 @@ struct layman_renderer {
 	float far_plane;
 	float near_plane;
 
-	// TODO: Temporary.
+	// TODO: Does this belongs here?
 	double start_time;
-	GLint viewProjectionMatrixLocation;
-	GLint modelMatrixLocation;
-	GLint normalMatrixLocation;
-	GLint exposureLocation;
-
 	float exposure;
 };
 

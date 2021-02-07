@@ -40,9 +40,13 @@ void layman_material_switch(const struct layman_material *material) {
 		current_material = material;
 	}
 
-	layman_texture_switch(material->base_color_texture);
-	layman_texture_switch(material->normal_texture);
-	layman_texture_switch(material->metallic_roughness_texture);
-	layman_texture_switch(material->occlusion_texture);
-	layman_texture_switch(material->emissive_texture);
+	if (material) {
+		layman_texture_switch(material->base_color_texture);
+		layman_texture_switch(material->normal_texture);
+		layman_texture_switch(material->metallic_roughness_texture);
+		layman_texture_switch(material->occlusion_texture);
+		layman_texture_switch(material->emissive_texture);
+	} else {
+		layman_texture_switch(NULL);
+	}
 }
