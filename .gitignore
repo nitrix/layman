@@ -4,3 +4,6 @@
 
 # Prevent human mistakes.
 *.exe
+*.glb
+*.gltf
+*.hdr
