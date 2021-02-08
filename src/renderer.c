@@ -1,7 +1,5 @@
 #include "layman.h"
 
-thread_local const struct layman_renderer *current_renderer;
-
 struct layman_renderer *layman_renderer_create(void) {
 	struct layman_renderer *renderer = malloc(sizeof *renderer);
 	if (!renderer) {
@@ -31,19 +29,21 @@ void layman_renderer_destroy(struct layman_renderer *renderer) {
 	free(renderer);
 }
 
-void layman_renderer_switch(const struct layman_renderer *renderer) {
-	if (current_renderer == renderer) {
+void layman_renderer_switch(const struct layman_renderer *new) {
+	thread_local static const struct layman_renderer *current;
+
+	if (current == new) {
 		return;
-	} else {
-		current_renderer = renderer;
 	}
 
-	if (!renderer) {
+	current = new;
+
+	if (!new) {
 		return;
 	}
 
 	// Resize the viewport, go back to the default framebuffer and clear color for rendering.
-	glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
+	glViewport(0, 0, new->viewport_width, new->viewport_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1); // Black.
 

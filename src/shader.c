@@ -1,7 +1,5 @@
 #include "layman.h"
 
-thread_local const struct layman_shader *current_shader;
-
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {
 	FILE *file = fopen(filepath, "r");
@@ -306,15 +304,17 @@ void layman_shader_destroy(struct layman_shader *shader) {
 	free(shader);
 }
 
-void layman_shader_switch(const struct layman_shader *shader) {
-	if (current_shader == shader) {
+void layman_shader_switch(const struct layman_shader *new) {
+	thread_local static const struct layman_shader *current;
+
+	if (current == new) {
 		return;
-	} else {
-		current_shader = shader;
 	}
 
-	if (shader) {
-		glUseProgram(shader->program_id);
+	current = new;
+
+	if (new) {
+		glUseProgram(new->program_id);
 	}
 }
 
@@ -337,7 +337,6 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
 	layman_shader_switch(shader);
-
 	glUniform3fv(shader->uniform_camera, 1, camera->position);
 }
 

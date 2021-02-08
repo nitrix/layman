@@ -1,7 +1,5 @@
 #include "layman.h"
 
-thread_local const struct layman_mesh *current_mesh;
-
 /*
    float *generate_bitangents(const float *normals, const float *tangents, size_t tangents_count) {
         float *bitangents = malloc(tangents_count * 3 * sizeof *bitangents);
@@ -111,17 +109,19 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	return mesh;
 }
 
-void layman_mesh_switch(const struct layman_mesh *mesh) {
-	if (current_mesh == mesh) {
+void layman_mesh_switch(const struct layman_mesh *new) {
+	thread_local static const struct layman_mesh *current;
+
+	if (current == new) {
 		return;
-	} else {
-		current_mesh = mesh;
 	}
 
-	if (mesh) {
-		glBindVertexArray(mesh->vao);
-		layman_shader_switch(mesh->shader);
-		layman_material_switch(mesh->material);
+	current = new;
+
+	if (new) {
+		glBindVertexArray(new->vao);
+		layman_shader_switch(new->shader);
+		layman_material_switch(new->material);
 	} else {
 		layman_shader_switch(NULL);
 		layman_material_switch(NULL);

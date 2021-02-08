@@ -118,7 +118,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	glUniformMatrix4fv(projection_location, 1, false, (float *) projection);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, equirectangular->id);
+	glBindTexture(GL_TEXTURE_2D, equirectangular->gl_id);
 
 	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
@@ -132,9 +132,12 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 
 	layman_shader_destroy(equirect2cube_shader);
 
+	// TODO: This should use the texture module and not be created manually here.
 	struct layman_texture *cubemap = malloc(sizeof *cubemap);
-	cubemap->id = cubemap_id;
+	cubemap->gl_id = cubemap_id;
+	cubemap->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_CUBEMAP;
 	cubemap->kind = LAYMAN_TEXTURE_KIND_CUBEMAP;
+	cubemap->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	return cubemap;
 }

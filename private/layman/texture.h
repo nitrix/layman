@@ -2,15 +2,23 @@
 #define LAYMAN_PRIVATE_TEXTURE_H
 
 struct layman_texture {
-	GLuint id;
-	enum layman_texture_kind kind;
-
-	size_t width, height;
+	size_t width;
+	size_t height;
 	size_t levels;
 
-	enum layman_texture_data_type data_type;
-	enum layman_texture_data_format data_format;
-	enum layman_texture_data_internal_format data_internal_format;
+	enum layman_texture_kind kind;
+
+	// Object stuff.
+	GLuint gl_id;
+
+	// Sampler stuff.
+	GLenum gl_target;
+	GLenum gl_unit;
+
+	// Pixel data stuff.
+	GLenum gl_type;
+	GLenum gl_format;
+	GLenum gl_internal_format;
 };
 
 void layman_texture_switch(const struct layman_texture *texture);

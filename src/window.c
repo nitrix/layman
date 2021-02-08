@@ -122,11 +122,13 @@ void layman_window_switch(const struct layman_window *window) {
 		current_window = window;
 	}
 
-	glfwMakeContextCurrent(window->glfw_window);
+	if (window) {
+		glfwMakeContextCurrent(window->glfw_window);
+	}
 }
 
 void layman_window_poll_events(const struct layman_window *window) {
-	(void) window; // Unused.
+	UNUSED(window);
 	glfwPollEvents();
 }
 

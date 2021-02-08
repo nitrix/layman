@@ -1,7 +1,5 @@
 #include "layman.h"
 
-thread_local const struct layman_framebuffer *current_framebuffer;
-
 struct layman_framebuffer *layman_framebuffer_create(int width, int height) {
 	struct layman_framebuffer *fb = malloc(sizeof *fb);
 	if (!fb) {
@@ -21,15 +19,19 @@ void layman_framebuffer_destroy(struct layman_framebuffer *fb) {
 	free(fb);
 }
 
-void layman_framebuffer_switch(const struct layman_framebuffer *fb) {
-	if (current_framebuffer == fb) {
+void layman_framebuffer_switch(const struct layman_framebuffer *new) {
+	thread_local static const struct layman_framebuffer *current;
+
+	if (new == current) {
 		return;
-	} else {
-		current_framebuffer = fb;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, fb->rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fb->width, fb->height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fb->rbo);
+	current = new;
+
+	if (new) {
+		glBindFramebuffer(GL_FRAMEBUFFER, new->fbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, new->rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, new->width, new->height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, new->rbo);
+	}
 }

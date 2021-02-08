@@ -59,15 +59,12 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kind kind, const unsigned char *data, size_t size);
 
 // TODO: Documentation.
-enum layman_texture_kind layman_texture_kind(const struct layman_texture *texture);
-
-// TODO: Documentation.
 void layman_texture_destroy(struct layman_texture *texture);
 
 // TODO: Documentation.
-void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy);
+void layman_texture_provide_data(struct layman_texture *texture, size_t level, const void *data);
 
 // TODO: Documentation.
-void layman_texture_provide_data(struct layman_texture *texture, const void *data);
+void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy);
 
 #endif

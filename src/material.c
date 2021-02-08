@@ -1,7 +1,5 @@
 #include "layman.h"
 
-thread_local const struct layman_material *current_material;
-
 struct layman_material *layman_material_create(void) {
 	struct layman_material *material = malloc(sizeof *material);
 	if (!material) {
@@ -33,19 +31,21 @@ void layman_material_destroy(struct layman_material *material) {
 	free(material);
 }
 
-void layman_material_switch(const struct layman_material *material) {
-	if (current_material == material) {
+void layman_material_switch(const struct layman_material *new) {
+	thread_local static const struct layman_material *current;
+
+	if (new == current) {
 		return;
-	} else {
-		current_material = material;
 	}
 
-	if (material) {
-		layman_texture_switch(material->base_color_texture);
-		layman_texture_switch(material->normal_texture);
-		layman_texture_switch(material->metallic_roughness_texture);
-		layman_texture_switch(material->occlusion_texture);
-		layman_texture_switch(material->emissive_texture);
+	current = new;
+
+	if (new) {
+		layman_texture_switch(new->base_color_texture);
+		layman_texture_switch(new->normal_texture);
+		layman_texture_switch(new->metallic_roughness_texture);
+		layman_texture_switch(new->occlusion_texture);
+		layman_texture_switch(new->emissive_texture);
 	} else {
 		layman_texture_switch(NULL);
 	}
