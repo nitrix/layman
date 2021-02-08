@@ -1,6 +1,6 @@
 #include "layman.h"
 
-struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_data_type data_type, enum layman_texture_data_format data_format, enum layman_texture_data_internal_format data_internal_format) {
+struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal) {
 	struct layman_texture *texture = malloc(sizeof *texture);
 	if (!texture) {
 		return NULL;
@@ -34,27 +34,27 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	}
 
 	// Translate our data type to OpenGL data type.
-	switch (data_type) {
-	    case LAYMAN_TEXTURE_DATA_TYPE_FLOAT: texture->gl_type = GL_FLOAT; break;
-	    case LAYMAN_TEXTURE_DATA_TYPE_UNSIGNED_BYTE: texture->gl_type = GL_UNSIGNED_BYTE; break;
+	switch (type) {
+	    case LAYMAN_TEXTURE_TYPE_FLOAT: texture->gl_type = GL_FLOAT; break;
+	    case LAYMAN_TEXTURE_TYPE_UNSIGNED_BYTE: texture->gl_type = GL_UNSIGNED_BYTE; break;
 	}
 
 	// Translate our data formats to OpenGL data formats.
-	switch (data_format) {
-	    case LAYMAN_TEXTURE_DATA_FORMAT_RGB: texture->gl_format = GL_RGB; break;
-	    case LAYMAN_TEXTURE_DATA_FORMAT_RGBA: texture->gl_format = GL_RGBA; break;
+	switch (format) {
+	    case LAYMAN_TEXTURE_FORMAT_RGB: texture->gl_format = GL_RGB; break;
+	    case LAYMAN_TEXTURE_FORMAT_RGBA: texture->gl_format = GL_RGBA; break;
 	}
 
-	// Translate our data internal formats to OpenGL data internal formats.
-	switch (data_internal_format) {
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB: texture->gl_internal_format = GL_RGB; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA: texture->gl_internal_format = GL_RGBA; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB8: texture->gl_internal_format = GL_RGB8; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA8: texture->gl_internal_format = GL_RGBA8; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F: texture->gl_internal_format = GL_RGB16F; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA16F: texture->gl_internal_format = GL_RGBA16F; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB32F: texture->gl_internal_format = GL_RGB32F; break;
-	    case LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA32F: texture->gl_internal_format = GL_RGBA32F; break;
+	// Translate our internal formats to OpenGL internal formats.
+	switch (format_internal) {
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB: texture->gl_internal_format = GL_RGB; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA: texture->gl_internal_format = GL_RGBA; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB8: texture->gl_internal_format = GL_RGB8; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA8: texture->gl_internal_format = GL_RGBA8; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB16F: texture->gl_internal_format = GL_RGB16F; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA16F: texture->gl_internal_format = GL_RGBA16F; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB32F: texture->gl_internal_format = GL_RGB32F; break;
+	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA32F: texture->gl_internal_format = GL_RGBA32F; break;
 	}
 
 	glGenTextures(1, &texture->gl_id);
@@ -92,25 +92,22 @@ void layman_texture_destroy(struct layman_texture *texture) {
 }
 
 struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind kind, const char *filepath) {
-	// TODO: if extension is .hdr
 	if (kind == LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR) {
 		// Equirectangular things are always flipped down for some reason.
 		stbi_set_flip_vertically_on_load(true);
 
-		int w, h, c;
-		float *data = stbi_loadf(filepath, &w, &h, &c, 0);
-		if (!data) {
-			// Important! Once we're done, we have to revert that setting back, otherwise stbi will
-			// incorrectly flip future images when they get loaded.
-			stbi_set_flip_vertically_on_load(false);
-			return NULL;
-		}
+		int width, height, components;
+		float *data = stbi_loadf(filepath, &width, &height, &components, 0);
 
 		// Important! Once we're done, we have to revert that setting back, otherwise stbi will
 		// incorrectly flip future images when they get loaded.
 		stbi_set_flip_vertically_on_load(false);
 
-		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, w, h, 1, LAYMAN_TEXTURE_DATA_TYPE_FLOAT, LAYMAN_TEXTURE_DATA_FORMAT_RGB, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F);
+		if (!data) {
+			return NULL;
+		}
+
+		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, width, height, 1, LAYMAN_TEXTURE_TYPE_FLOAT, LAYMAN_TEXTURE_FORMAT_RGB, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB16F);
 		if (!texture) {
 			stbi_image_free(data);
 			return NULL;
@@ -128,6 +125,8 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 		return texture;
 	}
 
+	// TODO: Support other kinds?
+
 	return NULL;
 }
 
@@ -139,17 +138,17 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 		return NULL;
 	}
 
-	enum layman_texture_data_format data_format;
+	enum layman_texture_format format;
 	switch (components) {
-	    case 3: data_format = LAYMAN_TEXTURE_DATA_FORMAT_RGB; break;
-	    case 4: data_format = LAYMAN_TEXTURE_DATA_FORMAT_RGBA; break;
+	    case 3: format = LAYMAN_TEXTURE_FORMAT_RGB; break;
+	    case 4: format = LAYMAN_TEXTURE_FORMAT_RGBA; break;
 	    default:
 		    fprintf(stderr, "Unsupported texture data format\n");
 		    stbi_image_free(decoded);
 		    return NULL;
 	}
 
-	struct layman_texture *texture = layman_texture_create(kind, width, height, 0, LAYMAN_TEXTURE_DATA_TYPE_UNSIGNED_BYTE, data_format, LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA8);
+	struct layman_texture *texture = layman_texture_create(kind, width, height, 0, LAYMAN_TEXTURE_TYPE_UNSIGNED_BYTE, format, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA8);
 	if (!texture) {
 		stbi_image_free(decoded);
 		return NULL;
@@ -181,16 +180,7 @@ void layman_texture_switch(const struct layman_texture *new) {
 void layman_texture_provide_data(struct layman_texture *texture, size_t level, const void *data) {
 	layman_texture_switch(texture);
 
-	glTexImage2D(
-	        texture->gl_target,
-	        level,
-	        texture->gl_internal_format,
-	        texture->width,
-	        texture->height,
-	        0, // Always zero.
-	        texture->gl_format,
-	        texture->gl_type,
-	        data);
+	glTexImage2D(texture->gl_target, level, texture->gl_internal_format, texture->width, texture->height, 0, texture->gl_format, texture->gl_type, data);
 
 	// Mimapping.
 	if (texture->levels > 1) {
@@ -207,7 +197,7 @@ void layman_texture_anisotropic_filtering(struct layman_texture *texture, float 
 	layman_texture_switch(texture);
 
 	// Ask OpenGL what is the maximum anisotropy we can use.
-	GLfloat max_anisotropy = 1.0; // Fallback in case the call fails.
+	GLfloat max_anisotropy = 1; // Fallback in case the call fails.
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 
 	if (anisotropy <= max_anisotropy) {

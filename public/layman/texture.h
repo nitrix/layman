@@ -27,30 +27,29 @@ enum layman_texture_kind {
 	LAYMAN_TEXTURE_KIND_COUNT,
 };
 
-enum layman_texture_data_type {
-	LAYMAN_TEXTURE_DATA_TYPE_UNSIGNED_BYTE,
-	LAYMAN_TEXTURE_DATA_TYPE_FLOAT
+enum layman_texture_type {
+	LAYMAN_TEXTURE_TYPE_UNSIGNED_BYTE,
+	LAYMAN_TEXTURE_TYPE_FLOAT
 };
 
-enum layman_texture_data_format {
-	LAYMAN_TEXTURE_DATA_FORMAT_RGB,
-	LAYMAN_TEXTURE_DATA_FORMAT_RGBA,
+enum layman_texture_format {
+	LAYMAN_TEXTURE_FORMAT_RGB,
+	LAYMAN_TEXTURE_FORMAT_RGBA,
 };
 
-enum layman_texture_data_internal_format {
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB8,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB16F,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGB32F,
-
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA8,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA16F,
-	LAYMAN_TEXTURE_DATA_INTERNAL_FORMAT_RGBA32F,
+enum layman_texture_format_internal {
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB8,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB16F,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB32F,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA8,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA16F,
+	LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA32F,
 };
 
 // TODO: Documentation.
-struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_data_type data_type, enum layman_texture_data_format data_format, enum layman_texture_data_internal_format data_internal_format);
+struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal);
 
 // TODO: Documentation.
 struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind kind, const char *filepath);
