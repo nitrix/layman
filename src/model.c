@@ -109,16 +109,16 @@ bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {
 
 			// Create the mesh from raw data.
 			struct layman_mesh *mesh = layman_mesh_create_from_raw(
-			        // Vertices.
-			        vertices, vertices_count, vertices_stride,
-			        // Normals.
-			        normals, normals_count, normals_stride,
-			        // UVs.
-			        uvs, uvs_count, uvs_stride,
-			        // Indices.
-			        indices, indices_count,
-			        // Tangents.
-			        tangents, tangents_count, tangents_stride);
+					// Vertices.
+					vertices, vertices_count, vertices_stride,
+					// Normals.
+					normals, normals_count, normals_stride,
+					// UVs.
+					uvs, uvs_count, uvs_stride,
+					// Indices.
+					indices, indices_count,
+					// Tangents.
+					tangents, tangents_count, tangents_stride);
 
 			if (!mesh) {
 				return false;

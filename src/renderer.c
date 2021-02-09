@@ -177,6 +177,8 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 		}
 	}
 
-	// Render skybox.
+	// Render the skybox.
+	// This is done last so that only the fragments that aren't hiding it gets computed.
+	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, scene);
 }

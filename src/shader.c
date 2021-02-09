@@ -257,9 +257,17 @@ struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath,
 		return NULL;
 	}
 
-	glAttachShader(program_id, vertex_shader_id);
-	glAttachShader(program_id, fragment_shader_id);
-	glAttachShader(program_id, compute_shader_id);
+	if (vertex_shader_id) {
+		glAttachShader(program_id, vertex_shader_id);
+	}
+
+	if (fragment_shader_id) {
+		glAttachShader(program_id, fragment_shader_id);
+	}
+
+	if (compute_shader_id) {
+		glAttachShader(program_id, compute_shader_id);
+	}
 
 	// Bind attributes. Must be before linkage.
 	glBindAttribLocation(program_id, LAYMAN_MESH_ATTRIBUTE_POSITION, "a_Position");

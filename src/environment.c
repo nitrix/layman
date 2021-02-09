@@ -90,8 +90,8 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	GLuint cubemap_id;
 	glGenTextures(1, &cubemap_id);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_id);
-	for (size_t i = 0; i < 6; i++) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	for (size_t face = 0; face < 6; face++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	}
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
