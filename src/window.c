@@ -33,6 +33,9 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 		return NULL;
 	}
 
+	window->width = width;
+	window->height = height;
+
 	// Automatically initializes the GLFW library for the first window created.
 	if (!increment_refcount()) {
 		free(window);
@@ -43,12 +46,12 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode *video_mode = glfwGetVideoMode(primary_monitor);
 
-	if (width <= 0) {
-		width = video_mode->width;
+	if (window->width <= 0) {
+		window->width = video_mode->width;
 	}
 
-	if (height <= 0) {
-		height = video_mode->height;
+	if (window->height <= 0) {
+		window->height = video_mode->height;
 	}
 
 	// Create the actual window using the GLFW library.
@@ -65,7 +68,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
 
-	window->glfw_window = glfwCreateWindow(width, height, title, fullscreen ? primary_monitor : NULL, NULL);
+	window->glfw_window = glfwCreateWindow(window->width, window->height, title, fullscreen ? primary_monitor : NULL, NULL);
 	if (!window->glfw_window) {
 		free(window);
 		decrement_refcount();

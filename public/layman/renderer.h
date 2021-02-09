@@ -3,9 +3,10 @@
 
 #include "camera.h"
 #include "scene.h"
+#include "window.h"
 
 // TODO: Documentation.
-struct layman_renderer *layman_renderer_create(void);
+struct layman_renderer *layman_renderer_create(const struct layman_window *window);
 
 // TODO: Documentation.
 void layman_renderer_destroy(struct layman_renderer *renderer);

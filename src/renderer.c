@@ -1,14 +1,14 @@
 #include "layman.h"
 
-struct layman_renderer *layman_renderer_create(void) {
+struct layman_renderer *layman_renderer_create(const struct layman_window *window) {
 	struct layman_renderer *renderer = malloc(sizeof *renderer);
 	if (!renderer) {
 		return NULL;
 	}
 
 	// TODO: Dynamic dimensions.
-	renderer->viewport_width = 1280;
-	renderer->viewport_height = 720;
+	renderer->viewport_width = window->width;
+	renderer->viewport_height = window->height;
 
 	// TODO: Change the FOV.
 	renderer->fov = 90.0f;

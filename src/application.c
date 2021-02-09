@@ -19,7 +19,7 @@ struct layman_application *layman_application_create(int width, int height, cons
 		goto failure;
 	}
 
-	app->renderer = layman_renderer_create();
+	app->renderer = layman_renderer_create(app->window);
 	if (!app->renderer) {
 		goto failure;
 	}

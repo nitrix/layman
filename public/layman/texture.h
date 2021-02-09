@@ -49,7 +49,7 @@ enum layman_texture_format_internal {
 };
 
 // TODO: Documentation.
-struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal);
+struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, bool mipmapping, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal);
 
 // TODO: Documentation.
 struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind kind, const char *filepath);
@@ -61,7 +61,7 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 void layman_texture_destroy(struct layman_texture *texture);
 
 // TODO: Documentation.
-void layman_texture_provide_data(struct layman_texture *texture, size_t level, const void *data);
+void layman_texture_provide_data(struct layman_texture *texture, size_t level, size_t width, size_t height, const void *data);
 
 // TODO: Documentation.
 void layman_texture_anisotropic_filtering(struct layman_texture *texture, float anisotropy);

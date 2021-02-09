@@ -1,6 +1,6 @@
 #include "layman.h"
 
-struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, size_t levels, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal) {
+struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, bool mipmapping, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal) {
 	struct layman_texture *texture = malloc(sizeof *texture);
 	if (!texture) {
 		return NULL;
@@ -10,17 +10,14 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	texture->kind = kind;
 	texture->width = width;
 	texture->height = height;
+	texture->levels = 1;
 
 	// Automatic levels when none were provided.
-	if (levels == 0) {
-		levels = 1;
-
-		while ((width | height) >> levels) {
-			levels++;
+	if (mipmapping) {
+		while ((width | height) >> texture->levels) {
+			texture->levels++;
 		}
 	}
-
-	texture->levels = levels;
 
 	// Figure out what OpenGL texture unit a given texture should be assigned to (based on its kind).
 	// This is actually the recommended way to enumerate that constant.
@@ -62,9 +59,10 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	layman_texture_switch(texture);
 
 	// Pre-allocate the storage for the pixel data.
-	for (size_t i = 0; i < levels; i++) {
-		layman_texture_provide_data(texture, i, NULL);
+	for (size_t level = 0; level < texture->levels; level++) {
+		layman_texture_provide_data(texture, level, width, height, NULL);
 		width = MAX(1, (width / 2));
+		height = MAX(1, (height / 2));
 	}
 
 	// Wrapping.
@@ -72,7 +70,7 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// Filtering.
-	glTexParameteri(texture->gl_target, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+	glTexParameteri(texture->gl_target, GL_TEXTURE_MIN_FILTER, mipmapping ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(texture->gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Anisotropic filtering.
@@ -107,7 +105,7 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 			return NULL;
 		}
 
-		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, width, height, 1, LAYMAN_TEXTURE_TYPE_FLOAT, LAYMAN_TEXTURE_FORMAT_RGB, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB16F);
+		struct layman_texture *texture = layman_texture_create(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, width, height, false, LAYMAN_TEXTURE_TYPE_FLOAT, LAYMAN_TEXTURE_FORMAT_RGB, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGB16F);
 		if (!texture) {
 			stbi_image_free(data);
 			return NULL;
@@ -118,7 +116,7 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		layman_texture_provide_data(texture, 0, data);
+		layman_texture_provide_data(texture, 0, width, height, data);
 
 		stbi_image_free(data);
 
@@ -148,13 +146,13 @@ struct layman_texture *layman_texture_create_from_memory(enum layman_texture_kin
 		    return NULL;
 	}
 
-	struct layman_texture *texture = layman_texture_create(kind, width, height, 0, LAYMAN_TEXTURE_TYPE_UNSIGNED_BYTE, format, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA8);
+	struct layman_texture *texture = layman_texture_create(kind, width, height, true, LAYMAN_TEXTURE_TYPE_UNSIGNED_BYTE, format, LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA8);
 	if (!texture) {
 		stbi_image_free(decoded);
 		return NULL;
 	}
 
-	layman_texture_provide_data(texture, 0, decoded);
+	layman_texture_provide_data(texture, 0, width, height, decoded);
 
 	// Cleanup.
 	stbi_image_free(decoded);
@@ -177,10 +175,10 @@ void layman_texture_switch(const struct layman_texture *new) {
 	}
 }
 
-void layman_texture_provide_data(struct layman_texture *texture, size_t level, const void *data) {
+void layman_texture_provide_data(struct layman_texture *texture, size_t level, size_t width, size_t height, const void *data) {
 	layman_texture_switch(texture);
 
-	glTexImage2D(texture->gl_target, level, texture->gl_internal_format, texture->width, texture->height, 0, texture->gl_format, texture->gl_type, data);
+	glTexImage2D(texture->gl_target, level, texture->gl_internal_format, width, height, 0, texture->gl_format, texture->gl_type, data);
 
 	// Mimapping.
 	if (texture->levels > 1) {

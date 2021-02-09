@@ -116,7 +116,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	}
 
 	const char *prefix =
-	        "#version 330 core\n"
+	        "#version 330 core\n\n"
 
 	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
 
@@ -150,12 +150,14 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        // "#define DEBUG_FSPECULAR\n"
 	        // "#define DEBUG_FEMISSIVE\n"
 
-	        "#define DUMMY 1\n";
+	        "#define DUMMY 1\n\n";
 
 	size_t new_length = snprintf(NULL, 0, "%s\n%s", prefix, content);
 	char *new_content = malloc(new_length + 1);
 	if (!new_content) {
-		// TODO: Handle error.
+		free(content);
+		glDeleteShader(shader_id);
+		return 0;
 	}
 
 	sprintf(new_content, "%s\n%s", prefix, content);
@@ -194,7 +196,7 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_emissive_factor = glGetUniformLocation(shader->program_id, "u_EmissiveFactor");
 	shader->uniform_camera = glGetUniformLocation(shader->program_id, "u_Camera");
 
-	char name[100];
+	char name[64];
 	for (size_t i = 0; i < MAX_LIGHTS; i++) {
 		sprintf(name, "u_Lights[%zu].type", i);
 		shader->uniform_lights_type[i] = glGetUniformLocation(shader->program_id, name);

@@ -3,6 +3,7 @@
 
 struct layman_window {
 	GLFWwindow *glfw_window;
+	int width, height;
 };
 
 void layman_window_switch(const struct layman_window *window);
