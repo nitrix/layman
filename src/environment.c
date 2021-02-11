@@ -162,6 +162,86 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 
 	layman_texture_destroy(equirectangular);
 
+	struct layman_shader *iblsampler_shader = layman_shader_load_from_files("shaders/iblsampler/main.vert", "shaders/iblsampler/main.frag", NULL);
+	if (!iblsampler_shader) {
+		fprintf(stderr, "Unable to load iblsampler shader\n");
+		layman_environment_destroy(environment);
+		return NULL;
+	}
+
+	layman_shader_switch(iblsampler_shader);
+
+	GLint pfp_roughness_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_roughness");
+	GLint pfp_samplecount_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_sampleCount");
+	GLint pfp_miplevel_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_currentMipLevel");
+	GLint pfp_width_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_width");
+	GLint pfp_lodbias_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_lodBias");
+	GLint pfp_distribution_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_distribution");
+
+	struct layman_framebuffer *fb = layman_framebuffer_create(2048, 2048);
+	if (!fb) {
+		fprintf(stderr, "FB error\n");
+		return NULL;
+	}
+
+	glViewport(0, 0, 2048, 2048);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
+
+	GLuint cubemap_id;
+	glGenTextures(1, &cubemap_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_id);
+	for (size_t face = 0; face < 6; face++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGB16F, 2048, 2048, 0, GL_RGB, GL_FLOAT, NULL);
+	}
+
+	for (size_t face = 0; face < 6; face++) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubemap_id, 0);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	layman_texture_switch(environment->cubemap);
+	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
+	glUniform1i(cubemap_location, environment->cubemap->kind);
+
+	glUniform1f(pfp_roughness_location, 0.20);
+	glUniform1ui(pfp_samplecount_location, 2);
+	glUniform1ui(pfp_miplevel_location, 0);
+	glUniform1ui(pfp_width_location, 2048); // FIXME
+	glUniform1f(pfp_lodbias_location, 0);
+	glUniform1ui(pfp_distribution_location, 1);
+
+	const GLenum buffers[] = {
+		GL_COLOR_ATTACHMENT0,
+		GL_COLOR_ATTACHMENT1,
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3,
+		GL_COLOR_ATTACHMENT4,
+		GL_COLOR_ATTACHMENT5,
+	};
+
+	glDrawBuffers(6, buffers);
+
+	glBindFragDataLocation(iblsampler_shader->program_id, 0, "outFace0");
+	glBindFragDataLocation(iblsampler_shader->program_id, 1, "outFace1");
+	glBindFragDataLocation(iblsampler_shader->program_id, 2, "outFace2");
+	glBindFragDataLocation(iblsampler_shader->program_id, 3, "outFace3");
+	glBindFragDataLocation(iblsampler_shader->program_id, 4, "outFace4");
+	glBindFragDataLocation(iblsampler_shader->program_id, 5, "outFace5");
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	glDisable(GL_CULL_FACE);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glEnable(GL_CULL_FACE);
+
 	// TODO: Compute pre-filtered specular environment map.
 	// TODO: Compute diffuse irradiance cubemap.
 	// TODO: Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
@@ -171,6 +251,8 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	environment->ggx_lut = NULL;
 	environment->charlie = NULL;
 	environment->charlie_lut = NULL;
+
+	layman_shader_destroy(iblsampler_shader);
 
 	return environment;
 }

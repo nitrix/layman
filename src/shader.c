@@ -116,7 +116,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	}
 
 	const char *prefix =
-	        "#version 330 core\n\n"
+	        "#version 410 core\n\n"
 
 	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
 

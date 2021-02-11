@@ -109,10 +109,10 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	bool debugging = false;
 	#endif
 
-	// Mac has limitations. I can only go up to version 4.1 and doesn't support debugging.
+	// Mac has limitations. I can only go up to version 4.1 and doesn't support debugging (only in 4.3+).
 	#if __APPLE__
-	major = 3;
-	minor = 2;
+	major = 4;
+	minor = 1;
 	debugging = false;
 	#endif
 
