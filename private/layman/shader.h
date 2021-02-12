@@ -10,6 +10,8 @@ struct layman_shader {
 	GLint uniform_normal_sampler;
 	GLint uniform_normal_scale;
 	GLint uniform_metallic_roughness_sampler;
+	GLint uniform_metallic_factor;
+	GLint uniform_roughness_factor;
 	GLint uniform_occlusion_sampler;
 	GLint uniform_occlusion_strength;
 	GLint uniform_emissive_sampler;

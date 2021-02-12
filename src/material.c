@@ -9,8 +9,8 @@ struct layman_material *layman_material_create(void) {
 	glm_vec4_one(material->base_color_factor);
 	material->base_color_texture = NULL;
 	material->metallic_roughness_texture = NULL;
-	material->metallic_factor = 0; // FIXME?
-	material->roughness_factor = 0; // FIXME?
+	material->metallic_factor = 1;
+	material->roughness_factor = 1;
 	material->normal_texture = NULL;
 	material->normal_scale = 1;
 	material->occlusion_texture = NULL;

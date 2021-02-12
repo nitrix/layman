@@ -51,10 +51,11 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
-	// Back face culling.
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	// FIXME: Back face culling.
+	// glEnable(GL_CULL_FACE);
+	// glCullFace(GL_BACK);
+	// glFrontFace(GL_CCW);
+	glDisable(GL_CULL_FACE);
 
 	// Depth testing.
 	glEnable(GL_DEPTH_TEST);
@@ -146,7 +147,7 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	glUniformMatrix4fv(projection_location, 1, false, projection[0]);
 	mat4 view = GLM_MAT4_IDENTITY_INIT;
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
-	glm_rotate_y(view, M_PI * elapsed * -0.10, view);
+	// glm_rotate_y(view, M_PI * elapsed * -0.10, view);
 	glUniformMatrix4fv(view_location, 1, false, view[0]);
 
 	glDisable(GL_CULL_FACE);

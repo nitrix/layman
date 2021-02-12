@@ -130,6 +130,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        "#define HAS_NORMAL_MAP\n"
 	        "#define HAS_OCCLUSION_MAP\n"
 	        "#define HAS_EMISSIVE_MAP\n"
+	        "#define HAS_METALLIC_ROUGHNESS_MAP\n"
 
 	        // Material workflow.
 	        "#define MATERIAL_METALLICROUGHNESS\n"
@@ -137,6 +138,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 
 	        // Lighting.
 	        // "#define MATERIAL_UNLIT\n"
+	        "#define USE_HDR\n"
 	        "#define USE_IBL\n"
 	        "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
@@ -145,6 +147,8 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        // "#define DEBUG_OUTPUT\n"
 	        // "#define DEBUG_BASECOLOR\n"
 	        // "#define DEBUG_NORMAL\n"
+	        // "#define DEBUG_METALLIC\n"
+	        // "#define DEBUG_ROUGHNESS\n"
 	        // "#define DEBUG_OCCLUSION\n"
 	        // "#define DEBUG_FDIFFUSE\n"
 	        // "#define DEBUG_FSPECULAR\n"
@@ -190,6 +194,8 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_normal_sampler = glGetUniformLocation(shader->program_id, "u_NormalSampler");
 	shader->uniform_normal_scale = glGetUniformLocation(shader->program_id, "u_NormalScale");
 	shader->uniform_metallic_roughness_sampler = glGetUniformLocation(shader->program_id, "u_MetallicRoughnessSampler");
+	shader->uniform_metallic_factor = glGetUniformLocation(shader->program_id, "u_MetallicFactor");
+	shader->uniform_roughness_factor = glGetUniformLocation(shader->program_id, "u_RoughnessFactor");
 	shader->uniform_occlusion_sampler = glGetUniformLocation(shader->program_id, "u_OcclusionSampler");
 	shader->uniform_occlusion_strength = glGetUniformLocation(shader->program_id, "u_OcclusionStrength");
 	shader->uniform_emissive_sampler = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
@@ -338,12 +344,11 @@ void layman_shader_switch(const struct layman_shader *new) {
 void layman_shader_bind_uniform_material(const struct layman_shader *shader, const struct layman_material *material) {
 	layman_shader_switch(shader);
 
-	// TODO: These other uniforms.
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
 	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->kind);
 	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->kind);
-	// TODO: float metallic_factor;
-	// TODO: float roughness_factor;
+	glUniform1f(shader->uniform_metallic_factor, material->metallic_factor);
+	glUniform1f(shader->uniform_roughness_factor, material->roughness_factor);
 	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->kind);
 	glUniform1f(shader->uniform_normal_scale, material->normal_scale);
 	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
@@ -354,9 +359,10 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 
 void layman_shader_bind_uniform_environment(const struct layman_shader *shader, const struct layman_environment *environment) {
 	layman_shader_switch(shader);
+
 	glUniform1i(shader->uniform_environment_mip_count, environment->mip_count);
 	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->kind);
-	glUniform1i(shader->uniform_environment_ggx, environment->lambertian_lut->kind);
+	glUniform1i(shader->uniform_environment_ggx, environment->ggx->kind);
 	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut->kind);
 	glUniform1i(shader->uniform_environment_charlie, environment->charlie->kind);
 	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut->kind);
@@ -364,6 +370,7 @@ void layman_shader_bind_uniform_environment(const struct layman_shader *shader, 
 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
 	layman_shader_switch(shader);
+
 	glUniform3fv(shader->uniform_camera, 1, camera->position);
 }
 
