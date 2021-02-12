@@ -1,2 +1,9 @@
-/.idea
+# Visual Studio Code editor.
+/.vscode
+/build
+
+# Prevent human mistakes.
 *.exe
+*.glb
+*.gltf
+*.hdr
