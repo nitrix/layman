@@ -137,7 +137,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 
 	        // Lighting.
 	        // "#define MATERIAL_UNLIT\n"
-	        // "#define USE_IBL\n"
+	        "#define USE_IBL\n"
 	        "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
@@ -195,6 +195,13 @@ static void find_uniforms(struct layman_shader *shader) {
 	shader->uniform_emissive_sampler = glGetUniformLocation(shader->program_id, "u_EmissiveSampler");
 	shader->uniform_emissive_factor = glGetUniformLocation(shader->program_id, "u_EmissiveFactor");
 	shader->uniform_camera = glGetUniformLocation(shader->program_id, "u_Camera");
+
+	shader->uniform_environment_mip_count = glGetUniformLocation(shader->program_id, "u_MipCount");
+	shader->uniform_environment_lambertian = glGetUniformLocation(shader->program_id, "u_LambertianEnvSampler");
+	shader->uniform_environment_ggx = glGetUniformLocation(shader->program_id, "u_GGXEnvSampler");
+	shader->uniform_environment_ggx_lut = glGetUniformLocation(shader->program_id, "u_GGXLUT");
+	shader->uniform_environment_charlie = glGetUniformLocation(shader->program_id, "u_CharlieEnvSampler");
+	shader->uniform_environment_charlie_lut = glGetUniformLocation(shader->program_id, "u_CharlieLUT");
 
 	char name[64];
 	for (size_t i = 0; i < MAX_LIGHTS; i++) {
@@ -343,6 +350,16 @@ void layman_shader_bind_uniform_material(const struct layman_shader *shader, con
 	glUniform1f(shader->uniform_occlusion_strength, material->occlusion_strength);
 	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
 	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor);
+}
+
+void layman_shader_bind_uniform_environment(const struct layman_shader *shader, const struct layman_environment *environment) {
+	layman_shader_switch(shader);
+	glUniform1i(shader->uniform_environment_mip_count, environment->mip_count);
+	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->kind);
+	glUniform1i(shader->uniform_environment_ggx, environment->lambertian_lut->kind);
+	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut->kind);
+	glUniform1i(shader->uniform_environment_charlie, environment->charlie->kind);
+	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut->kind);
 }
 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {

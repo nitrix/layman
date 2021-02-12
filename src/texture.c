@@ -26,8 +26,15 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 
 	// Figure out what OpenGL target to use based on the kind.
 	switch (kind) {
-	    case LAYMAN_TEXTURE_KIND_CUBEMAP: texture->gl_target = GL_TEXTURE_CUBE_MAP; break;
-	    default: texture->gl_target = GL_TEXTURE_2D; break;
+	    case LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN:
+	    case LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX:
+	    case LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE:
+	    case LAYMAN_TEXTURE_KIND_CUBEMAP:
+		    texture->gl_target = GL_TEXTURE_CUBE_MAP;
+		    break;
+	    default:
+		    texture->gl_target = GL_TEXTURE_2D;
+		    break;
 	}
 
 	// Translate our data type to OpenGL data type.

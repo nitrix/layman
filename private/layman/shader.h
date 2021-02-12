@@ -15,6 +15,14 @@ struct layman_shader {
 	GLint uniform_emissive_sampler;
 	GLint uniform_emissive_factor;
 
+	// Environment IBL.
+	GLint uniform_environment_mip_count;
+	GLint uniform_environment_lambertian;
+	GLint uniform_environment_ggx;
+	GLint uniform_environment_ggx_lut;
+	GLint uniform_environment_charlie;
+	GLint uniform_environment_charlie_lut;
+
 	// Camera uniforms.
 	GLint uniform_camera;
 

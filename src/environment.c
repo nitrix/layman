@@ -169,6 +169,9 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 		return NULL;
 	}
 
+	environment->mip_count = 10;
+	size_t width = 1024, height = 1024;
+
 	layman_shader_switch(iblsampler_shader);
 
 	GLint pfp_roughness_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_roughness");
@@ -178,25 +181,69 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	GLint pfp_lodbias_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_lodBias");
 	GLint pfp_distribution_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_distribution");
 
-	struct layman_framebuffer *fb = layman_framebuffer_create(2048, 2048);
+	struct layman_framebuffer *fb = layman_framebuffer_create(width, height);
 	if (!fb) {
 		fprintf(stderr, "FB error\n");
 		return NULL;
 	}
 
-	glViewport(0, 0, 2048, 2048);
+	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
 
-	GLuint cubemap_id;
-	glGenTextures(1, &cubemap_id);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_id);
-	for (size_t face = 0; face < 6; face++) {
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, GL_RGB16F, 2048, 2048, 0, GL_RGB, GL_FLOAT, NULL);
+	// Lambertian
+	GLuint lambertian_id;
+	glGenTextures(1, &lambertian_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, lambertian_id);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	for (size_t mip = 0; mip < environment->mip_count; mip++) {
+		for (size_t face = 0; face < 6; face++) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
+		}
 	}
 
-	for (size_t face = 0; face < 6; face++) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, cubemap_id, 0);
+	GLuint lambertian_lut_id;
+	glGenTextures(1, &lambertian_lut_id);
+	glBindTexture(GL_TEXTURE_2D, lambertian_lut_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+
+	// GGX
+	GLuint ggx_id;
+	glGenTextures(1, &ggx_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, ggx_id);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	for (size_t mip = 0; mip < environment->mip_count; mip++) {
+		for (size_t face = 0; face < 6; face++) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
+		}
 	}
+
+	GLuint ggx_lut_id;
+	glGenTextures(1, &ggx_lut_id);
+	glBindTexture(GL_TEXTURE_2D, ggx_lut_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+
+	// Charlie
+	GLuint charlie_id;
+	glGenTextures(1, &charlie_id);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, charlie_id);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	for (size_t mip = 0; mip < environment->mip_count; mip++) {
+		for (size_t face = 0; face < 6; face++) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
+		}
+	}
+
+	GLuint charlie_lut_id;
+	glGenTextures(1, &charlie_lut_id);
+	glBindTexture(GL_TEXTURE_2D, charlie_lut_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+
+	layman_texture_switch(environment->cubemap);
+	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
+	glUniform1i(cubemap_location, environment->cubemap->kind);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -204,16 +251,9 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	layman_texture_switch(environment->cubemap);
-	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
-	glUniform1i(cubemap_location, environment->cubemap->kind);
-
-	glUniform1f(pfp_roughness_location, 0.20);
-	glUniform1ui(pfp_samplecount_location, 2);
-	glUniform1ui(pfp_miplevel_location, 0);
-	glUniform1ui(pfp_width_location, 2048); // FIXME
+	glUniform1ui(pfp_samplecount_location, 1024);
+	glUniform1ui(pfp_width_location, environment->cubemap->width); // FIXME: The cubemap width or current mip?
 	glUniform1f(pfp_lodbias_location, 0);
-	glUniform1ui(pfp_distribution_location, 1);
 
 	const GLenum buffers[] = {
 		GL_COLOR_ATTACHMENT0,
@@ -222,9 +262,10 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 		GL_COLOR_ATTACHMENT3,
 		GL_COLOR_ATTACHMENT4,
 		GL_COLOR_ATTACHMENT5,
+		GL_COLOR_ATTACHMENT6, // LUT
 	};
 
-	glDrawBuffers(6, buffers);
+	glDrawBuffers(7, buffers);
 
 	glBindFragDataLocation(iblsampler_shader->program_id, 0, "outFace0");
 	glBindFragDataLocation(iblsampler_shader->program_id, 1, "outFace1");
@@ -232,25 +273,85 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	glBindFragDataLocation(iblsampler_shader->program_id, 3, "outFace3");
 	glBindFragDataLocation(iblsampler_shader->program_id, 4, "outFace4");
 	glBindFragDataLocation(iblsampler_shader->program_id, 5, "outFace5");
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glBindFragDataLocation(iblsampler_shader->program_id, 6, "outLUT");
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 	glDisable(GL_CULL_FACE);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	for (int mip = environment->mip_count - 1; mip != -1; mip--) {
+		glUniform1f(pfp_roughness_location, (float) mip / (float) (environment->mip_count - 1));
+		glUniform1ui(pfp_miplevel_location, mip);
+
+		// Lambertian
+		glUniform1ui(pfp_distribution_location, 0);
+		for (size_t face = 0; face < 6; face++) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, lambertian_id, mip);
+		}
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, lambertian_lut_id, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		// GGX
+		glUniform1ui(pfp_distribution_location, 1);
+		for (size_t face = 0; face < 6; face++) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, ggx_id, mip);
+		}
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, ggx_lut_id, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		// Charlie
+		glUniform1ui(pfp_distribution_location, 2);
+		for (size_t face = 0; face < 6; face++) {
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, charlie_id, mip);
+		}
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, charlie_lut_id, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
 	glEnable(GL_CULL_FACE);
 
-	// TODO: Compute pre-filtered specular environment map.
-	// TODO: Compute diffuse irradiance cubemap.
-	// TODO: Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
-	environment->lambertian = NULL;
-	environment->lambertian_lut = NULL;
-	environment->ggx = NULL;
-	environment->ggx_lut = NULL;
-	environment->charlie = NULL;
-	environment->charlie_lut = NULL;
+	environment->lambertian = malloc(sizeof *environment->lambertian);
+	environment->lambertian->gl_id = lambertian_id;
+	environment->lambertian->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
+	environment->lambertian->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
+	environment->lambertian->gl_target = GL_TEXTURE_CUBE_MAP;
+
+	environment->lambertian_lut = malloc(sizeof *environment->lambertian_lut);
+	environment->lambertian_lut->gl_id = lambertian_lut_id;
+	environment->lambertian_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
+	environment->lambertian_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
+	environment->lambertian_lut->gl_target = GL_TEXTURE_2D;
+
+	environment->ggx = malloc(sizeof *environment->ggx);
+	environment->ggx->gl_id = ggx_id;
+	environment->ggx->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX;
+	environment->ggx->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX;
+	environment->ggx->gl_target = GL_TEXTURE_CUBE_MAP;
+
+	environment->ggx_lut = malloc(sizeof *environment->ggx_lut);
+	environment->ggx_lut->gl_id = ggx_lut_id;
+	environment->ggx_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
+	environment->ggx_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
+	environment->ggx_lut->gl_target = GL_TEXTURE_2D;
+
+	environment->charlie = malloc(sizeof *environment->charlie);
+	environment->charlie->gl_id = charlie_id;
+	environment->charlie->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE;
+	environment->charlie->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE;
+	environment->charlie->gl_target = GL_TEXTURE_CUBE_MAP;
+
+	environment->charlie_lut = malloc(sizeof *environment->charlie_lut);
+	environment->charlie_lut->gl_id = charlie_lut_id;
+	environment->charlie_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
+	environment->charlie_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
+	environment->charlie_lut->gl_target = GL_TEXTURE_2D;
 
 	layman_shader_destroy(iblsampler_shader);
 
@@ -268,4 +369,25 @@ void layman_environment_destroy(struct layman_environment *environment) {
 	layman_texture_destroy(environment->charlie_lut);
 
 	free(environment);
+}
+
+void layman_environment_switch(const struct layman_environment *new) {
+	thread_local static const struct layman_environment *current = NULL;
+
+	if (current == new) {
+		return;
+	}
+
+	current = new;
+
+	if (new) {
+		layman_texture_switch(new->lambertian);
+		layman_texture_switch(new->lambertian_lut);
+		layman_texture_switch(new->ggx);
+		layman_texture_switch(new->ggx_lut);
+		layman_texture_switch(new->charlie);
+		layman_texture_switch(new->charlie_lut);
+	} else {
+		layman_texture_switch(NULL);
+	}
 }

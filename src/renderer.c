@@ -68,14 +68,15 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 }
 
 static void render_mesh(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene, const struct layman_mesh *mesh) {
-	layman_mesh_switch(mesh);
-
 	static GLint viewProjectionMatrixLocation = -1;
 	static GLint modelMatrixLocation = -1;
 	static GLint normalMatrixLocation = -1;
 	static GLint exposureLocation = -1;
 
+	layman_mesh_switch(mesh);
+
 	// Uniforms.
+	layman_shader_bind_uniform_environment(mesh->shader, scene->environment);
 	layman_shader_bind_uniform_material(mesh->shader, mesh->material);
 	layman_shader_bind_uniform_camera(mesh->shader, camera);
 	layman_shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
@@ -160,6 +161,7 @@ double layman_renderer_elapsed(const struct layman_renderer *renderer) {
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
 	layman_renderer_switch(renderer);
+	layman_environment_switch(scene->environment);
 
 	// Clear the screen.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

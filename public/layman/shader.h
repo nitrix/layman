@@ -16,4 +16,7 @@ void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const
 // TODO: Documentation.
 void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const struct layman_light **lights, size_t count);
 
+// TODO: Documentation.
+void layman_shader_bind_uniform_environment(const struct layman_shader *shader, const struct layman_environment *environment);
+
 #endif
