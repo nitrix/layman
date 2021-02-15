@@ -211,6 +211,9 @@ struct layman_model *layman_model_load(const char *filepath) {
 }
 
 void layman_model_destroy(struct layman_model *model) {
-	unload_meshes(model);
+	if (model) {
+		unload_meshes(model);
+	}
+
 	free(model);
 }

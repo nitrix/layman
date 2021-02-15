@@ -18,7 +18,6 @@
  *
  */
 
-#include "layman/application.h"
 #include "layman/camera.h"
 #include "layman/entity.h"
 #include "layman/environment.h"

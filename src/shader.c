@@ -140,7 +140,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        // "#define MATERIAL_UNLIT\n"
 	        "#define USE_HDR\n"
 	        "#define USE_IBL\n"
-	        "#define USE_PUNCTUAL\n"
+	        // "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
 	        // Debugging.

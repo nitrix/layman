@@ -67,4 +67,7 @@ void layman_window_poll_events(const struct layman_window *window);
  */
 void layman_window_refresh(const struct layman_window *window);
 
+// TODO: Documentation.
+double layman_window_elapsed(const struct layman_window *window);
+
 #endif

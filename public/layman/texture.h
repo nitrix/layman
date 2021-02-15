@@ -1,6 +1,7 @@
 #ifndef LAYMAN_TEXTURE_H
 #define LAYMAN_TEXTURE_H
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 enum layman_texture_kind {

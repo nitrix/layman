@@ -14,6 +14,8 @@ struct layman_renderer {
 	// TODO: Does this belongs here?
 	double start_time;
 	float exposure;
+
+	const struct layman_window *window;
 };
 
 void layman_renderer_switch(const struct layman_renderer *renderer);

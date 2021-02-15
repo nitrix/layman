@@ -2,44 +2,125 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct state {
+	struct layman_window *window;
+	struct layman_renderer *renderer;
+	struct layman_camera *camera;
+	struct layman_scene *scene;
+	struct layman_environment *environment;
+};
+
+struct state state = {
+	.window = NULL,
+	.renderer = NULL,
+};
+
+bool setup() {
+	state.window = layman_window_create(1280, 720, "Example", false);
+	if (!state.window) {
+		fprintf(stderr, "Unable to create the window\n");
+		return false;
+	}
+
+	state.renderer = layman_renderer_create(state.window);
+	if (!state.renderer) {
+		fprintf(stderr, "Unable to create the window\n");
+		return false;
+	}
+
+	state.camera = layman_camera_create();
+	if (!state.camera) {
+		fprintf(stderr, "Unable to create the camera\n");
+		return false;
+	}
+
+	state.scene = layman_scene_create();
+	if (!state.scene) {
+		fprintf(stderr, "Unable to create the scene\n");
+		return false;
+	}
+
+	state.environment = layman_environment_create_from_hdr("field.hdr");
+	if (!state.environment) {
+		fprintf(stderr, "Unable to create the environment\n");
+		return false;
+	}
+
+	layman_scene_assign_environment(state.scene, state.environment);
+
+	return true;
+}
+
+void cleanup(void) {
+	layman_window_destroy(state.window);
+	layman_renderer_destroy(state.renderer);
+	layman_camera_destroy(state.camera);
+	layman_scene_destroy(state.scene);
+}
+
+void main_loop(void) {
+	int fps = 0;
+	double previous = layman_window_elapsed(state.window);
+
+	while (!layman_window_closed(state.window)) {
+		layman_window_poll_events(state.window);
+		layman_renderer_render(state.renderer, state.camera, state.scene);
+		layman_window_refresh(state.window);
+
+		fps++;
+		double current = layman_window_elapsed(state.window);
+
+		if (current > previous + 1) {
+			printf("FPS: %d\n", fps);
+			previous = current;
+			fps = 0;
+		}
+	}
+}
+
 int main(void) {
-	struct layman_application *app = layman_application_create(1280, 720, "Example", false);
-	// struct layman_application *app = layman_application_create(0, 0, "Example", true);
-	if (!app) {
-		fprintf(stderr, "Unable to create the layman application\n");
+	if (!setup()) {
+		cleanup();
 		return EXIT_FAILURE;
 	}
 
-	// TODO: The renderer should need the window, the model/shader should need the renderer to avoid state leaks.
+	// TODO: Load model by name, model manager please?
+	// TODO: The model/shader should need the renderer to avoid state leaks.
 
-	// TODO: No hardcoded filepaths.
-	struct layman_model *model = layman_model_load("DamagedHelmet.glb");
-	if (!model) {
-		fprintf(stderr, "Unable to load model\n");
-		return EXIT_FAILURE; // TODO: Handle error better.
-	}
+	struct layman_model *model = NULL;
+	struct layman_entity *entity = NULL;
+	struct layman_light *light = NULL;
 
-	struct layman_entity *entity = layman_entity_create_from_model(model);
-	if (!entity) {
-		fprintf(stderr, "Unable to create entity\n");
-		return EXIT_FAILURE; // TODO: Handle error better.
-	}
+	do {
+		model = layman_model_load("DamagedHelmet.glb");
+		if (!model) {
+			fprintf(stderr, "Unable to load model\n");
+			break;
+		}
 
-	struct layman_light *light = layman_light_create(LAYMAN_LIGHT_TYPE_DIRECTIONAL);
-	if (!light) {
-		fprintf(stderr, "Unable to create light\n");
-		return EXIT_FAILURE; // TODO: Handle error better.
-	}
+		entity = layman_entity_create_from_model(model);
+		if (!entity) {
+			fprintf(stderr, "Unable to create entity\n");
+			break;
+		}
 
-	layman_scene_add_entity(app->scene, entity);
-	layman_scene_add_light(app->scene, light);
+		light = layman_light_create(LAYMAN_LIGHT_TYPE_DIRECTIONAL);
+		if (!light) {
+			fprintf(stderr, "Unable to create light\n");
+			break;
+		}
 
-	layman_application_run(app); // Main loop.
+		layman_scene_add_entity(state.scene, entity);
+		layman_scene_add_light(state.scene, light);
+
+		main_loop();
+	} while (false);
 
 	layman_light_destroy(light);
 	layman_entity_destroy(entity);
 	layman_model_destroy(model);
-	layman_application_destroy(app);
+
+	cleanup();
 
 	return EXIT_SUCCESS;
 }

@@ -18,6 +18,8 @@ struct layman_renderer *layman_renderer_create(const struct layman_window *windo
 	renderer->start_time = glfwGetTime();
 	renderer->exposure = 1;
 
+	renderer->window = window;
+
 	return renderer;
 }
 
@@ -45,7 +47,7 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 	// Resize the viewport, go back to the default framebuffer and clear color for rendering.
 	glViewport(0, 0, new->viewport_width, new->viewport_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0, 0, 0, 1); // Black.
+	glClearColor(1, 1, 1, 1); // Black.
 
 	// TODO: Support a wireframe mode.
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -122,7 +124,7 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	static GLint projection_location = 0;
 	static GLint view_location = 0;
 
-	// FIXME: This shouldn't be here.
+	// FIXME: All this shouldn't be here.
 	if (skybox_shader == NULL) {
 		skybox_shader = layman_shader_load_from_files("shaders/skybox/main.vert", "shaders/skybox/main.frag", NULL);
 		if (skybox_shader == NULL) {
@@ -137,8 +139,6 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 		view_location = glGetUniformLocation(skybox_shader->program_id, "view");
 	}
 
-	double elapsed = layman_renderer_elapsed(renderer);
-
 	layman_shader_switch(skybox_shader);
 	layman_texture_switch(scene->environment->cubemap);
 	glUniform1i(environment_map_location, scene->environment->cubemap->kind);
@@ -147,7 +147,6 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	glUniformMatrix4fv(projection_location, 1, false, projection[0]);
 	mat4 view = GLM_MAT4_IDENTITY_INIT;
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
-	// glm_rotate_y(view, M_PI * elapsed * -0.10, view);
 	glUniformMatrix4fv(view_location, 1, false, view[0]);
 
 	glDisable(GL_CULL_FACE);
@@ -161,6 +160,7 @@ double layman_renderer_elapsed(const struct layman_renderer *renderer) {
 }
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
+	layman_window_switch(renderer->window);
 	layman_renderer_switch(renderer);
 	layman_environment_switch(scene->environment);
 

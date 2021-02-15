@@ -27,9 +27,9 @@ static void decrement_refcount(void) {
 	}
 }
 
-static void glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *userParam) {
+static void gl_debug(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *custom) {
 	UNUSED(length);
-	UNUSED(userParam);
+	UNUSED(custom);
 
 	// Ignore non-significant error/warning codes
 	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) {
@@ -159,7 +159,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 		if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
 			glEnable(GL_DEBUG_OUTPUT);
 			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback(glDebugOutput, NULL);
+			glDebugMessageCallback(gl_debug, NULL);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 		}
 	}
@@ -176,7 +176,14 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	// This is the last thing we want to do, to make sure the user doesn't see the setup as it happens.
 	glfwShowWindow(window->glfw_window);
 
+	// For time calculations.
+	window->start_time = glfwGetTime();
+
 	return window;
+}
+
+double layman_window_elapsed(const struct layman_window *window) {
+	return glfwGetTime() - window->start_time;
 }
 
 void layman_window_destroy(struct layman_window *window) {

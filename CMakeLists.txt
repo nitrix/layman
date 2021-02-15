@@ -1,7 +1,11 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
 PROJECT(layman C)
 
 SET(C_STANDARD 11)
+
+# Link-Time Optimization (LTO)
+# CMAKE_POLICY(SET CMP0069 NEW)
+# SET(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 ADD_SUBDIRECTORY(lib/cglm)
 ADD_SUBDIRECTORY(lib/glad)
@@ -11,7 +15,6 @@ ADD_SUBDIRECTORY(lib/stb)
 
 ADD_LIBRARY(
     layman
-    src/application.c
     src/camera.c
     src/entity.c
     src/environment.c
