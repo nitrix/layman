@@ -2,7 +2,8 @@
 #define LAYMAN_PRIVATE_CAMERA_H
 
 struct layman_camera {
-	vec3 position;
+	vec3 translation;
+	vec3 rotation;
 };
 
 #endif

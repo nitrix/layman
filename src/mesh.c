@@ -94,7 +94,7 @@ struct layman_mesh *layman_mesh_create_from_raw(const float *vertices, size_t ve
 	// That guy gets used by glDrawElements for the rendering, but isn't useful to the shader, as far as I know.
 	glGenBuffers(1, &mesh->ebo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo_indices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 3 * sizeof (unsigned short), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * 1 * sizeof (unsigned short), indices, GL_STATIC_DRAW);
 	mesh->indices_count = indices_count;
 
 	// Tangents.

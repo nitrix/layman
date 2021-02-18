@@ -143,6 +143,11 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        // "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
+	        // Tonemapping.
+	        // "#define TONEMAP_UNCHARTED\n"
+	        // "#define TONEMAP_HEJLRICHARD\n"
+	        // "#define TONEMAP_ACES\n"
+
 	        // Debugging.
 	        // "#define DEBUG_OUTPUT\n"
 	        // "#define DEBUG_BASECOLOR\n"
@@ -371,7 +376,7 @@ void layman_shader_bind_uniform_environment(const struct layman_shader *shader, 
 void layman_shader_bind_uniform_camera(const struct layman_shader *shader, const struct layman_camera *camera) {
 	layman_shader_switch(shader);
 
-	glUniform3fv(shader->uniform_camera, 1, camera->position);
+	glUniform3fv(shader->uniform_camera, 1, camera->translation);
 }
 
 void layman_shader_bind_uniform_lights(const struct layman_shader *shader, const struct layman_light **lights, size_t count) {

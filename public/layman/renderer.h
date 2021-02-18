@@ -14,7 +14,4 @@ void layman_renderer_destroy(struct layman_renderer *renderer);
 // TODO: Documentation.
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene);
 
-// TODO: Documentation.
-double layman_renderer_elapsed(const struct layman_renderer *renderer);
-
 #endif

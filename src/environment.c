@@ -282,7 +282,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
-	glDisable(GL_CULL_FACE);
+	// glDisable(GL_CULL_FACE);
 
 	for (int mip = environment->mip_count - 1; mip != -1; mip--) {
 		glUniform1f(pfp_roughness_location, (float) mip / (float) (environment->mip_count - 1));
@@ -319,7 +319,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
-	glEnable(GL_CULL_FACE);
+	// glEnable(GL_CULL_FACE);
 
 	environment->lambertian = malloc(sizeof *environment->lambertian);
 	environment->lambertian->gl_id = lambertian_id;

@@ -7,7 +7,7 @@ struct layman_renderer {
 	float viewport_height;
 
 	// Projection matrix.
-	float fov;
+	float fov; // In degrees (gets converted to radians in a few places).
 	float far_plane;
 	float near_plane;
 

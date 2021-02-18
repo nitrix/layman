@@ -34,13 +34,17 @@ bool setup() {
 		return false;
 	}
 
+	layman_camera_translation(state.camera, 0, 0, 3);
+
 	state.scene = layman_scene_create();
 	if (!state.scene) {
 		fprintf(stderr, "Unable to create the scene\n");
 		return false;
 	}
 
-	state.environment = layman_environment_create_from_hdr("field.hdr");
+	// state.environment = layman_environment_create_from_hdr("field.hdr");
+	state.environment = layman_environment_create_from_hdr("pisa.hdr");
+	// state.environment = layman_environment_create_from_hdr("neutral.hdr");
 	if (!state.environment) {
 		fprintf(stderr, "Unable to create the environment\n");
 		return false;
@@ -64,12 +68,19 @@ void main_loop(void) {
 
 	while (!layman_window_closed(state.window)) {
 		layman_window_poll_events(state.window);
+
+		double elapsed = layman_window_elapsed(state.window);
+		double angle = 3.1416 * 0.1f * elapsed;
+		// double angle = 0;
+		// This is what we worked on . Moving the camera position around the model, makes the skybox reflection wiggle nicely.
+		layman_camera_translation(state.camera, -3 * sinf(angle), 0, 3 * cosf(angle));
+		// layman_camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
+
 		layman_renderer_render(state.renderer, state.camera, state.scene);
 		layman_window_refresh(state.window);
 
 		fps++;
 		double current = layman_window_elapsed(state.window);
-
 		if (current > previous + 1) {
 			printf("FPS: %d\n", fps);
 			previous = current;
@@ -92,7 +103,9 @@ int main(void) {
 	struct layman_light *light = NULL;
 
 	do {
+		// model = layman_model_load("BoomBox.glb");
 		model = layman_model_load("DamagedHelmet.glb");
+		// model = layman_model_load("DamagedHelmet_Tangents.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");
 			break;

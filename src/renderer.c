@@ -7,11 +7,13 @@ struct layman_renderer *layman_renderer_create(const struct layman_window *windo
 	}
 
 	// TODO: Dynamic dimensions.
-	renderer->viewport_width = window->width;
-	renderer->viewport_height = window->height;
+	int width, height;
+	glfwGetFramebufferSize(window->glfw_window, &width, &height);
+	renderer->viewport_width = width;
+	renderer->viewport_height = height;
 
 	// TODO: Change the FOV.
-	renderer->fov = 90.0f;
+	renderer->fov = 45.0f; // Degrees.
 	renderer->far_plane = 1000.0f;
 	renderer->near_plane = 0.1f;
 
@@ -47,7 +49,7 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 	// Resize the viewport, go back to the default framebuffer and clear color for rendering.
 	glViewport(0, 0, new->viewport_width, new->viewport_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(1, 1, 1, 1); // Black.
+	glClearColor(0, 0, 0, 1); // Black.
 
 	// TODO: Support a wireframe mode.
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -57,7 +59,7 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_BACK);
 	// glFrontFace(GL_CCW);
-	glDisable(GL_CULL_FACE);
+	// glDisable(GL_CULL_FACE);
 
 	// Depth testing.
 	glEnable(GL_DEPTH_TEST);
@@ -94,20 +96,26 @@ static void render_mesh(struct layman_renderer *renderer, const struct layman_ca
 
 	// TODO: More uniforms, tidy this up.
 	// TODO: Should all move into the model file and stuff.
-	double elapsed = layman_renderer_elapsed(renderer);
+
+	double elapsed = layman_window_elapsed(renderer->window);
 
 	mat4 view_matrix, projection_matrix, view_projection_matrix;
-	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -5}, (vec3) { 0, 1, 0}, view_matrix); // FIXME: Static camera for now.
+	glm_lookat(camera->translation, (vec3) { 0, 0, 0}, (vec3) { 0, 1, 0}, view_matrix);
 	glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection_matrix);
-	// glm_mat4_mul(projection_matrix, view_matrix, view_projection_matrix);
-	glm_mat4_mul(view_matrix, projection_matrix, view_projection_matrix);
+	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
+
+	// glm_rotate_z(view_matrix, camera->rotation[2], view_matrix);
+	// glm_rotate_y(view_matrix, camera->rotation[1], view_matrix);
+	// glm_rotate_x(view_matrix, camera->rotation[0], view_matrix);
+
+	glm_mat4_mul(projection_matrix, view_matrix, view_projection_matrix);
 	glUniformMatrix4fv(viewProjectionMatrixLocation, 1, false, view_projection_matrix[0]);
 
 	// Translation, rotation (z, y, x), scale.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
-	glm_translate_z(model_matrix, -3);
-	glm_rotate_y(model_matrix, M_PI * elapsed * 0.25f, model_matrix);
-	glm_rotate_x(model_matrix, M_PI_2, model_matrix);
+	glm_rotate_y(model_matrix, M_PI_2, model_matrix);
+	glm_rotate_x(model_matrix, M_PI_2, model_matrix); // FIXME Should come from the glTF transforms?
+	// glm_scale(model_matrix, (vec3) { 100, 100, 100});
 
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, model_matrix[0]);
 	glUniformMatrix4fv(normalMatrixLocation, 1, false, model_matrix[0]);
@@ -118,7 +126,7 @@ static void render_mesh(struct layman_renderer *renderer, const struct layman_ca
 	glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
 }
 
-static void render_skybox(const struct layman_renderer *renderer, const struct layman_scene *scene) {
+static void render_skybox(const struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
 	static struct layman_shader *skybox_shader = NULL;
 	static GLint environment_map_location = 0;
 	static GLint projection_location = 0;
@@ -142,21 +150,19 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	layman_shader_switch(skybox_shader);
 	layman_texture_switch(scene->environment->cubemap);
 	glUniform1i(environment_map_location, scene->environment->cubemap->kind);
-	mat4 projection = GLM_MAT4_IDENTITY_INIT;
-	glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
-	glUniformMatrix4fv(projection_location, 1, false, projection[0]);
+	mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
+	// glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
+	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
+	glUniformMatrix4fv(projection_location, 1, false, projection_matrix[0]);
 	mat4 view = GLM_MAT4_IDENTITY_INIT;
-	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
+	glm_lookat(camera->translation, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
+	glm_rotate_y(view, camera->rotation[1], view);
 	glUniformMatrix4fv(view_location, 1, false, view[0]);
 
-	glDisable(GL_CULL_FACE);
+	// glDisable(GL_CULL_FACE);
 	renderCube();
-	glEnable(GL_CULL_FACE);
+	// glEnable(GL_CULL_FACE);
 	layman_mesh_switch(NULL);
-}
-
-double layman_renderer_elapsed(const struct layman_renderer *renderer) {
-	return glfwGetTime() - renderer->start_time;
 }
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
@@ -183,5 +189,5 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	// Render the skybox.
 	// This is done last so that only the fragments that aren't hiding it gets computed.
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
-	render_skybox(renderer, scene);
+	render_skybox(renderer, camera, scene);
 }
