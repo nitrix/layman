@@ -1,26 +1,30 @@
 #include "layman.h"
 
+#define RENDERER_FOV 45.0f
+#define RENDERER_PLANE_FAR 1000.0f
+#define RENDERER_PLANE_NEAR 0.1f
+
 struct layman_renderer *layman_renderer_create(const struct layman_window *window) {
 	struct layman_renderer *renderer = malloc(sizeof *renderer);
 	if (!renderer) {
 		return NULL;
 	}
 
-	// TODO: Dynamic dimensions.
-	int width, height;
-	glfwGetFramebufferSize(window->glfw_window, &width, &height);
+	// TODO: Dynamic dimensions; what happens when the window gets resized?
+	unsigned int width, height;
+	layman_window_framebuffer_size(window, &width, &height);
 	renderer->viewport_width = width;
 	renderer->viewport_height = height;
 
-	// TODO: Change the FOV.
-	renderer->fov = 45.0f; // Degrees.
-	renderer->far_plane = 1000.0f;
-	renderer->near_plane = 0.1f;
-
+	// TODO: Should provide means of modifying these.
+	renderer->fov = RENDERER_FOV;
+	renderer->far_plane = RENDERER_PLANE_FAR;
+	renderer->near_plane = RENDERER_PLANE_NEAR;
 	renderer->start_time = glfwGetTime();
 	renderer->exposure = 1;
 
 	renderer->window = window;
+	renderer->wireframe = false;
 
 	return renderer;
 }
@@ -51,10 +55,6 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1); // Black.
 
-	// TODO: Support a wireframe mode.
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-
 	// FIXME: Back face culling.
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_BACK);
@@ -67,6 +67,13 @@ void layman_renderer_switch(const struct layman_renderer *new) {
 
 	// Multisampling.
 	glEnable(GL_MULTISAMPLE);
+
+	// Wireframe.
+	if (new->wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	// Necessary to avoid the seams of the cubemap being visible.
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -97,10 +104,8 @@ static void render_mesh(struct layman_renderer *renderer, const struct layman_ca
 	// TODO: More uniforms, tidy this up.
 	// TODO: Should all move into the model file and stuff.
 
-	double elapsed = layman_window_elapsed(renderer->window);
-
 	mat4 view_matrix, projection_matrix, view_projection_matrix;
-	glm_lookat(camera->translation, (vec3) { 0, 0, 0}, (vec3) { 0, 1, 0}, view_matrix);
+	glm_lookat((float *) camera->translation, (vec3) { 0, 0, 0}, (vec3) { 0, 1, 0}, view_matrix);
 	glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection_matrix);
 	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
 
@@ -155,7 +160,7 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
 	glUniformMatrix4fv(projection_location, 1, false, projection_matrix[0]);
 	mat4 view = GLM_MAT4_IDENTITY_INIT;
-	glm_lookat(camera->translation, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
+	glm_lookat((float *) camera->translation, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
 	glm_rotate_y(view, camera->rotation[1], view);
 	glUniformMatrix4fv(view_location, 1, false, view[0]);
 
@@ -190,4 +195,9 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	// This is done last so that only the fragments that aren't hiding it gets computed.
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, camera, scene);
+}
+
+void layman_renderer_wireframe(struct layman_renderer *renderer, bool enabled) {
+	renderer->wireframe = enabled;
+	layman_renderer_switch(NULL);
 }

@@ -9,7 +9,7 @@ struct layman_texture {
 	enum layman_texture_kind kind;
 
 	// Object stuff.
-	GLuint gl_id;
+	GLuint id;
 
 	// Sampler stuff.
 	GLenum gl_target;

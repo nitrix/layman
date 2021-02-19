@@ -14,11 +14,11 @@ A simple 3D engine for the layman.
 - Multisample Anti-aliasing (MSAA).
 - Mipmapping and Anisotropic Filtering.
 - Tone mapping (Linear, Uncharted, Hejl Richard, ACES).
+- Wireframe mode.
 
 ## Planned
 - Face culling.
 - Flat terrain.
-- Wireframe mode.
 - Transparency
 - Fog
 - Third person camera with tilt-pan-zoom offsets.

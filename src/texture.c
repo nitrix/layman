@@ -6,7 +6,7 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 		return NULL;
 	}
 
-	texture->gl_id = 0;
+	texture->id = 0;
 	texture->kind = kind;
 	texture->width = width;
 	texture->height = height;
@@ -61,7 +61,7 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA32F: texture->gl_internal_format = GL_RGBA32F; break;
 	}
 
-	glGenTextures(1, &texture->gl_id);
+	glGenTextures(1, &texture->id);
 
 	layman_texture_switch(texture);
 
@@ -92,7 +92,7 @@ void layman_texture_destroy(struct layman_texture *texture) {
 		return;
 	}
 
-	glDeleteTextures(1, &texture->gl_id);
+	glDeleteTextures(1, &texture->id);
 	free(texture);
 }
 
@@ -104,8 +104,7 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 		int width, height, components;
 		float *data = stbi_loadf(filepath, &width, &height, &components, 0);
 
-		// Important! Once we're done, we have to revert that setting back, otherwise stbi will
-		// incorrectly flip future images when they get loaded.
+		// We have to unconditionally revert that setting back, otherwise stbi will incorrectly flip future images when they get loaded.
 		stbi_set_flip_vertically_on_load(false);
 
 		if (!data) {
@@ -118,11 +117,6 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 			return NULL;
 		}
 
-		// TODO: Not sure if these are mendatory.
-		layman_texture_switch(texture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 		layman_texture_provide_data(texture, 0, width, height, data);
 
 		stbi_image_free(data);
@@ -130,8 +124,7 @@ struct layman_texture *layman_texture_create_from_file(enum layman_texture_kind 
 		return texture;
 	}
 
-	// TODO: Support other kinds?
-
+	// Texture kind not supported yet.
 	return NULL;
 }
 
@@ -178,11 +171,11 @@ void layman_texture_switch(const struct layman_texture *new) {
 
 	if (new) {
 		glActiveTexture(new->gl_unit);
-		glBindTexture(new->gl_target, new->gl_id);
+		glBindTexture(new->gl_target, new->id);
 	}
 }
 
-void layman_texture_provide_data(struct layman_texture *texture, size_t level, size_t width, size_t height, const void *data) {
+void layman_texture_provide_data(struct layman_texture *texture, unsigned int level, unsigned int width, unsigned int height, const void *data) {
 	layman_texture_switch(texture);
 
 	glTexImage2D(texture->gl_target, level, texture->gl_internal_format, width, height, 0, texture->gl_format, texture->gl_type, data);

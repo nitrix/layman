@@ -118,7 +118,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	glUniformMatrix4fv(projection_location, 1, false, (float *) projection);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, equirectangular->gl_id);
+	glBindTexture(GL_TEXTURE_2D, equirectangular->id);
 
 	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
@@ -134,7 +134,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 
 	// TODO: This should use the texture module and not be created manually here.
 	struct layman_texture *cubemap = malloc(sizeof *cubemap);
-	cubemap->gl_id = cubemap_id;
+	cubemap->id = cubemap_id;
 	cubemap->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_CUBEMAP;
 	cubemap->kind = LAYMAN_TEXTURE_KIND_CUBEMAP;
 	cubemap->gl_target = GL_TEXTURE_CUBE_MAP;
@@ -322,37 +322,37 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	// glEnable(GL_CULL_FACE);
 
 	environment->lambertian = malloc(sizeof *environment->lambertian);
-	environment->lambertian->gl_id = lambertian_id;
+	environment->lambertian->id = lambertian_id;
 	environment->lambertian->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
 	environment->lambertian->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
 	environment->lambertian->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->lambertian_lut = malloc(sizeof *environment->lambertian_lut);
-	environment->lambertian_lut->gl_id = lambertian_lut_id;
+	environment->lambertian_lut->id = lambertian_lut_id;
 	environment->lambertian_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
 	environment->lambertian_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
 	environment->lambertian_lut->gl_target = GL_TEXTURE_2D;
 
 	environment->ggx = malloc(sizeof *environment->ggx);
-	environment->ggx->gl_id = ggx_id;
+	environment->ggx->id = ggx_id;
 	environment->ggx->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX;
 	environment->ggx->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX;
 	environment->ggx->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->ggx_lut = malloc(sizeof *environment->ggx_lut);
-	environment->ggx_lut->gl_id = ggx_lut_id;
+	environment->ggx_lut->id = ggx_lut_id;
 	environment->ggx_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
 	environment->ggx_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
 	environment->ggx_lut->gl_target = GL_TEXTURE_2D;
 
 	environment->charlie = malloc(sizeof *environment->charlie);
-	environment->charlie->gl_id = charlie_id;
+	environment->charlie->id = charlie_id;
 	environment->charlie->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE;
 	environment->charlie->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE;
 	environment->charlie->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->charlie_lut = malloc(sizeof *environment->charlie_lut);
-	environment->charlie_lut->gl_id = charlie_lut_id;
+	environment->charlie_lut->id = charlie_lut_id;
 	environment->charlie_lut->kind = LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
 	environment->charlie_lut->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
 	environment->charlie_lut->gl_target = GL_TEXTURE_2D;

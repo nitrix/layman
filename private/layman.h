@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "GLFW/glfw3.h"
 #include "cglm/cglm.h"
 #include "glad/glad.h"
 #include "gltf.h"

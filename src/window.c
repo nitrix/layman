@@ -1,4 +1,29 @@
+#include "GLFW/glfw3.h"
+#include "glad/glad.h"
 #include "layman.h"
+
+#define OPENGL_MAJOR_VERSION 4
+#define OPENGL_MINOR_VERSION 3
+#define OPENGL_MULTISAMPLING_SAMPLES 4
+
+#if LAYGL_DEBUG
+#define OPENGL_DEBUGGING 1
+#endif
+
+// Mac has limitations.
+// It can only go up to version 4.1 and doesn't support debugging (only in 4.3+).
+#if __APPLE__
+#undef OPENGL_MINOR_VERSION
+#define OPENGL_MINOR_VERSION 1
+#undef OPENGL_DEBUGGING
+#endif
+
+struct layman_window {
+	GLFWwindow *glfw_window;
+	unsigned int width;
+	unsigned int height;
+	double start_time;
+};
 
 thread_local const struct layman_window *current_window;
 
@@ -27,7 +52,7 @@ static void decrement_refcount(void) {
 	}
 }
 
-static void gl_debug(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *custom) {
+static void opengl_debug_callback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *custom) {
 	UNUSED(length);
 	UNUSED(custom);
 
@@ -73,7 +98,43 @@ static void gl_debug(GLenum source, GLenum type, unsigned int id, GLenum severit
 	fprintf(stderr, "\n\n");
 }
 
-struct layman_window *layman_window_create(int width, int height, const char *title, bool fullscreen) {
+void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
+	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
+	if (!primary_monitor) {
+		return;
+	}
+
+	const GLFWvidmode *video_mode = glfwGetVideoMode(primary_monitor);
+	if (!video_mode) {
+		return;
+	}
+
+	if (*width == 0) {
+		*width = video_mode->width;
+	}
+
+	if (*height == 0) {
+		*height = video_mode->height;
+	}
+}
+
+static void setup_opengl_debugging(void) {
+	if (!OPENGL_DEBUGGING) {
+		return;
+	}
+
+	GLint context_flags;
+	glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
+
+	if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(opengl_debug_callback, NULL);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+	}
+}
+
+struct layman_window *layman_window_create(unsigned int width, unsigned int height, const char *title, bool fullscreen) {
 	struct layman_window *window = malloc(sizeof *window);
 	if (!window) {
 		return NULL;
@@ -81,6 +142,7 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 
 	window->width = width;
 	window->height = height;
+	window->start_time = glfwGetTime();
 
 	// Automatically initializes the GLFW library for the first window created.
 	if (!increment_refcount()) {
@@ -89,52 +151,24 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 	}
 
 	// Use the primary monitor's resolution when dimensions weren't specified.
-	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
-	const GLFWvidmode *video_mode = glfwGetVideoMode(primary_monitor);
+	apply_fallback_resolution(&window->width, &window->height);
 
-	if (window->width <= 0) {
-		window->width = video_mode->width;
-	}
-
-	if (window->height <= 0) {
-		window->height = video_mode->height;
-	}
-
-	int major = 4;
-	int minor = 3;
-
-	#if LAYGL_DEBUG
-	bool debugging = true;
-	#else
-	bool debugging = false;
-	#endif
-
-	// Mac has limitations. I can only go up to version 4.1 and doesn't support debugging (only in 4.3+).
-	#if __APPLE__
-	major = 4;
-	minor = 1;
-	debugging = false;
-	#endif
-
-	// Create the actual window using the GLFW library.
-	glfwWindowHint(GLFW_VISIBLE, false);
+	// GLFW window hints.
 	glfwWindowHint(GLFW_DECORATED, true);
-	glfwWindowHint(GLFW_FOCUSED, true);
-	glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 	glfwWindowHint(GLFW_RESIZABLE, true);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, 4); // Multisampling.
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
+	glfwWindowHint(GLFW_SAMPLES, OPENGL_MULTISAMPLING_SAMPLES); // Multisampling.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, OPENGL_DEBUGGING);
 
-	// Enable OpenGL debugging when in debug mode.
-	if (debugging) {
-		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-	}
+	// Fullscreen mode always uses the primary monitor for now.
+	GLFWmonitor *monitor = fullscreen ? glfwGetPrimaryMonitor() : NULL;
 
-	window->glfw_window = glfwCreateWindow(window->width, window->height, title, fullscreen ? primary_monitor : NULL, NULL);
+	// Create the actual window using the GLFW library.
+	window->glfw_window = glfwCreateWindow(window->width, window->height, title, monitor, NULL);
 	if (!window->glfw_window) {
 		free(window);
 		decrement_refcount();
@@ -152,32 +186,13 @@ struct layman_window *layman_window_create(int width, int height, const char *ti
 		return NULL;
 	}
 
-	// Configure OpenGL debugging when in debug mode.
-	if (debugging) {
-		GLint context_flags;
-		glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
-		if (context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-			glEnable(GL_DEBUG_OUTPUT);
-			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			glDebugMessageCallback(gl_debug, NULL);
-			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-		}
-	}
+	// Setup OpenGL debugging.
+	setup_opengl_debugging();
 
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids ugly tearing artifacts.
 	// It requires the OpenGL context to be effective on Windows.
 	glfwSwapInterval(1);
-
-	// Center the window.
-	glfwSetWindowPos(window->glfw_window, video_mode->width / 2 - width / 2, video_mode->height / 2 - height / 2);
-
-	// Show the window.
-	// This is the last thing we want to do, to make sure the user doesn't see the setup as it happens.
-	glfwShowWindow(window->glfw_window);
-
-	// For time calculations.
-	window->start_time = glfwGetTime();
 
 	return window;
 }
@@ -223,4 +238,11 @@ void layman_window_poll_events(const struct layman_window *window) {
 void layman_window_refresh(const struct layman_window *window) {
 	layman_window_switch(window);
 	glfwSwapBuffers(window->glfw_window);
+}
+
+void layman_window_framebuffer_size(const struct layman_window *window, unsigned int *width, unsigned int *height) {
+	int tmp_width, tmp_height;
+	glfwGetFramebufferSize(window->glfw_window, &tmp_width, &tmp_height);
+	*width = tmp_width;
+	*height = tmp_height;
 }

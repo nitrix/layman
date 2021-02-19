@@ -11,6 +11,9 @@ struct layman_renderer {
 	float far_plane;
 	float near_plane;
 
+	// Debugging features.
+	bool wireframe;
+
 	// TODO: Does this belongs here?
 	double start_time;
 	float exposure;
