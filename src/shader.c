@@ -144,7 +144,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
 	        // Tonemapping.
-	        // "#define TONEMAP_UNCHARTED\n"
+	        "#define TONEMAP_UNCHARTED\n"
 	        // "#define TONEMAP_HEJLRICHARD\n"
 	        // "#define TONEMAP_ACES\n"
 

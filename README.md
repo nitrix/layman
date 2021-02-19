@@ -11,12 +11,12 @@ A simple 3D engine for the layman.
 - Physically Based Rendering (metallic/roughness and specular/glossiness workflows).
 - Analytical lights and Image-Based Lighting (IBL).
 - Supports glTF 2.0 file format.
-- Level of detail (mipmapping and anisotropic filtering).
 - Multisample Anti-aliasing (MSAA).
-- Optimizations (face culling).
+- Mipmapping and Anisotropic Filtering.
+- Tone mapping (Linear, Uncharted, Hejl Richard, ACES).
 
 ## Planned
-
+- Face culling.
 - Flat terrain.
 - Wireframe mode.
 - Transparency
