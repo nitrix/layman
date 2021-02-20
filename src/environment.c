@@ -206,7 +206,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	GLuint lambertian_lut_id;
 	glGenTextures(1, &lambertian_lut_id);
 	glBindTexture(GL_TEXTURE_2D, lambertian_lut_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 
 	// GGX
 	GLuint ggx_id;
@@ -223,7 +223,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	GLuint ggx_lut_id;
 	glGenTextures(1, &ggx_lut_id);
 	glBindTexture(GL_TEXTURE_2D, ggx_lut_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -242,7 +242,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	GLuint charlie_lut_id;
 	glGenTextures(1, &charlie_lut_id);
 	glBindTexture(GL_TEXTURE_2D, charlie_lut_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

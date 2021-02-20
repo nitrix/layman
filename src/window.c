@@ -7,7 +7,7 @@
 #define OPENGL_MULTISAMPLING_SAMPLES 4
 
 #if LAYGL_DEBUG
-#define OPENGL_DEBUGGING 1
+#define OPENGL_DEBUGGING
 #endif
 
 // Mac has limitations.
@@ -119,9 +119,9 @@ void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
 }
 
 static void setup_opengl_debugging(void) {
-	if (!OPENGL_DEBUGGING) {
-		return;
-	}
+	#ifndef OPENGL_DEBUGGING
+	return;
+	#endif
 
 	GLint context_flags;
 	glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
@@ -162,7 +162,10 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, OPENGL_DEBUGGING);
+
+	#ifdef OPENGL_DEBUGGING
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+	#endif
 
 	// Fullscreen mode always uses the primary monitor for now.
 	GLFWmonitor *monitor = fullscreen ? glfwGetPrimaryMonitor() : NULL;
