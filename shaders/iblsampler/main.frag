@@ -1,4 +1,4 @@
-//#extension GL_ARB_separate_shader_objects : enable
+precision highp float;
 
 #define UX3D_MATH_PI 3.1415926535897932384626433832795
 #define UX3D_MATH_INV_PI (1.0 / UX3D_MATH_PI)

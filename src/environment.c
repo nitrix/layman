@@ -138,6 +138,7 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	cubemap->gl_unit = GL_TEXTURE0 + LAYMAN_TEXTURE_KIND_CUBEMAP;
 	cubemap->kind = LAYMAN_TEXTURE_KIND_CUBEMAP;
 	cubemap->gl_target = GL_TEXTURE_CUBE_MAP;
+	cubemap->width = width;
 
 	return cubemap;
 }
@@ -256,7 +257,8 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glUniform1ui(pfp_samplecount_location, 1024);
-	glUniform1ui(pfp_width_location, environment->cubemap->width); // FIXME: The cubemap width or current mip?
+	glUniform1ui(pfp_width_location, width);
+	// glUniform1ui(pfp_width_location, environment->cubemap->width); // FIXME: The cubemap width or current mip?
 	glUniform1f(pfp_lodbias_location, 0);
 
 	const GLenum buffers[] = {

@@ -73,8 +73,8 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	}
 
 	// Wrapping.
-	glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	// glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// Filtering.
 	glTexParameteri(texture->gl_target, GL_TEXTURE_MIN_FILTER, mipmapping ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
