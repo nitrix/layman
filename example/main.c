@@ -43,9 +43,9 @@ bool setup() {
 		return false;
 	}
 
-	// state.environment = layman_environment_create_from_hdr("field.hdr");
-	state.environment = layman_environment_create_from_hdr("pisa.hdr");
-	// state.environment = layman_environment_create_from_hdr("neutral.hdr");
+	// state.environment = layman_environment_create_from_hdr(state.window, "field.hdr");
+	state.environment = layman_environment_create_from_hdr(state.window, "pisa.hdr");
+	// state.environment = layman_environment_create_from_hdr(state.window, "neutral.hdr");
 	if (!state.environment) {
 		fprintf(stderr, "Unable to create the environment\n");
 		return false;
@@ -63,10 +63,21 @@ void cleanup(void) {
 	layman_scene_destroy(state.scene);
 }
 
-void main_loop(void) {
-	int fps = 0;
-	double previous = layman_window_elapsed(state.window);
+void debug_fps(void) {
+	static int fps = 0;
+	static double previous = 0;
 
+	fps++;
+	double current = layman_window_elapsed(state.window);
+
+	if (current > previous + 1) {
+		printf("FPS: %d\n", fps);
+		previous = current;
+		fps = 0;
+	}
+}
+
+void main_loop(void) {
 	while (!layman_window_closed(state.window)) {
 		layman_window_poll_events(state.window);
 
@@ -78,15 +89,8 @@ void main_loop(void) {
 		// layman_camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
 
 		layman_renderer_render(state.renderer, state.camera, state.scene);
-		layman_window_refresh(state.window);
 
-		fps++;
-		double current = layman_window_elapsed(state.window);
-		if (current > previous + 1) {
-			printf("FPS: %d\n", fps);
-			previous = current;
-			fps = 0;
-		}
+		debug_fps();
 	}
 }
 
@@ -97,7 +101,6 @@ int main(void) {
 	}
 
 	// TODO: Load model by name, model manager please?
-	// TODO: The model/shader should need the renderer to avoid state leaks.
 
 	struct layman_model *model = NULL;
 	struct layman_entity *entity = NULL;
@@ -105,7 +108,7 @@ int main(void) {
 
 	do {
 		// model = layman_model_load("BoomBox.glb");
-		model = layman_model_load("DamagedHelmet.glb");
+		model = layman_model_load(state.window, "DamagedHelmet.glb");
 		// model = layman_model_load("DamagedHelmet_Tangents.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");

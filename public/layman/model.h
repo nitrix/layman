@@ -1,8 +1,10 @@
 #ifndef LAYMAN_MODEL_H
 #define LAYMAN_MODEL_H
 
+#include "window.h"
+
 // TODO: Documentation.
-struct layman_model *layman_model_load(const char *filepath);
+struct layman_model *layman_model_load(const struct layman_window *window, const char *filepath);
 
 // TODO: Documentation.
 void layman_model_destroy(struct layman_model *model);

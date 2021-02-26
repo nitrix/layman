@@ -35,6 +35,7 @@ void layman_window_destroy(struct layman_window *window);
  * @param[in] window A pointer to the window to close.
  *
  * @remark Nothing happens if the window was already closed.
+ * @remark Use in combination with layman_window_closed().
  */
 void layman_window_close(const struct layman_window *window);
 
@@ -42,6 +43,8 @@ void layman_window_close(const struct layman_window *window);
  * @brief A way to check whether a window has been closed.
  *
  * @param[in] window A pointer to the window.
+ *
+ * @remark Use in combination with layman_window_close().
  *
  * @return true if the window has been closed or false otherwise.
  */
@@ -61,14 +64,34 @@ void layman_window_poll_events(const struct layman_window *window);
  * @brief Refreshes the window.
  *
  * Due to double-buffering, things drawn to the window aren't shown immediately.
- * A window refresh is necessary to switch between those the two (active/inactive) buffers.
+ * A window refresh is necessary to switch between the two front/back buffers.
  *
  * @param[in] window A pointer to the window.
  */
 void layman_window_refresh(const struct layman_window *window);
 
-// TODO: Documentation.
+/**
+ * @brief Obtain the time elapsed since the window was created.
+ *
+ * @param[in] window A pointer to the window.
+ *
+ * @remark The highest resolution monotonic time source available on the platform is used.
+ *         It should be in the order of a few micro or nano seconds.
+ *
+ * @return The time elapsed, in seconds.
+ */
 double layman_window_elapsed(const struct layman_window *window);
+
+/**
+ * @brief Obtain the size of the window's framebuffer.
+ *
+ * It's possible for window's framebuffers to have a larger width/height than the window itself.
+ * This is common on high pixel density displays (mac retina).
+ *
+ * @param[in] window A pointer to the window.
+ * @param[out] width The width of the window's framebuffer.
+ * @param[out] height The height of the window's framebuffer.
+ */
 void layman_window_framebuffer_size(const struct layman_window *window, unsigned int *width, unsigned int *height);
 
 #endif

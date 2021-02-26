@@ -171,7 +171,8 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 }
 
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
-	layman_window_switch(renderer->window);
+	layman_window_use(renderer->window);
+
 	layman_renderer_switch(renderer);
 	layman_environment_switch(scene->environment);
 
@@ -195,6 +196,11 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	// This is done last so that only the fragments that aren't hiding it gets computed.
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, camera, scene);
+
+	// Swap front and back buffers.
+	glfwSwapBuffers(renderer->window->glfw_window);
+
+	layman_window_unuse(renderer->window);
 }
 
 void layman_renderer_wireframe(struct layman_renderer *renderer, bool enabled) {

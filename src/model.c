@@ -181,9 +181,12 @@ void unload_meshes(struct layman_model *model) {
 	model->meshes_count = 0;
 }
 
-struct layman_model *layman_model_load(const char *filepath) {
+struct layman_model *layman_model_load(const struct layman_window *window, const char *filepath) {
+	layman_window_use(window);
+
 	struct layman_model *model = malloc(sizeof *model);
 	if (!model) {
+		layman_window_unuse(window);
 		return NULL;
 	}
 
@@ -192,6 +195,7 @@ struct layman_model *layman_model_load(const char *filepath) {
 	cgltf_result result = cgltf_parse_file(&options, filepath, &gltf);
 	if (result != cgltf_result_success) {
 		free(model);
+		layman_window_unuse(window);
 		return NULL;
 	}
 
@@ -204,8 +208,11 @@ struct layman_model *layman_model_load(const char *filepath) {
 
 	if (!loaded) {
 		layman_model_destroy(model);
+		layman_window_unuse(window);
 		return NULL;
 	}
+
+	layman_window_unuse(window);
 
 	return model;
 }

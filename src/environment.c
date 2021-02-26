@@ -143,15 +143,19 @@ static struct layman_texture *convert_equirectangular_to_cubemap(const struct la
 	return cubemap;
 }
 
-struct layman_environment *layman_environment_create_from_hdr(const char *filepath) {
+struct layman_environment *layman_environment_create_from_hdr(const struct layman_window *window, const char *filepath) {
+	layman_window_use(window);
+
 	struct layman_environment *environment = malloc(sizeof *environment);
 	if (!environment) {
+		layman_window_unuse(window);
 		return NULL;
 	}
 
 	struct layman_texture *equirectangular = layman_texture_create_from_file(LAYMAN_TEXTURE_KIND_EQUIRECTANGULAR, filepath);
 	if (!equirectangular) {
 		free(environment);
+		layman_window_unuse(window);
 		return NULL;
 	}
 
@@ -159,6 +163,8 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	if (!environment->cubemap) {
 		layman_texture_destroy(equirectangular);
 		free(environment);
+		layman_window_unuse(window);
+		return NULL;
 	}
 
 	layman_texture_destroy(equirectangular);
@@ -167,6 +173,7 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	if (!iblsampler_shader) {
 		fprintf(stderr, "Unable to load iblsampler shader\n");
 		layman_environment_destroy(environment);
+		layman_window_unuse(window);
 		return NULL;
 	}
 
@@ -185,11 +192,13 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	struct layman_framebuffer *fb = layman_framebuffer_create(width, height);
 	if (!fb) {
 		fprintf(stderr, "FB error\n");
+		layman_environment_destroy(environment);
+		layman_window_unuse(window);
 		return NULL;
 	}
 
-	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
+	glViewport(0, 0, width, height);
 
 	// Lambertian
 	GLuint lambertian_id;
@@ -360,6 +369,8 @@ struct layman_environment *layman_environment_create_from_hdr(const char *filepa
 	environment->charlie_lut->gl_target = GL_TEXTURE_2D;
 
 	layman_shader_destroy(iblsampler_shader);
+
+	layman_window_unuse(window);
 
 	return environment;
 }

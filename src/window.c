@@ -2,34 +2,9 @@
 #include "glad/glad.h"
 #include "layman.h"
 
-#define OPENGL_MAJOR_VERSION 4
-#define OPENGL_MINOR_VERSION 3
-#define OPENGL_MULTISAMPLING_SAMPLES 4
-
-#if LAYGL_DEBUG
-#define OPENGL_DEBUGGING
-#endif
-
-// Mac has limitations.
-// It can only go up to version 4.1 and doesn't support debugging (only in 4.3+).
-#if __APPLE__
-#undef OPENGL_MINOR_VERSION
-#define OPENGL_MINOR_VERSION 1
-#undef OPENGL_DEBUGGING
-#endif
-
-struct layman_window {
-	GLFWwindow *glfw_window;
-	unsigned int width;
-	unsigned int height;
-	double start_time;
-};
-
-thread_local const struct layman_window *current_window;
-
 // This is a reference count of windows to abstract away the initialization/termination of the GLFW library.
 // The first window created will automatically initialize the library, while the last window destroyed will automatically terminate it.
-// We don't have to worry about concurrency here, since layman_window_create() and layman_window_destroy() can only be used from the main thread.
+// We don't have to worry about concurrency here, since layman_window_create() and layman_window_destroy() are only allowed from the main thread.
 static int refcount = 0;
 
 static bool increment_refcount(void) {
@@ -55,11 +30,6 @@ static void decrement_refcount(void) {
 static void opengl_debug_callback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *custom) {
 	UNUSED(length);
 	UNUSED(custom);
-
-	// Ignore non-significant error/warning codes
-	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) {
-		return;
-	}
 
 	fprintf(stderr, "Debug message (%d): %s\n", id, message);
 
@@ -130,8 +100,28 @@ static void setup_opengl_debugging(void) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(opengl_debug_callback, NULL);
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
+		// glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
+		GLuint ignored[] = {131169, 131185, 131218, 131204}; // TODO: Document or fix these.
+		glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_OTHER, GL_DONT_CARE, ARRAY_COUNT(ignored), ignored, GL_FALSE);
+		glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, ARRAY_COUNT(ignored), ignored, GL_FALSE);
 	}
+}
+
+static bool wants_debugging() {
+	// Mac doesn't support debugging.
+	// They only go up to version 4.1 and debugging requires 4.3 or above.
+
+	#if __APPLE__
+	return false;
+	#endif
+
+	#if LAYGL_DEBUG
+	return true;
+	#endif
+
+	return false;
 }
 
 struct layman_window *layman_window_create(unsigned int width, unsigned int height, const char *title, bool fullscreen) {
@@ -143,6 +133,7 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	window->width = width;
 	window->height = height;
 	window->start_time = glfwGetTime();
+	window->samples = 4; // TODO: Support changing the number of samples. This requires recreating the window and sharing the context.
 
 	// Automatically initializes the GLFW library for the first window created.
 	if (!increment_refcount()) {
@@ -153,19 +144,22 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	// Use the primary monitor's resolution when dimensions weren't specified.
 	apply_fallback_resolution(&window->width, &window->height);
 
+	// Determine the OpenGL version.
+	// Use 4.1 on Apple devices and 4.3 everywhere else.
+	int major = 4, minor = 3;
+	#if __APPLE__
+	minor = 1;
+	#endif
+
 	// GLFW window hints.
-	glfwWindowHint(GLFW_DECORATED, true);
 	glfwWindowHint(GLFW_RESIZABLE, true);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, true);
-	glfwWindowHint(GLFW_SAMPLES, OPENGL_MULTISAMPLING_SAMPLES); // Multisampling.
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
+	glfwWindowHint(GLFW_SAMPLES, window->samples); // Multisampling.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
-
-	#ifdef OPENGL_DEBUGGING
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-	#endif
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, wants_debugging());
 
 	// Fullscreen mode always uses the primary monitor for now.
 	GLFWmonitor *monitor = fullscreen ? glfwGetPrimaryMonitor() : NULL;
@@ -179,7 +173,8 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	}
 
 	// Make the current thread use the new window's OpenGL context so that we can initialize OpenGL for it.
-	layman_window_switch(window);
+	GLFWwindow *previous_context = glfwGetCurrentContext();
+	glfwMakeContextCurrent(window->glfw_window);
 
 	// Initialize OpenGL.
 	if (!gladLoadGL()) {
@@ -195,7 +190,10 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids ugly tearing artifacts.
 	// It requires the OpenGL context to be effective on Windows.
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
+
+	// Restore the previous context.
+	glfwMakeContextCurrent(previous_context);
 
 	return window;
 }
@@ -221,26 +219,22 @@ bool layman_window_closed(const struct layman_window *window) {
 	return glfwWindowShouldClose(window->glfw_window) == 1;
 }
 
-void layman_window_switch(const struct layman_window *window) {
-	if (current_window == window) {
-		return;
-	} else {
-		current_window = window;
-	}
+void layman_window_use(const struct layman_window *window) {
+	glfwMakeContextCurrent(window->glfw_window);
+}
 
-	if (window) {
-		glfwMakeContextCurrent(window->glfw_window);
-	}
+void layman_window_unuse(const struct layman_window *window) {
+	UNUSED(window);
+
+	// By default, making a context non-current implicitly forces a pipeline flush.
+	// On platforms that support `GL_KHR_context_flush_control`, it's possible to control
+	// whether a context performs the flush by setting the `GLFW_CONTEXT_RELEASE_BEHAVIOR` window hint.
+	glfwMakeContextCurrent(NULL);
 }
 
 void layman_window_poll_events(const struct layman_window *window) {
 	UNUSED(window);
 	glfwPollEvents();
-}
-
-void layman_window_refresh(const struct layman_window *window) {
-	layman_window_switch(window);
-	glfwSwapBuffers(window->glfw_window);
 }
 
 void layman_window_framebuffer_size(const struct layman_window *window, unsigned int *width, unsigned int *height) {
