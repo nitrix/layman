@@ -61,16 +61,6 @@ bool layman_window_closed(const struct layman_window *window);
 void layman_window_poll_events(const struct layman_window *window);
 
 /**
- * @brief Refreshes the window.
- *
- * Due to double-buffering, things drawn to the window aren't shown immediately.
- * A window refresh is necessary to switch between the two front/back buffers.
- *
- * @param[in] window A pointer to the window.
- */
-void layman_window_refresh(const struct layman_window *window);
-
-/**
  * @brief Obtain the time elapsed since the window was created.
  *
  * @param[in] window A pointer to the window.

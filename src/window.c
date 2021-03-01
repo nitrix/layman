@@ -190,7 +190,7 @@ struct layman_window *layman_window_create(unsigned int width, unsigned int heig
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids ugly tearing artifacts.
 	// It requires the OpenGL context to be effective on Windows.
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	// Restore the previous context.
 	glfwMakeContextCurrent(previous_context);

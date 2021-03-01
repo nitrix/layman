@@ -63,12 +63,17 @@ void cleanup(void) {
 	layman_scene_destroy(state.scene);
 }
 
+// Self-contained FPS counter for debugging-purposes.
 void debug_fps(void) {
 	static int fps = 0;
 	static double previous = 0;
 
 	fps++;
 	double current = layman_window_elapsed(state.window);
+
+	if (previous == 0) {
+		previous = current;
+	}
 
 	if (current > previous + 1) {
 		printf("FPS: %d\n", fps);

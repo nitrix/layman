@@ -6,13 +6,13 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 		return NULL;
 	}
 
-	texture->id = 0;
+	texture->gl_id = 0;
 	texture->kind = kind;
 	texture->width = width;
 	texture->height = height;
 	texture->levels = 1;
 
-	// Automatic levels when none were provided.
+	// Automatic levels when mipmappign is enabled.
 	if (mipmapping) {
 		while ((width | height) >> texture->levels) {
 			texture->levels++;
@@ -61,22 +61,20 @@ struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size
 	    case LAYMAN_TEXTURE_FORMAT_INTERNAL_RGBA32F: texture->gl_internal_format = GL_RGBA32F; break;
 	}
 
-	glGenTextures(1, &texture->id);
+	glGenTextures(1, &texture->gl_id);
 
 	layman_texture_switch(texture);
 
 	// Pre-allocate the storage for the pixel data.
-	for (size_t level = 0; level < texture->levels; level++) {
-		layman_texture_provide_data(texture, level, width, height, NULL);
-		width = MAX(1, (width / 2));
-		height = MAX(1, (height / 2));
-	}
+	layman_texture_provide_data(texture, 0, width, height, NULL);
 
 	// Wrapping.
 	// glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	// glTexParameteri(texture->gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	// Filtering.
+	// `NEAREST` is generally faster than `LINEAR`, but it can produce textured images with sharper edges
+	// because the transition between texture elements is not as smooth.
 	glTexParameteri(texture->gl_target, GL_TEXTURE_MIN_FILTER, mipmapping ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(texture->gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -92,7 +90,7 @@ void layman_texture_destroy(struct layman_texture *texture) {
 		return;
 	}
 
-	glDeleteTextures(1, &texture->id);
+	glDeleteTextures(1, &texture->gl_id);
 	free(texture);
 }
 
@@ -171,7 +169,7 @@ void layman_texture_switch(const struct layman_texture *new) {
 
 	if (new) {
 		glActiveTexture(new->gl_unit);
-		glBindTexture(new->gl_target, new->id);
+		glBindTexture(new->gl_target, new->gl_id);
 	}
 }
 
@@ -181,7 +179,7 @@ void layman_texture_provide_data(struct layman_texture *texture, unsigned int le
 	glTexImage2D(texture->gl_target, level, texture->gl_internal_format, width, height, 0, texture->gl_format, texture->gl_type, data);
 
 	// Mimapping.
-	if (texture->levels > 1) {
+	if (level == 0 && texture->levels > 1) {
 		glGenerateMipmap(texture->gl_target);
 	}
 }
