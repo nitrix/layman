@@ -1,5 +1,9 @@
 #include "layman.h"
 
+#define TO_STR(x) #x
+#define EVAL_TO_STR(x) TO_STR(x)
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {
 	FILE *file = fopen(filepath, "r");
@@ -99,19 +103,13 @@ static char *read_shader_file(const char *filepath) {
  *      - GL_TESS_EVALUATION_SHADER
  *      - GL_GEOMETRY_SHADER
  *      - GL_FRAGMENT_SHADER
- * @param[in] source The source of the shader.
+ * @param[in] content The content of the shader file.
  *
  * @return The compiled shader id or `0` on error.
  */
-static GLuint compile_shader(GLenum type, const char *filepath) {
+static GLuint compile_shader(GLenum type, const char *content) {
 	GLuint shader_id = glCreateShader(type);
 	if (shader_id == 0) {
-		return 0;
-	}
-
-	char *content = read_shader_file(filepath);
-	if (!content) {
-		glDeleteShader(shader_id);
 		return 0;
 	}
 
@@ -164,16 +162,15 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 	size_t new_length = snprintf(NULL, 0, "%s\n%s", prefix, content);
 	char *new_content = malloc(new_length + 1);
 	if (!new_content) {
-		free(content);
 		glDeleteShader(shader_id);
 		return 0;
 	}
 
 	sprintf(new_content, "%s\n%s", prefix, content);
-	free(content);
 
 	const char *const source = new_content;
 	glShaderSource(shader_id, 1, &source, NULL);
+	free(new_content);
 
 	glCompileShader(shader_id);
 
@@ -185,7 +182,7 @@ static GLuint compile_shader(GLenum type, const char *filepath) {
 		char info_log[info_log_size];
 		glGetShaderInfoLog(shader_id, info_log_size, NULL, info_log);
 
-		fprintf(stderr, "Shader compilation error!\n%s: %s\n", filepath, info_log);
+		fprintf(stderr, "Shader compilation error!\n%s\n", info_log);
 
 		return 0;
 	}
@@ -234,36 +231,54 @@ static void find_uniforms(struct layman_shader *shader) {
 }
 
 struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath) {
+	char *vertex_content = NULL;
+	char *fragment_content = NULL;
+	char *compute_content = NULL;
+
+	if (vertex_filepath) vertex_content = read_shader_file(vertex_filepath);
+	if (fragment_filepath) fragment_content = read_shader_file(fragment_filepath);
+	if (compute_filepath) compute_content = read_shader_file(compute_filepath);
+
+	struct layman_shader *shader = layman_shader_load_from_memory(vertex_content, fragment_content, compute_content);
+
+	free(vertex_content);
+	free(fragment_content);
+	free(compute_content);
+
+	return shader;
+}
+
+struct layman_shader *layman_shader_load_from_memory(const char *vertex_content, const char *fragment_content, const char *compute_content) {
 	GLuint vertex_shader_id = 0;
 	GLuint fragment_shader_id = 0;
 	GLuint compute_shader_id = 0;
 	bool something_went_wrong = false;
 
-	if (vertex_filepath) {
-		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_filepath);
+	if (vertex_content) {
+		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_content);
 		if (!vertex_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
-	if (fragment_filepath) {
-		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_filepath);
+	if (fragment_content) {
+		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_content);
 		if (!fragment_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
-	if (compute_filepath) {
-		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_filepath);
+	if (compute_content) {
+		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_content);
 		if (!compute_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
 	if (something_went_wrong) {
-		glDeleteShader(vertex_shader_id);
-		glDeleteShader(fragment_shader_id);
-		glDeleteShader(compute_shader_id);
+		if (vertex_shader_id) glDeleteShader(vertex_shader_id);
+		if (fragment_shader_id) glDeleteShader(fragment_shader_id);
+		if (compute_shader_id) glDeleteShader(compute_shader_id);
 		return NULL;
 	}
 

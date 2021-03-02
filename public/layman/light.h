@@ -1,5 +1,5 @@
-#ifndef LAYMAN_LIGHT_H
-#define LAYMAN_LIGHT_H
+#ifndef LAYMAN_PUBLIC_LIGHT_H
+#define LAYMAN_PUBLIC_LIGHT_H
 
 // Passed as-is to the shaders and must therefore match the enums in them.
 enum layman_light_type {

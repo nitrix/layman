@@ -12,4 +12,6 @@ struct layman_light {
 	float outerConeCos;
 };
 
+#define MAX_LIGHTS 4
+
 #endif

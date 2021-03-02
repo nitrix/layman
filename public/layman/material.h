@@ -1,5 +1,5 @@
-#ifndef LAYMAN_MATERIAL_H
-#define LAYMAN_MATERIAL_H
+#ifndef LAYMAN_PUBLIC_MATERIAL_H
+#define LAYMAN_PUBLIC_MATERIAL_H
 
 #include "texture.h"
 

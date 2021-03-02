@@ -1,5 +1,8 @@
 #include "layman.h"
 
+extern const char _binary_shaders_skybox_main_vert_start[];
+extern const char _binary_shaders_skybox_main_frag_start[];
+
 #define RENDERER_FOV 45.0f
 #define RENDERER_PLANE_FAR 1000.0f
 #define RENDERER_PLANE_NEAR 0.1f
@@ -139,7 +142,7 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 
 	// FIXME: All this shouldn't be here.
 	if (skybox_shader == NULL) {
-		skybox_shader = layman_shader_load_from_files("shaders/skybox/main.vert", "shaders/skybox/main.frag", NULL);
+		skybox_shader = layman_shader_load_from_memory(_binary_shaders_skybox_main_vert_start, _binary_shaders_skybox_main_frag_start, NULL);
 		if (skybox_shader == NULL) {
 			fprintf(stderr, "Unable to load skybox shader\n");
 			exit(EXIT_FAILURE); // TODO: Handle failure more gracefully.

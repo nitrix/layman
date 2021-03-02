@@ -1,22 +1,36 @@
 #ifndef LAYMAN_PRIVATE_LAYMAN_H
 #define LAYMAN_PRIVATE_LAYMAN_H
 
-// Get the incomplete (and sometimes complete) public type definitions.
+/*
+ *   ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗
+ *   ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║
+ *   ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║      ██║
+ *   ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝
+ *   ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗      ██╗
+ *   ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝      ╚═╝
+ *
+ *    IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT. IMPORTANT.
+ *
+ *
+ *                                   For internal use only. Do NOT include directly.
+ *
+ *
+ * When using the CMake configuration, the `layman` library will provide you only the public headers.
+ * If you think something from the private API should be made public, then please open an issue instead and we'll work
+ * it out.
+ *
+ * The internal API changes too frequently, steals plenty of useful identifiers and requires intimate knowledge of the
+ * state of the various rendering pipelines to not majorly screw up.
+ *
+ * Here follows a guaranteed headache that you really want to avoid. You have been warned.
+ */
+
+// Supplement the missing private definitions from the public ones (sometimes complete, sometimes incomplete).
+// Externally, the "layman.h" include points to the public folder, internally, the "layman.h" include points to the
+// private folder. By including this file relatively, we're able to force the lookup to be the public folder.
 #include "../public/layman.h"
 
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "cglm/cglm.h"
-#include "glad/glad.h"
-#include "gltf.h"
-#include "stb_image.h"
-
-#define MAX_LIGHTS 4
-
+// Continue normally with the private definitions.
 #include "layman/camera.h"
 #include "layman/entity.h"
 #include "layman/environment.h"
@@ -29,26 +43,7 @@
 #include "layman/scene.h"
 #include "layman/shader.h"
 #include "layman/texture.h"
+#include "layman/utils.h"
 #include "layman/window.h"
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-#ifndef M_PI_2
-#define M_PI_2 1.57079632679489661923
-#endif
-
-#ifndef thread_local
-#define thread_local _Thread_local
-#endif
-
-#define TO_STR(x) #x
-#define EVAL_TO_STR(x) TO_STR(x)
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define UNUSED(x) (void) (x)
-#define VEC3_ASSIGN(target, x, y, z) memcpy(target, (vec3) { x, y, z}, sizeof (target));
-#define VEC4_ASSIGN(target, x, y, z, w) memcpy(target, (vec4) { x, y, z, w}, sizeof (target));
-#define ARRAY_COUNT(x) (sizeof (x) / sizeof (x)[0])
 
 #endif

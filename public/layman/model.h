@@ -1,5 +1,5 @@
-#ifndef LAYMAN_MODEL_H
-#define LAYMAN_MODEL_H
+#ifndef LAYMAN_PUBLIC_MODEL_H
+#define LAYMAN_PUBLIC_MODEL_H
 
 #include "window.h"
 

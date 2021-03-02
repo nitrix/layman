@@ -1,5 +1,5 @@
-#ifndef LAYMAN_WINDOW_H
-#define LAYMAN_WINDOW_H
+#ifndef LAYMAN_PUBLIC_WINDOW_H
+#define LAYMAN_PUBLIC_WINDOW_H
 
 #include <stdbool.h>
 

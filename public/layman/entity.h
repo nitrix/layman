@@ -1,5 +1,5 @@
-#ifndef LAYMAN_ENTITY_H
-#define LAYMAN_ENTITY_H
+#ifndef LAYMAN_PUBLIC_ENTITY_H
+#define LAYMAN_PUBLIC_ENTITY_H
 
 #include "model.h"
 

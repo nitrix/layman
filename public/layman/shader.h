@@ -1,8 +1,11 @@
-#ifndef LAYMAN_SHADER_H
-#define LAYMAN_SHADER_H
+#ifndef LAYMAN_PUBLIC_SHADER_H
+#define LAYMAN_PUBLIC_SHADER_H
 
 // TODO: Documentation.
 struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath);
+
+// TODO: Documentation.
+struct layman_shader *layman_shader_load_from_memory(const char *vertex_content, const char *fragment_content, const char *compute_content);
 
 // TODO: Documentation.
 void layman_shader_destroy(struct layman_shader *shader);

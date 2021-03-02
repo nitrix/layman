@@ -1,5 +1,5 @@
-#ifndef LAYMAN_FRAMEBUFFER_H
-#define LAYMAN_FRAMEBUFFER_H
+#ifndef LAYMAN_PUBLIC_FRAMEBUFFER_H
+#define LAYMAN_PUBLIC_FRAMEBUFFER_H
 
 // TODO: Documentation.
 struct layman_framebuffer *layman_framebuffer_create(int width, int height);

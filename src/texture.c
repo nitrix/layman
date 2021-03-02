@@ -1,4 +1,5 @@
 #include "layman.h"
+#include "stb_image.h"
 
 struct layman_texture *layman_texture_create(enum layman_texture_kind kind, size_t width, size_t height, bool mipmapping, enum layman_texture_type type, enum layman_texture_format format, enum layman_texture_format_internal format_internal) {
 	struct layman_texture *texture = malloc(sizeof *texture);

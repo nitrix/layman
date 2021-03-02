@@ -1,5 +1,5 @@
-#ifndef LAYMAN_SCENE_H
-#define LAYMAN_SCENE_H
+#ifndef LAYMAN_PUBLIC_SCENE_H
+#define LAYMAN_PUBLIC_SCENE_H
 
 #include "entity.h"
 #include "light.h"
