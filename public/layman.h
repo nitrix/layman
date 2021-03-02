@@ -1,21 +1,19 @@
-#ifndef LAYMAN_LAYMAN_H
-#define LAYMAN_LAYMAN_H
+#ifndef LAYMAN_PUBLIC_LAYMAN_H
+#define LAYMAN_PUBLIC_LAYMAN_H
 
-/**
+/*
+ *                         ██╗      █████╗ ██╗   ██╗███╗   ███╗ █████╗ ███╗   ██╗
+ *                         ██║     ██╔══██╗╚██╗ ██╔╝████╗ ████║██╔══██╗████╗  ██║
+ *                         ██║     ███████║ ╚████╔╝ ██╔████╔██║███████║██╔██╗ ██║
+ *                         ██║     ██╔══██║  ╚██╔╝  ██║╚██╔╝██║██╔══██║██║╚██╗██║
+ *                         ███████╗██║  ██║   ██║   ██║ ╚═╝ ██║██║  ██║██║ ╚████║
+ *                         ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
  *
- *   ██╗      █████╗ ██╗   ██╗███╗   ███╗ █████╗ ███╗   ██╗
- *   ██║     ██╔══██╗╚██╗ ██╔╝████╗ ████║██╔══██╗████╗  ██║
- *   ██║     ███████║ ╚████╔╝ ██╔████╔██║███████║██╔██╗ ██║
- *   ██║     ██╔══██║  ╚██╔╝  ██║╚██╔╝██║██╔══██║██║╚██╗██║
- *   ███████╗██║  ██║   ██║   ██║ ╚═╝ ██║██║  ██║██║ ╚████║
- *   ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
+ *                                   A 3D game engine for the layman.
+ *                                   https://github.com/nitrix/layman
  *
- *             A 3D game engine for the layman.
- *             https://github.com/nitrix/layman
- *
- *                   Alex Belanger (nitrix)
- *                     https://nitrix.me
- *
+ *                                         Alex Belanger (nitrix)
+ *                                           https://nitrix.me
  */
 
 #include "layman/camera.h"

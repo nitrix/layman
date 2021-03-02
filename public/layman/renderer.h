@@ -1,5 +1,5 @@
-#ifndef LAYMAN_RENDERER_H
-#define LAYMAN_RENDERER_H
+#ifndef LAYMAN_PUBLIC_RENDERER_H
+#define LAYMAN_PUBLIC_RENDERER_H
 
 #include "camera.h"
 #include "scene.h"

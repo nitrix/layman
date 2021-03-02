@@ -1,3 +1,4 @@
+#include "gltf.h"
 #include "layman.h"
 
 bool load_meshes(struct layman_model *model, const cgltf_data *gltf) {

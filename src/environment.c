@@ -1,5 +1,10 @@
 #include "layman.h"
 
+extern const char _binary_shaders_equirect2cube_main_frag_start[];
+extern const char _binary_shaders_equirect2cube_main_vert_start[];
+extern const char _binary_shaders_iblsampler_main_frag_start[];
+extern const char _binary_shaders_iblsampler_main_vert_start[];
+
 // TODO: Mesh cube.
 void renderCube() {
 	static GLuint cubeVAO, cubeVBO;
@@ -72,7 +77,7 @@ void renderCube() {
 
 static struct layman_texture *convert_equirectangular_to_cubemap(const struct layman_texture *equirectangular) {
 	// Load & convert equirectangular environment map to a cubemap texture.
-	struct layman_shader *equirect2cube_shader = layman_shader_load_from_files("shaders/equirect2cube/main.vert", "shaders/equirect2cube/main.frag", NULL);
+	struct layman_shader *equirect2cube_shader = layman_shader_load_from_memory(_binary_shaders_equirect2cube_main_vert_start, _binary_shaders_equirect2cube_main_frag_start, NULL);
 	if (!equirect2cube_shader) {
 		return NULL;
 	}
@@ -169,7 +174,7 @@ struct layman_environment *layman_environment_create_from_hdr(const struct layma
 
 	layman_texture_destroy(equirectangular);
 
-	struct layman_shader *iblsampler_shader = layman_shader_load_from_files("shaders/iblsampler/main.vert", "shaders/iblsampler/main.frag", NULL);
+	struct layman_shader *iblsampler_shader = layman_shader_load_from_memory(_binary_shaders_iblsampler_main_vert_start, _binary_shaders_iblsampler_main_frag_start, NULL);
 	if (!iblsampler_shader) {
 		fprintf(stderr, "Unable to load iblsampler shader\n");
 		layman_environment_destroy(environment);
