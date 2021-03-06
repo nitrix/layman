@@ -6,7 +6,7 @@
 
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {
-	FILE *file = fopen(filepath, "r");
+	FILE *file = fopen(filepath, "rb");
 	if (!file) {
 		return NULL;
 	}
@@ -107,7 +107,7 @@ static char *read_shader_file(const char *filepath) {
  *
  * @return The compiled shader id or `0` on error.
  */
-static GLuint compile_shader(GLenum type, const char *content) {
+static GLuint compile_shader(GLenum type, const unsigned char *content, size_t length) {
 	GLuint shader_id = glCreateShader(type);
 	if (shader_id == 0) {
 		return 0;
@@ -159,17 +159,19 @@ static GLuint compile_shader(GLenum type, const char *content) {
 
 	        "#define DUMMY 1\n\n";
 
-	size_t new_length = snprintf(NULL, 0, "%s\n%s", prefix, content);
+	size_t new_length = snprintf(NULL, 0, "%s\n%.*s", prefix, (int) length, content);
 	char *new_content = malloc(new_length + 1);
 	if (!new_content) {
 		glDeleteShader(shader_id);
 		return 0;
 	}
 
-	sprintf(new_content, "%s\n%s", prefix, content);
+	sprintf(new_content, "%s\n%.*s", prefix, (int) length, content);
+	new_content[new_length] = '\0';
 
 	const char *const source = new_content;
-	glShaderSource(shader_id, 1, &source, NULL);
+	GLint source_length = new_length;
+	glShaderSource(shader_id, 1, &source, &source_length);
 	free(new_content);
 
 	glCompileShader(shader_id);
@@ -235,11 +237,30 @@ struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath,
 	char *fragment_content = NULL;
 	char *compute_content = NULL;
 
-	if (vertex_filepath) vertex_content = read_shader_file(vertex_filepath);
-	if (fragment_filepath) fragment_content = read_shader_file(fragment_filepath);
-	if (compute_filepath) compute_content = read_shader_file(compute_filepath);
+	size_t vertex_length = 0;
+	size_t fragment_length = 0;
+	size_t compute_length = 0;
 
-	struct layman_shader *shader = layman_shader_load_from_memory(vertex_content, fragment_content, compute_content);
+	if (vertex_filepath) {
+		vertex_content = read_shader_file(vertex_filepath);
+		vertex_length = strlen(vertex_content);
+	}
+
+	if (fragment_filepath) {
+		fragment_content = read_shader_file(fragment_filepath);
+		fragment_length = strlen(fragment_content);
+	}
+
+	if (compute_filepath) {
+		compute_content = read_shader_file(compute_filepath);
+		compute_length = strlen(compute_content);
+	}
+
+	struct layman_shader *shader = layman_shader_load_from_memory(
+		(unsigned char *) vertex_content, vertex_length,
+		(unsigned char *) fragment_content, fragment_length,
+		(unsigned char *) compute_content, compute_length
+	);
 
 	free(vertex_content);
 	free(fragment_content);
@@ -248,28 +269,28 @@ struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath,
 	return shader;
 }
 
-struct layman_shader *layman_shader_load_from_memory(const char *vertex_content, const char *fragment_content, const char *compute_content) {
+struct layman_shader *layman_shader_load_from_memory(const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length) {
 	GLuint vertex_shader_id = 0;
 	GLuint fragment_shader_id = 0;
 	GLuint compute_shader_id = 0;
 	bool something_went_wrong = false;
 
 	if (vertex_content) {
-		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_content);
+		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_content, vertex_length);
 		if (!vertex_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
 	if (fragment_content) {
-		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_content);
+		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_content, fragment_length);
 		if (!fragment_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
 	if (compute_content) {
-		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_content);
+		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_content, compute_length);
 		if (!compute_shader_id) {
 			something_went_wrong = true;
 		}

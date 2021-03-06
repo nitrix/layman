@@ -5,7 +5,7 @@
 struct layman_shader *layman_shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath);
 
 // TODO: Documentation.
-struct layman_shader *layman_shader_load_from_memory(const char *vertex_content, const char *fragment_content, const char *compute_content);
+struct layman_shader *layman_shader_load_from_memory(const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length);
 
 // TODO: Documentation.
 void layman_shader_destroy(struct layman_shader *shader);

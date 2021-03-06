@@ -10,3 +10,6 @@
 [submodule "lib/cimgui"]
 	path = lib/cimgui
 	url = https://github.com/gaurapanasenko/cimgui
+[submodule "lib/incbin"]
+	path = lib/incbin
+	url = https://github.com/graphitemaster/incbin/

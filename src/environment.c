@@ -1,9 +1,10 @@
 #include "layman.h"
+#include "incbin.h"
 
-extern const char _binary_shaders_equirect2cube_main_frag_start[];
-extern const char _binary_shaders_equirect2cube_main_vert_start[];
-extern const char _binary_shaders_iblsampler_main_frag_start[];
-extern const char _binary_shaders_iblsampler_main_vert_start[];
+INCBIN(shaders_equirect2cube_main_vert, "../shaders/equirect2cube/main.vert");
+INCBIN(shaders_equirect2cube_main_frag, "../shaders/equirect2cube/main.frag");
+INCBIN(shaders_iblsampler_main_vert, "../shaders/iblsampler/main.vert");
+INCBIN(shaders_iblsampler_main_frag, "../shaders/iblsampler/main.frag");
 
 // TODO: Mesh cube.
 void renderCube() {
@@ -77,7 +78,12 @@ void renderCube() {
 
 static struct layman_texture *convert_equirectangular_to_cubemap(const struct layman_texture *equirectangular) {
 	// Load & convert equirectangular environment map to a cubemap texture.
-	struct layman_shader *equirect2cube_shader = layman_shader_load_from_memory(_binary_shaders_equirect2cube_main_vert_start, _binary_shaders_equirect2cube_main_frag_start, NULL);
+	struct layman_shader *equirect2cube_shader = layman_shader_load_from_memory(
+		shaders_equirect2cube_main_vert_data, shaders_equirect2cube_main_vert_size,
+		shaders_equirect2cube_main_frag_data, shaders_equirect2cube_main_frag_size,
+		NULL, 0
+	);
+
 	if (!equirect2cube_shader) {
 		return NULL;
 	}
@@ -174,7 +180,12 @@ struct layman_environment *layman_environment_create_from_hdr(const struct layma
 
 	layman_texture_destroy(equirectangular);
 
-	struct layman_shader *iblsampler_shader = layman_shader_load_from_memory(_binary_shaders_iblsampler_main_vert_start, _binary_shaders_iblsampler_main_frag_start, NULL);
+	struct layman_shader *iblsampler_shader = layman_shader_load_from_memory(
+		shaders_iblsampler_main_vert_data, shaders_iblsampler_main_vert_size,
+		shaders_iblsampler_main_frag_data, shaders_iblsampler_main_frag_size,
+		NULL, 0
+	);
+
 	if (!iblsampler_shader) {
 		fprintf(stderr, "Unable to load iblsampler shader\n");
 		layman_environment_destroy(environment);

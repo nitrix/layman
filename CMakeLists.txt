@@ -4,24 +4,12 @@ PROJECT(layman)
 SET(C_STANDARD 11)
 
 # ======================================================================================================================
-#                                         RESOURCE EMBEDDING MECHANISM
+#                                                    INCBIN
 # ======================================================================================================================
 
-# Consider using https://github.com/graphitemaster/incbin/ to embed files instead of this linker monstruosity.
-
-FUNCTION(ADD_RESOURCE var input)
-    STRING(MAKE_C_IDENTIFIER ${input} input_identifier)
-    SET(output "${CMAKE_CURRENT_BINARY_DIR}/${input_identifier}.o")
-
-    ADD_CUSTOM_COMMAND(
-        OUTPUT ${output}
-        COMMAND ${CMAKE_LINKER} --relocatable --format binary --output ${output} ${input}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
-    )
-
-    SET(${var} ${${var}} ${output} PARENT_SCOPE)
-ENDFUNCTION()
+# TODO: Provide them a CMakeLists.txt?
+ADD_LIBRARY(incbin STATIC lib/incbin/incbin.c)
+TARGET_INCLUDE_DIRECTORIES(incbin PUBLIC lib/incbin)
 
 # ======================================================================================================================
 #                                                    CIMGUI
@@ -56,15 +44,6 @@ ADD_SUBDIRECTORY(lib/glfw)
 ADD_SUBDIRECTORY(lib/gltf)
 ADD_SUBDIRECTORY(lib/stb)
 
-ADD_RESOURCE(layman_resources "shaders/equirect2cube/main.vert")
-ADD_RESOURCE(layman_resources "shaders/equirect2cube/main.frag")
-ADD_RESOURCE(layman_resources "shaders/iblsampler/main.vert")
-ADD_RESOURCE(layman_resources "shaders/iblsampler/main.frag")
-ADD_RESOURCE(layman_resources "shaders/skybox/main.vert")
-ADD_RESOURCE(layman_resources "shaders/skybox/main.frag")
-ADD_RESOURCE(layman_resources "shaders/pbr/main.vert")
-ADD_RESOURCE(layman_resources "shaders/pbr/main.frag")
-
 ADD_LIBRARY(
     layman STATIC
     src/camera.c
@@ -87,7 +66,7 @@ ADD_LIBRARY(
 TARGET_INCLUDE_DIRECTORIES(layman PRIVATE private)
 TARGET_INCLUDE_DIRECTORIES(layman PUBLIC public)
 
-TARGET_LINK_LIBRARIES(layman PRIVATE cglm glad glfw gltf stb_image cimgui)
+TARGET_LINK_LIBRARIES(layman PRIVATE cglm glad glfw gltf stb_image cimgui incbin)
 TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:LAYGL_DEBUG>")
 TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
@@ -95,3 +74,7 @@ TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
 
 # This tells GLFW to not include OpenGL, we use Glad for that.
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE GLFW_INCLUDE_NONE)
+
+# No prefix and snake case for incbin.
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_PREFIX=\ )
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_STYLE=INCBIN_STYLE_SNAKE)

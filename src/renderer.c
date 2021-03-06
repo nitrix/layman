@@ -1,13 +1,13 @@
 #include "layman.h"
-
 #include "cimgui.h"
-
-extern const char _binary_shaders_skybox_main_vert_start[];
-extern const char _binary_shaders_skybox_main_frag_start[];
+#include "incbin.h"
 
 #define RENDERER_FOV 45.0f
 #define RENDERER_PLANE_FAR 1000.0f
 #define RENDERER_PLANE_NEAR 0.1f
+
+INCBIN(shaders_skybox_main_vert, "../shaders/skybox/main.vert");
+INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 
 struct layman_renderer *layman_renderer_create(const struct layman_window *window) {
 	struct layman_renderer *renderer = malloc(sizeof *renderer);
@@ -155,7 +155,7 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 
 	// FIXME: All this shouldn't be here.
 	if (skybox_shader == NULL) {
-		skybox_shader = layman_shader_load_from_memory(_binary_shaders_skybox_main_vert_start, _binary_shaders_skybox_main_frag_start, NULL);
+		skybox_shader = layman_shader_load_from_memory(shaders_skybox_main_vert_data, shaders_skybox_main_vert_size, shaders_skybox_main_frag_data, shaders_skybox_main_frag_size, NULL, 0);
 		if (skybox_shader == NULL) {
 			fprintf(stderr, "Unable to load skybox shader\n");
 			exit(EXIT_FAILURE); // TODO: Handle failure more gracefully.
