@@ -1,5 +1,7 @@
 #include "layman.h"
 
+#include "cimgui.h"
+
 extern const char _binary_shaders_skybox_main_vert_start[];
 extern const char _binary_shaders_skybox_main_frag_start[];
 
@@ -29,6 +31,13 @@ struct layman_renderer *layman_renderer_create(const struct layman_window *windo
 	renderer->window = window;
 	renderer->wireframe = false;
 
+	renderer->ig_context = igCreateContext(NULL);
+    renderer->ig_io  = igGetIO();
+
+    ImGui_ImplGlfw_InitForOpenGL(window->glfw_window, true);
+    ImGui_ImplOpenGL3_Init("#version 410 core");
+    igStyleColorsDark(NULL);
+
 	return renderer;
 }
 
@@ -36,6 +45,10 @@ void layman_renderer_destroy(struct layman_renderer *renderer) {
 	if (!renderer) {
 		return;
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    igDestroyContext(renderer->ig_context);
 
 	free(renderer);
 }
@@ -173,6 +186,17 @@ static void render_skybox(const struct layman_renderer *renderer, const struct l
 	layman_mesh_switch(NULL);
 }
 
+static void layman_render_ui(void) {
+	ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    igNewFrame();
+
+    igShowDemoWindow(NULL);
+	igRender();
+	
+    ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+}
+
 void layman_renderer_render(struct layman_renderer *renderer, const struct layman_camera *camera, const struct layman_scene *scene) {
 	layman_window_use(renderer->window);
 
@@ -199,6 +223,9 @@ void layman_renderer_render(struct layman_renderer *renderer, const struct layma
 	// This is done last so that only the fragments that aren't hiding it gets computed.
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, camera, scene);
+
+	// Render the UI.
+	layman_render_ui();
 
 	// Swap front and back buffers.
 	glfwSwapBuffers(renderer->window->glfw_window);
