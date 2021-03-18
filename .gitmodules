@@ -13,3 +13,6 @@
 [submodule "lib/cimgui"]
 	path = lib/cimgui
 	url = https://github.com/cimgui/cimgui
+[submodule "lib/toolkit"]
+	path = lib/toolkit
+	url = https://github.com/nitrix/toolkit
