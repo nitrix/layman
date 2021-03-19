@@ -1,3 +1,7 @@
 # Visual Studio Code editor.
 /.vscode
 /build
+
+# Temporary: do not commit assets.
+/assets
+/imgui.ini

@@ -83,3 +83,13 @@ TARGET_COMPILE_DEFINITIONS(layman PRIVATE GLFW_INCLUDE_NONE)
 # No prefix and snake case for incbin.
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_PREFIX=\ )
 TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_STYLE=INCBIN_STYLE_SNAKE)
+
+# ======================================================================================================================
+#                                                    CLIENT
+# ======================================================================================================================
+
+ADD_EXECUTABLE(client src/client/main.c)
+TARGET_LINK_LIBRARIES(client PUBLIC layman)
+TARGET_COMPILE_OPTIONS(client PUBLIC -std=c11 -Wall -Wextra -static)
+TARGET_COMPILE_OPTIONS(client PUBLIC "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
+TARGET_COMPILE_OPTIONS(client PUBLIC "$<$<CONFIG:RELEASE>:-O3>")
