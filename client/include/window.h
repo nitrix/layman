@@ -19,7 +19,7 @@ struct window {
  * The window must be marked for use before OpenGL commands are issued.
  *
  * @remark Every use must be paired with an unuse once the commands are done.
- * @see layman_window_unuse().
+ * @see window_unuse().
  */
 void window_use(const struct window *window);
 void window_unuse(const struct window *window);
@@ -56,7 +56,7 @@ void window_destroy(struct window *window);
  * @param[in] window A pointer to the window to close.
  *
  * @remark Nothing happens if the window was already closed.
- * @remark Use in combination with layman_window_closed().
+ * @remark Use in combination with window_closed().
  */
 void window_close(const struct window *window);
 
@@ -65,7 +65,7 @@ void window_close(const struct window *window);
  *
  * @param[in] window A pointer to the window.
  *
- * @remark Use in combination with layman_window_close().
+ * @remark Use in combination with window_close().
  *
  * @return true if the window has been closed or false otherwise.
  */

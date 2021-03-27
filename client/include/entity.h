@@ -12,7 +12,7 @@ struct entity {
 /**
  * @brief Creates an entity.
  *
- * @remark Entities are manually managed and must be destroyed with layman_entity_destroy().
+ * @remark Entities are manually managed and must be destroyed with entity_destroy().
  *
  * @return A pointer to an entity on success or NULL otherwise.
  **/
@@ -24,7 +24,7 @@ struct entity *entity_create(void);
  * @param[in] model A pointer to a model.
  *
  * @remark The model must remain alive for the entire lifetime of the entity.
- * @remark Entities are manually managed and must be destroyed with layman_entity_destroy().
+ * @remark Entities are manually managed and must be destroyed with entity_destroy().
  *
  * @return A pointer to an entity on success or NULL otherwise.
  **/

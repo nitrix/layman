@@ -15,7 +15,7 @@ struct environment {
 	struct texture *charlie_lut;
 };
 
-void layman_environment_debug(const struct environment *environment); // TODO: remove?
+void environment_debug(const struct environment *environment);
 
 void environment_switch(const struct environment *new);
 

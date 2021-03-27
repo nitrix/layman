@@ -6,31 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// This is a reference count of windows to abstract away the initialization/termination of the GLFW library.
-// The first window created will automatically initialize the library, while the last window destroyed will automatically terminate it.
-// We don't have to worry about concurrency here, since window_create() and window_destroy() are only allowed from the main thread.
-static int refcount = 0;
-
-static bool increment_refcount(void) {
-	if (refcount == 0) {
-		if (glfwInit() == GLFW_FALSE) {
-			return false;
-		}
-	}
-
-	refcount++;
-
-	return true;
-}
-
-static void decrement_refcount(void) {
-	refcount--;
-
-	if (refcount == 0) {
-		glfwTerminate();
-	}
-}
-
 static void opengl_debug_callback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *custom) {
 	UNUSED(length);
 	UNUSED(custom);
@@ -121,7 +96,7 @@ static bool wants_debugging() {
 	return false;
 	#endif
 
-	#if LAYGL_DEBUG
+	#if DEBUG
 	return true;
 	#endif
 
@@ -140,7 +115,7 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	window->samples = 4; // TODO: Support changing the number of samples. This requires recreating the window and sharing the context.
 
 	// Automatically initializes the GLFW library for the first window created.
-	if (!increment_refcount()) {
+	if (glfwInit() == GLFW_FALSE) {
 		free(window);
 		return NULL;
 	}
@@ -172,7 +147,7 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	window->glfw_window = glfwCreateWindow(window->width, window->height, title, monitor, NULL);
 	if (!window->glfw_window) {
 		free(window);
-		decrement_refcount();
+		glfwTerminate();
 		return NULL;
 	}
 
@@ -184,7 +159,7 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	if (!gladLoadGL()) {
 		glfwDestroyWindow(window->glfw_window);
 		free(window);
-		decrement_refcount();
+		glfwTerminate();
 		return NULL;
 	}
 
@@ -212,7 +187,7 @@ void window_destroy(struct window *window) {
 	}
 
 	free(window);
-	decrement_refcount();
+	glfwTerminate();
 }
 
 void window_close(const struct window *window) {

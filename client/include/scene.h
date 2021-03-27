@@ -21,7 +21,7 @@ struct scene {
  *
  * Scenes are efficient data structures that keeps track of all the entities that needs to be rendered.
  *
- * @remark Scenes are manually managed and must be destroyed using layman_scene_destroy().
+ * @remark Scenes are manually managed and must be destroyed using scene_destroy().
  *
  * @return A pointer to a scene or `NULL` on failure.
  */

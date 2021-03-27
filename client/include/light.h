@@ -5,7 +5,7 @@
 enum light_type {
 	LIGHT_TYPE_DIRECTIONAL = 0,
 	LIGHT_TYPE_POINT = 1,
-	LAYMAN_LIGHT_TYPE_SPOT = 2,
+	LIGHT_TYPE_SPOT = 2,
 };
 
 struct light {

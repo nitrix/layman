@@ -47,9 +47,9 @@ bool setup() {
 		return false;
 	}
 
-	// state.environment = layman_environment_create_from_hdr(state.window, "assets/field.hdr");
+	// state.environment = environment_create_from_hdr(state.window, "assets/field.hdr");
 	state.environment = environment_create_from_hdr(state.window, "assets/pisa.hdr");
-	// state.environment = layman_environment_create_from_hdr(state.window, "assets/neutral.hdr");
+	// state.environment = environment_create_from_hdr(state.window, "assets/neutral.hdr");
 	if (!state.environment) {
 		fprintf(stderr, "Unable to create the environment\n");
 		return false;
@@ -67,25 +67,6 @@ void cleanup(void) {
 	scene_destroy(state.scene);
 }
 
-// Self-contained FPS counter for debugging-purposes.
-void debug_fps(void) {
-	static int fps = 0;
-	static double previous = 0;
-
-	fps++;
-	double current = window_elapsed(state.window);
-
-	if (previous == 0) {
-		previous = current;
-	}
-
-	if (current > previous + 1) {
-		printf("FPS: %d\n", fps);
-		previous = current;
-		fps = 0;
-	}
-}
-
 void main_loop(void) {
 	while (!window_closed(state.window)) {
 		window_poll_events(state.window);
@@ -95,11 +76,9 @@ void main_loop(void) {
 		// double angle = 0;
 		// Moving the camera position around the model, makes the skybox reflection wiggle nicely.
 		camera_translation(state.camera, -3 * sinf(angle), 0, 3 * cosf(angle));
-		// layman_camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
+		// camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
 
 		renderer_render(state.renderer, state.camera, state.scene);
-
-		debug_fps();
 	}
 }
 
@@ -116,9 +95,9 @@ int main(void) {
 	struct light *light = NULL;
 
 	do {
-		// model = layman_model_load("assets/BoomBox.glb");
+		// model = model_load("assets/BoomBox.glb");
 		model = model_load(state.window, "assets/DamagedHelmet.glb");
-		// model = layman_model_load("assets/DamagedHelmet_Tangents.glb");
+		// model = model_load("assets/DamagedHelmet_Tangents.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");
 			break;

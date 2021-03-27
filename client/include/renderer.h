@@ -8,6 +8,8 @@
 #include "cimgui.h"
 #include "cimgui_impl.h"
 
+#define FPS_HISTORY_MAX_COUNT 20
+
 struct renderer {
 	// Viewport.
 	float viewport_width;
@@ -30,6 +32,10 @@ struct renderer {
 	// UI via (c)imgui, aka ig.
 	struct ImGuiContext *ig_context;
 	struct ImGuiIO *ig_io;
+
+	float fps_history[FPS_HISTORY_MAX_COUNT];
+	float fps_history_highest;
+	size_t fps_history_total_count;
 };
 
 void renderer_switch(const struct renderer *renderer);

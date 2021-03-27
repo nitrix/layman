@@ -23,7 +23,7 @@ void material_switch(const struct material *material);
 /**
  * @brief Creates a default material.
  *
- * @remark Materials are manually managed and must later detroyed with layman_material_destroy().
+ * @remark Materials are manually managed and must later detroyed with material_destroy().
  *
  * @returns A pointer to the material.
  */

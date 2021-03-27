@@ -41,9 +41,18 @@ struct renderer *renderer_create(const struct window *window) {
 	renderer->ig_context = igCreateContext(NULL);
 	renderer->ig_io = igGetIO();
 
+	renderer->fps_history_total_count = 0;
+	renderer->fps_history_highest = 0;
+	for (size_t i = 0; i < FPS_HISTORY_MAX_COUNT; i++) {
+		renderer->fps_history[i] = 0;
+	}
+
 	ImGui_ImplGlfw_InitForOpenGL(window->glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
 	igStyleColorsDark(NULL);
+
+	ImGuiIO *io = igGetIO();
+	io->IniFilename = NULL;
 
 	return renderer;
 }
@@ -193,14 +202,81 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 	mesh_switch(NULL);
 }
 
-static void render_ui(void) {
+void track_fps(struct renderer *renderer) {
+	static int fps_count = 0;
+	static double previous_time = 0;
+
+	double current_time = window_elapsed(renderer->window);
+	if (previous_time == 0) {
+		previous_time = current_time;
+	}
+
+	fps_count++;
+
+	if (current_time - previous_time > 1) {
+		previous_time = current_time;
+
+		renderer->fps_history_total_count++;
+
+		size_t index = (renderer->fps_history_total_count - 1) % FPS_HISTORY_MAX_COUNT;
+		renderer->fps_history[index] = fps_count;
+
+		if (fps_count > renderer->fps_history_highest) {
+			renderer->fps_history_highest = fps_count;
+		}
+
+		fps_count = 0;
+	}
+}
+
+static void render_ui(struct renderer *renderer) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	igNewFrame();
 
-	igShowDemoWindow(NULL);
-	igRender();
+	// igShowDemoWindow(NULL);
 
+	bool open;
+
+	igSetNextWindowSize((ImVec2) { 100, 100}, 0);
+	igBegin("Foo", &open, ImGuiWindowFlags_NoResize);
+
+	if (igCheckbox("Wireframe", &renderer->wireframe)) {
+		renderer_wireframe(renderer, renderer->wireframe);
+	}
+
+	igEnd();
+
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	const ImGuiViewport *viewport = igGetMainViewport();
+	ImVec2 work_pos = viewport->WorkPos;
+	ImVec2 window_pos, window_pos_pivot;
+	window_pos.x = work_pos.x + 10;
+	window_pos.y = work_pos.y + 10;
+	window_pos_pivot.x = 0.0f;
+	window_pos_pivot.y = 0.0f;
+	igSetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+	window_flags |= ImGuiWindowFlags_NoMove;
+
+	igSetNextWindowBgAlpha(0.35f); // Transparent background
+	igSetNextWindowSizeConstraints((ImVec2) { 100, -1}, (ImVec2) { -1, -1}, NULL, NULL);
+
+	if (igBegin("FPS counter", &open, window_flags)) {
+		if (renderer->fps_history_total_count) {
+			igText("FPS: %d\n", (int) renderer->fps_history[(renderer->fps_history_total_count - 1) % FPS_HISTORY_MAX_COUNT]);
+		} else {
+			igText("FPS: Unknown\n");
+		}
+
+		float scale_max = renderer->fps_history_highest + (renderer->fps_history_highest * 0.25);
+		igPushStyleColorVec4(ImGuiCol_FrameBg, (ImVec4) { 0, 0, 0, 0.25});
+		igPlotHistogramFloatPtr("", renderer->fps_history, FPS_HISTORY_MAX_COUNT, renderer->fps_history_total_count, NULL, 0, scale_max, (ImVec2) { 200, 100}, sizeof (float));
+		igPopStyleColor(1);
+	}
+
+	igEnd();
+
+	igRender();
 	ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 }
 
@@ -232,7 +308,8 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	render_skybox(renderer, camera, scene);
 
 	// Render the UI.
-	render_ui();
+	track_fps(renderer);
+	render_ui(renderer);
 
 	// Swap front and back buffers.
 	glfwSwapBuffers(renderer->window->glfw_window);
