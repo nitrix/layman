@@ -152,7 +152,6 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	}
 
 	// Make the current thread use the new window's OpenGL context so that we can initialize OpenGL for it.
-	GLFWwindow *previous_context = glfwGetCurrentContext();
 	glfwMakeContextCurrent(window->glfw_window);
 
 	// Initialize OpenGL.
@@ -170,9 +169,6 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids ugly tearing artifacts.
 	// It requires the OpenGL context to be effective on Windows.
 	glfwSwapInterval(1);
-
-	// Restore the previous context.
-	glfwMakeContextCurrent(previous_context);
 
 	return window;
 }
@@ -196,19 +192,6 @@ void window_close(const struct window *window) {
 
 bool window_closed(const struct window *window) {
 	return glfwWindowShouldClose(window->glfw_window) == 1;
-}
-
-void window_use(const struct window *window) {
-	glfwMakeContextCurrent(window->glfw_window);
-}
-
-void window_unuse(const struct window *window) {
-	UNUSED(window);
-
-	// By default, making a context non-current implicitly forces a pipeline flush.
-	// On platforms that support `GL_KHR_context_flush_control`, it's possible to control
-	// whether a context performs the flush by setting the `GLFW_CONTEXT_RELEASE_BEHAVIOR` window hint.
-	glfwMakeContextCurrent(NULL);
 }
 
 void window_poll_events(const struct window *window) {

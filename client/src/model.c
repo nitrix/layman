@@ -188,11 +188,8 @@ void unload_meshes(struct model *model) {
 }
 
 struct model *model_load(const struct window *window, const char *filepath) {
-	window_use(window);
-
 	struct model *model = malloc(sizeof *model);
 	if (!model) {
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -201,7 +198,6 @@ struct model *model_load(const struct window *window, const char *filepath) {
 	cgltf_result result = cgltf_parse_file(&options, filepath, &gltf);
 	if (result != cgltf_result_success) {
 		free(model);
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -214,11 +210,8 @@ struct model *model_load(const struct window *window, const char *filepath) {
 
 	if (!loaded) {
 		model_destroy(model);
-		window_unuse(window);
 		return NULL;
 	}
-
-	window_unuse(window);
 
 	return model;
 }

@@ -14,17 +14,6 @@ struct window {
 };
 
 /**
- * @brief Mark a window for use.
- *
- * The window must be marked for use before OpenGL commands are issued.
- *
- * @remark Every use must be paired with an unuse once the commands are done.
- * @see window_unuse().
- */
-void window_use(const struct window *window);
-void window_unuse(const struct window *window);
-
-/**
  * @brief Creates a new window.
  *
  * @param[in] width The width of the window.

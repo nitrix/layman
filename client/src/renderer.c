@@ -6,6 +6,7 @@
 #include "renderer.h"
 #include "scene.h"
 #include "shader.h"
+#include "ui.h"
 #include "utils.h"
 #include <stdlib.h>
 
@@ -38,21 +39,17 @@ struct renderer *renderer_create(const struct window *window) {
 	renderer->window = window;
 	renderer->wireframe = false;
 
-	renderer->ig_context = igCreateContext(NULL);
-	renderer->ig_io = igGetIO();
+	renderer->ui = ui_create(renderer);
+	if (!renderer->ui) {
+		free(renderer);
+		return NULL;
+	}
 
 	renderer->fps_history_total_count = 0;
 	renderer->fps_history_highest = 0;
 	for (size_t i = 0; i < FPS_HISTORY_MAX_COUNT; i++) {
 		renderer->fps_history[i] = 0;
 	}
-
-	ImGui_ImplGlfw_InitForOpenGL(window->glfw_window, true);
-	ImGui_ImplOpenGL3_Init("#version 410 core");
-	igStyleColorsDark(NULL);
-
-	ImGuiIO *io = igGetIO();
-	io->IniFilename = NULL;
 
 	return renderer;
 }
@@ -62,10 +59,7 @@ void renderer_destroy(struct renderer *renderer) {
 		return;
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	igDestroyContext(renderer->ig_context);
-
+	ui_destroy(renderer->ui);
 	free(renderer);
 }
 
@@ -229,60 +223,7 @@ void track_fps(struct renderer *renderer) {
 	}
 }
 
-static void render_ui(struct renderer *renderer) {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	igNewFrame();
-
-	// igShowDemoWindow(NULL);
-
-	bool open;
-
-	igSetNextWindowSize((ImVec2) { 100, 100}, 0);
-	igBegin("Foo", &open, ImGuiWindowFlags_NoResize);
-
-	if (igCheckbox("Wireframe", &renderer->wireframe)) {
-		renderer_wireframe(renderer, renderer->wireframe);
-	}
-
-	igEnd();
-
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	const ImGuiViewport *viewport = igGetMainViewport();
-	ImVec2 work_pos = viewport->WorkPos;
-	ImVec2 window_pos, window_pos_pivot;
-	window_pos.x = work_pos.x + 10;
-	window_pos.y = work_pos.y + 10;
-	window_pos_pivot.x = 0.0f;
-	window_pos_pivot.y = 0.0f;
-	igSetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-	window_flags |= ImGuiWindowFlags_NoMove;
-
-	igSetNextWindowBgAlpha(0.35f); // Transparent background
-	igSetNextWindowSizeConstraints((ImVec2) { 100, -1}, (ImVec2) { -1, -1}, NULL, NULL);
-
-	if (igBegin("FPS counter", &open, window_flags)) {
-		if (renderer->fps_history_total_count) {
-			igText("FPS: %d\n", (int) renderer->fps_history[(renderer->fps_history_total_count - 1) % FPS_HISTORY_MAX_COUNT]);
-		} else {
-			igText("FPS: Unknown\n");
-		}
-
-		float scale_max = renderer->fps_history_highest + (renderer->fps_history_highest * 0.25);
-		igPushStyleColorVec4(ImGuiCol_FrameBg, (ImVec4) { 0, 0, 0, 0.25});
-		igPlotHistogramFloatPtr("", renderer->fps_history, FPS_HISTORY_MAX_COUNT, renderer->fps_history_total_count, NULL, 0, scale_max, (ImVec2) { 200, 100}, sizeof (float));
-		igPopStyleColor(1);
-	}
-
-	igEnd();
-
-	igRender();
-	ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
-}
-
 void renderer_render(struct renderer *renderer, const struct camera *camera, const struct scene *scene) {
-	window_use(renderer->window);
-
 	renderer_switch(renderer);
 	environment_switch(scene->environment);
 
@@ -307,14 +248,14 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, camera, scene);
 
-	// Render the UI.
+	// Track FPS.
 	track_fps(renderer);
-	render_ui(renderer);
+
+	// Render the UI.
+	ui_render(renderer->ui);
 
 	// Swap front and back buffers.
 	glfwSwapBuffers(renderer->window->glfw_window);
-
-	window_unuse(renderer->window);
 }
 
 void renderer_wireframe(struct renderer *renderer, bool enabled) {

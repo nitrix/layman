@@ -164,18 +164,14 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 }
 
 struct environment *environment_create_from_hdr(const struct window *window, const char *filepath) {
-	window_use(window);
-
 	struct environment *environment = malloc(sizeof *environment);
 	if (!environment) {
-		window_unuse(window);
 		return NULL;
 	}
 
 	struct texture *equirectangular = texture_create_from_file(TEXTURE_KIND_EQUIRECTANGULAR, filepath);
 	if (!equirectangular) {
 		free(environment);
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -183,7 +179,6 @@ struct environment *environment_create_from_hdr(const struct window *window, con
 	if (!environment->cubemap) {
 		texture_destroy(equirectangular);
 		free(environment);
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -198,7 +193,6 @@ struct environment *environment_create_from_hdr(const struct window *window, con
 	if (!iblsampler_shader) {
 		fprintf(stderr, "Unable to load iblsampler shader\n");
 		environment_destroy(environment);
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -219,7 +213,6 @@ struct environment *environment_create_from_hdr(const struct window *window, con
 	if (!fb) {
 		fprintf(stderr, "FB error\n");
 		environment_destroy(environment);
-		window_unuse(window);
 		return NULL;
 	}
 
@@ -395,8 +388,6 @@ struct environment *environment_create_from_hdr(const struct window *window, con
 	environment->charlie_lut->gl_target = GL_TEXTURE_2D;
 
 	shader_destroy(iblsampler_shader);
-
-	window_unuse(window);
 
 	return environment;
 }

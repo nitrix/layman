@@ -5,9 +5,6 @@
 #include "scene.h"
 #include "window.h"
 
-#include "cimgui.h"
-#include "cimgui_impl.h"
-
 #define FPS_HISTORY_MAX_COUNT 20
 
 struct renderer {
@@ -28,10 +25,7 @@ struct renderer {
 	float exposure;
 
 	const struct window *window;
-
-	// UI via (c)imgui, aka ig.
-	struct ImGuiContext *ig_context;
-	struct ImGuiIO *ig_io;
+	struct ui *ui;
 
 	float fps_history[FPS_HISTORY_MAX_COUNT];
 	float fps_history_highest;
