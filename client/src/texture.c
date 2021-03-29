@@ -114,7 +114,34 @@ struct texture *texture_create_from_file(enum texture_kind kind, const char *fil
 			return NULL;
 		}
 
-		struct texture *texture = texture_create(TEXTURE_KIND_EQUIRECTANGULAR, width, height, false, TEXTURE_TYPE_FLOAT, TEXTURE_FORMAT_RGB, TEXTURE_FORMAT_INTERNAL_RGB16F);
+		struct texture *texture = texture_create(kind, width, height, false, TEXTURE_TYPE_FLOAT, TEXTURE_FORMAT_RGB, TEXTURE_FORMAT_INTERNAL_RGB16F);
+		if (!texture) {
+			stbi_image_free(data);
+			return NULL;
+		}
+
+		texture_provide_data(texture, 0, width, height, data);
+
+		stbi_image_free(data);
+
+		return texture;
+	}
+
+	if (kind == 50) {
+		// Equirectangular things are always flipped down for some reason.
+		// stbi_set_flip_vertically_on_load(true);
+
+		int width, height, components;
+		float *data = stbi_loadf(filepath, &width, &height, &components, 0);
+
+		// We have to unconditionally revert that setting back, otherwise stbi will incorrectly flip future images when they get loaded.
+		// stbi_set_flip_vertically_on_load(false);
+
+		if (!data) {
+			return NULL;
+		}
+
+		struct texture *texture = texture_create(kind, width, height, false, TEXTURE_TYPE_FLOAT, TEXTURE_FORMAT_RGBA, TEXTURE_FORMAT_INTERNAL_RGBA);
 		if (!texture) {
 			stbi_image_free(data);
 			return NULL;
