@@ -163,7 +163,7 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	return cubemap;
 }
 
-struct environment *environment_create_from_hdr(const struct window *window, const char *filepath) {
+struct environment *environment_create_from_hdr(const char *filepath) {
 	struct environment *environment = malloc(sizeof *environment);
 	if (!environment) {
 		return NULL;

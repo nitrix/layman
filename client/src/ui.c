@@ -1,9 +1,12 @@
 #include "cimgui.h"
 #include "cimgui_impl.h"
+#include "incbin.h"
 #include "renderer.h"
 #include "texture.h"
 #include "ui.h"
 #include <stdlib.h>
+
+INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
 struct ui {
 	// UI via (c)imgui, aka ig.
@@ -33,7 +36,7 @@ struct ui *ui_create(struct renderer *renderer) {
 	ImGui_ImplOpenGL3_Init("#version 410 core");
 	igStyleColorsDark(NULL);
 
-	ui->logo = texture_create_from_file(50, "assets/logo_white.png");
+	ui->logo = texture_create_from_memory(TEXTURE_KIND_IMAGE, assets_logo_white_png_data, assets_logo_white_png_size);
 	if (!ui->logo) {
 		// TODO: Cleanup.
 		return NULL;

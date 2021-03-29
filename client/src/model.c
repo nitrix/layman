@@ -187,7 +187,7 @@ void unload_meshes(struct model *model) {
 	model->meshes_count = 0;
 }
 
-struct model *model_load(const struct window *window, const char *filepath) {
+struct model *model_load(const char *filepath) {
 	struct model *model = malloc(sizeof *model);
 	if (!model) {
 		return NULL;

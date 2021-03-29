@@ -127,7 +127,7 @@ struct texture *texture_create_from_file(enum texture_kind kind, const char *fil
 		return texture;
 	}
 
-	if (kind == 50) {
+	if (kind == TEXTURE_KIND_IMAGE) {
 		// Equirectangular things are always flipped down for some reason.
 		// stbi_set_flip_vertically_on_load(true);
 

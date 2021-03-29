@@ -19,7 +19,7 @@ void environment_debug(const struct environment *environment);
 
 void environment_switch(const struct environment *new);
 
-struct environment *environment_create_from_hdr(const struct window *window, const char *filepath);
+struct environment *environment_create_from_hdr(const char *filepath);
 void environment_destroy(struct environment *environment);
 
 void renderCube(); // FIXME: MOVE ME SOMEWHERE!

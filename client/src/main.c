@@ -47,9 +47,9 @@ bool setup() {
 		return false;
 	}
 
-	// state.environment = environment_create_from_hdr(state.window, "assets/field.hdr");
-	state.environment = environment_create_from_hdr(state.window, "assets/pisa.hdr");
-	// state.environment = environment_create_from_hdr(state.window, "assets/neutral.hdr");
+	// state.environment = environment_create_from_hdr("assets/field.hdr");
+	// state.environment = environment_create_from_hdr("assets/neutral.hdr");
+	state.environment = environment_create_from_hdr("assets/pisa.hdr");
 	if (!state.environment) {
 		fprintf(stderr, "Unable to create the environment\n");
 		return false;
@@ -96,8 +96,8 @@ int main(void) {
 
 	do {
 		// model = model_load("assets/BoomBox.glb");
-		model = model_load(state.window, "assets/DamagedHelmet.glb");
 		// model = model_load("assets/DamagedHelmet_Tangents.glb");
+		model = model_load("assets/DamagedHelmet.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");
 			break;
