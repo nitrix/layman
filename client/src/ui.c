@@ -22,6 +22,7 @@ struct ui *ui_create(struct renderer *renderer) {
 	ui->show_demo = false;
 	ui->renderer = renderer;
 	ui->show_model_editor = false;
+	ui->show_scene_editor = false;
 	ui->show = false;
 
 	ImGui_ImplGlfw_InitForOpenGL(renderer->window->glfw_window, true);
@@ -159,7 +160,7 @@ void ui_render_main_navigation(struct ui *ui) {
 void ui_render_scene_editor(struct ui *ui) {
 	igSetNextWindowSize((ImVec2) { 300, 340}, ImGuiCond_Once);
 
-	if (igBegin("Scene editor", NULL, ImGuiWindowFlags_NoCollapse)) {
+	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
 		igAlignTextToFramePadding();
 		igText("Filter:");
 		igSameLine(0, -1);
@@ -170,7 +171,9 @@ void ui_render_scene_editor(struct ui *ui) {
 
 		igSeparator();
 
-		igBeginChildStr("##scene-entities", (ImVec2) { -1, 200}, false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		igPushStyleColorVec4(ImGuiCol_ChildBg, (ImVec4) { 0.16, 0.29, 0.48, 0.54});
+
+		igBeginChildStr("##scene-entities", (ImVec2) { -1, 200}, false, ImGuiWindowFlags_None);
 
 		static struct entity *selected_entity = NULL;
 		bool found_selected_entity = false;
@@ -200,6 +203,8 @@ void ui_render_scene_editor(struct ui *ui) {
 
 		igEndChild();
 
+		igPopStyleColor(1);
+
 		// We have to clear the selected entity if it is no longer in the scene to avoid invalid memory access.
 		if (!found_selected_entity) {
 			selected_entity = NULL;
@@ -208,7 +213,7 @@ void ui_render_scene_editor(struct ui *ui) {
 		igSeparator();
 
 		if (selected_entity) {
-			igDragFloat3("Position", selected_entity->position, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat3("Translation", selected_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 			igDragFloat3("Rotation", selected_entity->rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 			igDragFloat("Scale", &selected_entity->scale, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 		} else {
@@ -226,6 +231,8 @@ void ui_render_debug_window(struct ui *ui) {
 		if (igCheckbox("Wireframe mode", &ui->renderer->wireframe)) {
 			renderer_wireframe(ui->renderer, ui->renderer->wireframe);
 		}
+
+		igCheckbox("Scene editor", &ui->show_scene_editor);
 	}
 
 	igEnd();
@@ -241,10 +248,13 @@ void ui_render(struct ui *ui) {
 		// ui_render_model_editor(ui);
 		// ui_render_fps_tracker(ui);
 		ui_render_debug_window(ui);
-		ui_render_scene_editor(ui);
+
+		if (ui->show_scene_editor) {
+			ui_render_scene_editor(ui);
+		}
 
 		if (ui->show_demo) {
-			igShowDemoWindow(NULL);
+			igShowDemoWindow(&ui->show_demo);
 		}
 	}
 

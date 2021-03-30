@@ -145,11 +145,12 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	// Translation, rotation (z, y, x), scale.
 	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
-	glm_translate(model_matrix, entity->position);
+
+	glm_translate(model_matrix, entity->translation);
 	glm_rotate_z(model_matrix, entity->rotation[2], model_matrix);
 	glm_rotate_y(model_matrix, entity->rotation[1], model_matrix);
 	glm_rotate_x(model_matrix, entity->rotation[0], model_matrix);
-	glm_scale(model_matrix, (vec3){ entity->scale, entity->scale, entity->scale });
+	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
 
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, model_matrix[0]);
 	glUniformMatrix4fv(normalMatrixLocation, 1, false, model_matrix[0]);

@@ -116,7 +116,8 @@ int main(void) {
 	do {
 		// model = model_load("assets/BoomBox.glb");
 		// model = model_load("assets/DamagedHelmet_Tangents.glb");
-		model = model_load("assets/DamagedHelmet.glb");
+		// model = model_load("assets/DamagedHelmet.glb");
+		model = model_load("assets/foo.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");
 			break;
