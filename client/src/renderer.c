@@ -146,7 +146,7 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
 
-	glm_translate(model_matrix, entity->translation);
+	glm_translate(model_matrix, (float *) entity->translation);
 	glm_rotate_z(model_matrix, entity->rotation[2], model_matrix);
 	glm_rotate_y(model_matrix, entity->rotation[1], model_matrix);
 	glm_rotate_x(model_matrix, entity->rotation[0], model_matrix);
