@@ -1,5 +1,7 @@
 #include "GLFW/glfw3.h"
 #include "glad/glad.h"
+#include "renderer.h"
+#include "state.h"
 #include "utils.h"
 #include "window.h"
 #include <stdbool.h>
@@ -103,6 +105,24 @@ static bool wants_debugging() {
 	return false;
 }
 
+void window_fullscreen(struct window *window, bool fullscreen) {
+	static int original_width, original_height, original_x, original_y;
+
+	if (fullscreen) {
+		original_width = state.renderer->viewport_width;
+		original_height = state.renderer->viewport_height;
+		glfwGetWindowPos(window->glfw_window, &original_x, &original_y);
+
+		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
+		glfwSetWindowMonitor(window->glfw_window, monitor, 0, 0, vidmode->width, vidmode->height, vidmode->refreshRate);
+	} else {
+		glfwSetWindowMonitor(window->glfw_window, NULL, original_x, original_y, original_width, original_height, 0);
+	}
+
+	window->fullscreen = fullscreen;
+}
+
 struct window *window_create(unsigned int width, unsigned int height, const char *title, bool fullscreen) {
 	struct window *window = malloc(sizeof *window);
 	if (!window) {
@@ -113,6 +133,7 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	window->height = height;
 	window->start_time = glfwGetTime();
 	window->samples = 4; // TODO: Support changing the number of samples. This requires recreating the window and sharing the context.
+	window->fullscreen = fullscreen;
 
 	// Automatically initializes the GLFW library for the first window created.
 	if (glfwInit() == GLFW_FALSE) {

@@ -241,22 +241,6 @@ void ui_render_scene_editor(struct ui *ui) {
 	igEnd();
 }
 
-void handle_fullscreen(bool fullscreen) {
-	static int original_width, original_height, original_x, original_y;
-
-	if (fullscreen) {
-		original_width = state.renderer->viewport_width;
-		original_height = state.renderer->viewport_height;
-		glfwGetWindowPos(state.window->glfw_window, &original_x, &original_y);
-
-		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
-		glfwSetWindowMonitor(state.window->glfw_window, monitor, 0, 0, vidmode->width, vidmode->height, vidmode->refreshRate);
-	} else {
-		glfwSetWindowMonitor(state.window->glfw_window, NULL, original_x, original_y, original_width, original_height, 0);
-	}
-}
-
 void ui_render_debug_window(struct ui *ui) {
 	if (igBegin("Debug", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
 		igCheckbox("ImGUI demo window", &ui->show_demo);
@@ -267,9 +251,8 @@ void ui_render_debug_window(struct ui *ui) {
 
 		igCheckbox("Scene editor", &ui->show_scene_editor);
 
-		static bool fullscreen = false;
-		if (igCheckbox("Fullscreen", &fullscreen)) {
-			handle_fullscreen(fullscreen);
+		if (igCheckbox("Fullscreen", &state.window->fullscreen)) {
+			window_fullscreen(state.window, state.window->fullscreen);
 		}
 	}
 

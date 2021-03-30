@@ -11,6 +11,7 @@ struct window {
 	unsigned int height;
 	double start_time;
 	int samples;
+	bool fullscreen;
 };
 
 /**
@@ -93,5 +94,7 @@ double window_elapsed(const struct window *window);
  * @param[out] height The height of the window's framebuffer.
  */
 void window_framebuffer_size(const struct window *window, unsigned int *width, unsigned int *height);
+
+void window_fullscreen(struct window *window, bool fullscreen);
 
 #endif
