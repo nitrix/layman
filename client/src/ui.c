@@ -7,7 +7,7 @@
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
-float step_size = 0.01;
+float step_size = 0.005;
 
 struct ui *ui_create(struct renderer *renderer) {
 	struct ui *ui = malloc(sizeof *ui);
@@ -232,7 +232,7 @@ void ui_render_scene_editor(struct ui *ui) {
 			}
 
 			igSameLine(0, -1);
-			igDragFloat("Scale", &selected_entity->scale, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat("Scale", &selected_entity->scale, step_size, 0, FLT_MAX, "%f", ImGuiSliderFlags_None);
 		} else {
 			igText("Select an entity.");
 		}
