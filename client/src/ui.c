@@ -158,7 +158,7 @@ void ui_render_main_navigation(struct ui *ui) {
 }
 
 void ui_render_scene_editor(struct ui *ui) {
-	igSetNextWindowSize((ImVec2) { 300, 340}, ImGuiCond_Once);
+	igSetNextWindowSize((ImVec2) { 350, 340}, ImGuiCond_Once);
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
 		igAlignTextToFramePadding();
@@ -213,8 +213,25 @@ void ui_render_scene_editor(struct ui *ui) {
 		igSeparator();
 
 		if (selected_entity) {
+			if (igButton("R##reset-translation", (ImVec2) { 0, 0})) {
+				glm_vec3_zero(selected_entity->translation);
+			}
+
+			igSameLine(0, -1);
 			igDragFloat3("Translation", selected_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+
+			if (igButton("R##reset-rotation", (ImVec2) { 0, 0})) {
+				glm_vec3_zero(selected_entity->rotation);
+			}
+
+			igSameLine(0, -1);
 			igDragFloat3("Rotation", selected_entity->rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+
+			if (igButton("R##reset-scale", (ImVec2) { 0, 0})) {
+				selected_entity->scale = 1;
+			}
+
+			igSameLine(0, -1);
 			igDragFloat("Scale", &selected_entity->scale, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 		} else {
 			igText("Select an entity.");
