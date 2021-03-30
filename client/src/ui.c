@@ -1,9 +1,9 @@
 #include "incbin.h"
 #include "renderer.h"
+#include "state.h"
 #include "texture.h"
 #include "ui.h"
 #include <stdlib.h>
-#include "state.h"
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
@@ -54,11 +54,11 @@ void ui_render_model_editor(struct ui *ui) {
 	if (igBegin("Model Editor", &ui->show_model_editor, ImGuiWindowFlags_None)) {
 		if (igBeginTabBar("##model-editor-tab-bar", ImGuiTabBarFlags_None)) {
 			static bool open[2] = {true, true};
-			
+
 			if (igBeginTabItem("DamagedHelmet.glb", &open[0], ImGuiTabItemFlags_None)) {
 				igEndTabItem();
 			}
-			
+
 			if (igBeginTabItem("BoomBox.glb", &open[1], ImGuiTabItemFlags_None)) {
 				igEndTabItem();
 			}
@@ -140,6 +140,7 @@ void ui_render_main_navigation(struct ui *ui) {
 		if (igButton("Model Editor", (ImVec2) { -1, 0})) {
 			ui->show_model_editor = true;
 		}
+
 		igButton("Script Editor", (ImVec2) { -1, 0});
 		igButton("Settings", (ImVec2) { -1, 0});
 		igButton("About", (ImVec2) { -1, 0});
@@ -156,7 +157,7 @@ void ui_render_main_navigation(struct ui *ui) {
 }
 
 void ui_render_scene_editor(struct ui *ui) {
-	igSetNextWindowSize((ImVec2){300, 200}, ImGuiCond_Once);
+	igSetNextWindowSize((ImVec2) { 300, 340}, ImGuiCond_Once);
 
 	if (igBegin("Scene editor", NULL, ImGuiWindowFlags_NoCollapse)) {
 		igAlignTextToFramePadding();
@@ -168,6 +169,8 @@ void ui_render_scene_editor(struct ui *ui) {
 		igInputText("##scene-search", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 
 		igSeparator();
+
+		igBeginChildStr("##scene-entities", (ImVec2) { -1, 200}, false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		static struct entity *selected_entity = NULL;
 		bool found_selected_entity = false;
@@ -182,7 +185,10 @@ void ui_render_scene_editor(struct ui *ui) {
 				found_selected_entity = true;
 			}
 
-			if (igTreeNodeExStr(entity->model->name, flags)) {
+			char buffer[1024];
+			snprintf(buffer, sizeof buffer, "##entity-index-%d", i);
+
+			if (igTreeNodeExStrStr(buffer, flags, "%s", entity->model->name)) {
 				igTreePop();
 			}
 
@@ -191,6 +197,8 @@ void ui_render_scene_editor(struct ui *ui) {
 				found_selected_entity = true;
 			}
 		}
+
+		igEndChild();
 
 		// We have to clear the selected entity if it is no longer in the scene to avoid invalid memory access.
 		if (!found_selected_entity) {
@@ -229,8 +237,8 @@ void ui_render(struct ui *ui) {
 	igNewFrame();
 
 	if (ui->show) {
-		//ui_render_main_navigation(ui);
-		//ui_render_model_editor(ui);
+		// ui_render_main_navigation(ui);
+		// ui_render_model_editor(ui);
 		// ui_render_fps_tracker(ui);
 		ui_render_debug_window(ui);
 		ui_render_scene_editor(ui);
