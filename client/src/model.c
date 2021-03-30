@@ -204,6 +204,9 @@ struct model *model_load(const char *filepath) {
 	model->meshes = NULL;
 	model->meshes_count = 0;
 
+	// Model name is the filepath for now.
+	model->name = strdup(filepath);
+
 	bool loaded = load_meshes(model, gltf);
 
 	cgltf_free(gltf);
@@ -221,5 +224,6 @@ void model_destroy(struct model *model) {
 		unload_meshes(model);
 	}
 
+	free(model->name);
 	free(model);
 }

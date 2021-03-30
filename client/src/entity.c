@@ -10,6 +10,8 @@ struct entity *entity_create(void) {
 
 	entity->model = NULL;
 	glm_vec3_zero(entity->position);
+	glm_vec3_zero(entity->rotation);
+	entity->scale = 1;
 
 	return entity;
 }

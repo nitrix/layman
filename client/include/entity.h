@@ -7,6 +7,8 @@
 struct entity {
 	const struct model *model;
 	vec3 position;
+	vec3 rotation;
+	float scale;
 };
 
 /**

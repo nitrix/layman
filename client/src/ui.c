@@ -3,6 +3,7 @@
 #include "texture.h"
 #include "ui.h"
 #include <stdlib.h>
+#include "state.h"
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
@@ -18,6 +19,7 @@ struct ui *ui_create(struct renderer *renderer) {
 	ui->ig_io->IniFilename = NULL;
 	ui->show_demo = false;
 	ui->renderer = renderer;
+	ui->show_model_editor = false;
 	ui->show = false;
 
 	ImGui_ImplGlfw_InitForOpenGL(renderer->window->glfw_window, true);
@@ -40,6 +42,36 @@ void ui_destroy(struct ui *ui) {
 
 	texture_destroy(ui->logo);
 	free(ui);
+}
+
+void ui_render_model_editor(struct ui *ui) {
+	if (!ui->show_model_editor) {
+		return;
+	}
+
+	if (igBegin("Model Editor", &ui->show_model_editor, ImGuiWindowFlags_None)) {
+		if (igBeginTabBar("##model-editor-tab-bar", ImGuiTabBarFlags_None)) {
+			static bool open[2] = {true, true};
+			
+			if (igBeginTabItem("DamagedHelmet.glb", &open[0], ImGuiTabItemFlags_None)) {
+				igEndTabItem();
+			}
+			
+			if (igBeginTabItem("BoomBox.glb", &open[1], ImGuiTabItemFlags_None)) {
+				igEndTabItem();
+			}
+
+			if (igTabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+				// active_tabs.push_back(next_tab_id++); // Add new tab
+			}
+
+			igEndTabBar();
+		}
+
+		igText("Hello World!");
+	}
+
+	igEnd();
 }
 
 void ui_render_fps_tracker(struct ui *ui) {
@@ -103,7 +135,9 @@ void ui_render_main_navigation(struct ui *ui) {
 
 		// All the buttons.
 		igButton("World Editor", (ImVec2) { -1, 0});
-		igButton("Model Editor", (ImVec2) { -1, 0});
+		if (igButton("Model Editor", (ImVec2) { -1, 0})) {
+			ui->show_model_editor = true;
+		}
 		igButton("Script Editor", (ImVec2) { -1, 0});
 		igButton("Settings", (ImVec2) { -1, 0});
 		igButton("About", (ImVec2) { -1, 0});
@@ -119,50 +153,61 @@ void ui_render_main_navigation(struct ui *ui) {
 	igEnd();
 }
 
-void ui_render_sidebar(struct ui *ui) {
-	igBegin("Foo", NULL, ImGuiWindowFlags_NoCollapse);
+void ui_render_scene_editor(struct ui *ui) {
+	igSetNextWindowSize((ImVec2){300, 200}, ImGuiCond_Once);
 
-	igCheckbox("Demo window", &ui->show_demo);
+	if (igBegin("Scene editor", NULL, ImGuiWindowFlags_NoCollapse)) {
+		igAlignTextToFramePadding();
+		igText("Filter:");
+		igSameLine(0, -1);
 
-	if (igCheckbox("Wireframe", &ui->renderer->wireframe)) {
-		renderer_wireframe(ui->renderer, ui->renderer->wireframe);
-	}
+		static char buf[1024] = {0};
+		igSetNextItemWidth(-1);
+		igInputText("##scene-search", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 
-	igSeparator();
+		igSeparator();
 
-	if (igBeginTabBar("tab-bar", ImGuiTabBarFlags_None)) {
-		if (igBeginTabItem("Scene", NULL, ImGuiTabItemFlags_None)) {
-			igAlignTextToFramePadding();
-			igText("Filter:");
-			igSameLine(0, -1);
+		static struct entity *selected_entity = NULL;
 
-			static char buf[1024] = {0};
-			igSetNextItemWidth(-1);
-			igInputText("##scene-search", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
+		for (size_t i = 0; i < state.scene->entity_count; i++) {
+			struct entity *entity = state.scene->entities[i];
 
-			if (igBeginListBox("##scene-entities", (ImVec2) { -1, -1})) {
-				char *entities[] = {"DamagedHelmet 1", "DamagedHelmet 2"};
-				static int selected = -1;
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 
-				for (int i = 0; i < 2; i++) {
-					if (igSelectableBool(entities[i], i == selected, ImGuiSelectableFlags_SelectOnClick | ImGuiSelectableFlags_SpanAvailWidth, (ImVec2) { 0, 0})) {
-						selected = i;
-					}
-				}
-
-				igEndListBox();
+			if (entity == selected_entity) {
+				flags |= ImGuiTreeNodeFlags_Selected;
 			}
 
-			igEndTabItem();
+			if (igTreeNodeExStr(entity->model->name, flags)) {
+				igTreePop();
+			}
+
+			if (igIsItemClicked(ImGuiMouseButton_Left)) {
+				selected_entity = entity; // FIXME: This is bad for the UI if the entity disappears while it's still selected.
+			}
 		}
 
-		if (igBeginTabItem("Settings", NULL, ImGuiTabItemFlags_NoCloseButton)) {
-			igText("Bar");
+		igSeparator();
 
-			igEndTabItem();
+		if (selected_entity) {
+			igDragFloat3("Position", selected_entity->position, 0.10f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat3("Rotation", selected_entity->rotation, 0.10f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat("Scale", &selected_entity->scale, 0.01f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+		} else {
+			igText("Select an entity.");
 		}
+	}
 
-		igEndTabBar();
+	igEnd();
+}
+
+void ui_render_debug_window(struct ui *ui) {
+	if (igBegin("Debug", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		igCheckbox("ImGUI demo window", &ui->show_demo);
+
+		if (igCheckbox("Wireframe mode", &ui->renderer->wireframe)) {
+			renderer_wireframe(ui->renderer, ui->renderer->wireframe);
+		}
 	}
 
 	igEnd();
@@ -174,9 +219,11 @@ void ui_render(struct ui *ui) {
 	igNewFrame();
 
 	if (ui->show) {
-		ui_render_main_navigation(ui);
+		//ui_render_main_navigation(ui);
+		//ui_render_model_editor(ui);
 		// ui_render_fps_tracker(ui);
-		// ui_render_sidebar(ui);
+		ui_render_debug_window(ui);
+		ui_render_scene_editor(ui);
 
 		if (ui->show_demo) {
 			igShowDemoWindow(NULL);

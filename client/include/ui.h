@@ -13,6 +13,7 @@ struct ui {
 
 	bool show;
 	bool show_demo;
+	bool show_model_editor;
 	struct texture *logo;
 };
 

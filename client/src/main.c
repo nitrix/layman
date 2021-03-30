@@ -1,6 +1,7 @@
 #include "GLFW/glfw3.h"
 #include "camera.h"
 #include "environment.h"
+#include "glad/glad.h"
 #include "renderer.h"
 #include "scene.h"
 #include "state.h"
@@ -17,12 +18,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	}
 }
 
+void resize_callback(GLFWwindow *window, int width, int height) {
+	state.renderer->viewport_width = width;
+	state.renderer->viewport_height = height;
+	glViewport(0, 0, width, height);
+}
+
 bool setup(void) {
 	state.window = window_create(1280, 720, "Example", false);
 	if (!state.window) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
 	}
+
+	// Set our callbacks before the UI add theirs on top.
+	glfwSetKeyCallback(state.window->glfw_window, key_callback);
+	glfwSetWindowSizeCallback(state.window->glfw_window, resize_callback);
 
 	state.renderer = renderer_create(state.window);
 	if (!state.renderer) {
@@ -53,8 +64,6 @@ bool setup(void) {
 	}
 
 	scene_assign_environment(state.scene, state.environment);
-
-	glfwSetKeyCallback(state.window->glfw_window, key_callback);
 
 	return true;
 }
@@ -90,7 +99,8 @@ int main(void) {
 	// TODO: Load model by name, model manager please?
 
 	struct model *model = NULL;
-	struct entity *entity = NULL;
+	struct entity *entity1 = NULL;
+	struct entity *entity2 = NULL;
 	struct light *light = NULL;
 
 	do {
@@ -102,9 +112,15 @@ int main(void) {
 			break;
 		}
 
-		entity = entity_create_from_model(model);
-		if (!entity) {
-			fprintf(stderr, "Unable to create entity\n");
+		entity1 = entity_create_from_model(model);
+		if (!entity1) {
+			fprintf(stderr, "Unable to create entity1\n");
+			break;
+		}
+
+		entity2 = entity_create_from_model(model);
+		if (!entity2) {
+			fprintf(stderr, "Unable to create entity2\n");
 			break;
 		}
 
@@ -114,14 +130,16 @@ int main(void) {
 			break;
 		}
 
-		scene_add_entity(state.scene, entity);
+		scene_add_entity(state.scene, entity1);
+		scene_add_entity(state.scene, entity2);
 		scene_add_light(state.scene, light);
 
 		main_loop();
 	} while (false);
 
 	light_destroy(light);
-	entity_destroy(entity);
+	entity_destroy(entity1);
+	entity_destroy(entity2);
 	model_destroy(model);
 
 	cleanup();

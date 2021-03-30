@@ -4,6 +4,7 @@
 #include "window.h"
 
 struct model {
+	char *name;
 	struct mesh **meshes;
 	size_t meshes_count;
 };
