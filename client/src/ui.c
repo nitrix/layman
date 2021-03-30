@@ -7,6 +7,8 @@
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
+float step_size = 0.01;
+
 struct ui *ui_create(struct renderer *renderer) {
 	struct ui *ui = malloc(sizeof *ui);
 
@@ -168,6 +170,7 @@ void ui_render_scene_editor(struct ui *ui) {
 		igSeparator();
 
 		static struct entity *selected_entity = NULL;
+		bool found_selected_entity = false;
 
 		for (size_t i = 0; i < state.scene->entity_count; i++) {
 			struct entity *entity = state.scene->entities[i];
@@ -176,6 +179,7 @@ void ui_render_scene_editor(struct ui *ui) {
 
 			if (entity == selected_entity) {
 				flags |= ImGuiTreeNodeFlags_Selected;
+				found_selected_entity = true;
 			}
 
 			if (igTreeNodeExStr(entity->model->name, flags)) {
@@ -183,16 +187,22 @@ void ui_render_scene_editor(struct ui *ui) {
 			}
 
 			if (igIsItemClicked(ImGuiMouseButton_Left)) {
-				selected_entity = entity; // FIXME: This is bad for the UI if the entity disappears while it's still selected.
+				selected_entity = entity;
+				found_selected_entity = true;
 			}
+		}
+
+		// We have to clear the selected entity if it is no longer in the scene to avoid invalid memory access.
+		if (!found_selected_entity) {
+			selected_entity = NULL;
 		}
 
 		igSeparator();
 
 		if (selected_entity) {
-			igDragFloat3("Position", selected_entity->position, 0.10f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
-			igDragFloat3("Rotation", selected_entity->rotation, 0.10f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
-			igDragFloat("Scale", &selected_entity->scale, 0.01f, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat3("Position", selected_entity->position, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat3("Rotation", selected_entity->rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat("Scale", &selected_entity->scale, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 		} else {
 			igText("Select an entity.");
 		}

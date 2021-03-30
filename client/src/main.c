@@ -7,18 +7,25 @@
 #include "state.h"
 #include "state.h"
 #include "ui.h"
+#include "utils.h"
 #include "window.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	UNUSED(window);
+	UNUSED(scancode);
+	UNUSED(mods);
+
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
 		state.renderer->ui->show = !state.renderer->ui->show;
 	}
 }
 
 void resize_callback(GLFWwindow *window, int width, int height) {
+	UNUSED(window);
+
 	state.renderer->viewport_width = width;
 	state.renderer->viewport_height = height;
 	glViewport(0, 0, width, height);
@@ -79,11 +86,14 @@ void main_loop(void) {
 	while (!window_closed(state.window)) {
 		window_poll_events(state.window);
 
-		double elapsed = window_elapsed(state.window);
-		double angle = 3.1416 * 0.1f * elapsed;
+		// double elapsed = window_elapsed(state.window);
+		// double angle = 3.1416 * 0.1f * elapsed;
 		// double angle = 0;
+
+		// Orbit camera.
 		// Moving the camera position around the model, makes the skybox reflection wiggle nicely.
-		camera_translation(state.camera, -3 * sinf(angle), 0, 3 * cosf(angle));
+		// camera_translation(state.camera, -3 * sinf(angle), 0, 3 * cosf(angle));
+
 		// camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
 
 		renderer_render(state.renderer, state.camera, state.scene);

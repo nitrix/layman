@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 struct scene {
-	const struct entity **entities;
+	struct entity **entities;
 	size_t entity_count;
 	size_t entity_capacity;
 
@@ -49,7 +49,7 @@ void scene_destroy(struct scene *scene);
  *
  * @return Returns `true` on success or `false` otherwise.
  */
-bool scene_add_entity(struct scene *scene, const struct entity *entity);
+bool scene_add_entity(struct scene *scene, struct entity *entity);
 
 // TODO: Documentation.
 bool scene_add_light(struct scene *scene, const struct light *light);

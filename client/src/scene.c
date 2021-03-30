@@ -28,13 +28,13 @@ void scene_destroy(struct scene *scene) {
 	free(scene);
 }
 
-bool scene_add_entity(struct scene *scene, const struct entity *entity) {
+bool scene_add_entity(struct scene *scene, struct entity *entity) {
 	bool full = scene->entity_count == scene->entity_capacity;
 
 	if (full) {
 		size_t new_capacity = scene->entity_capacity + ENTITIES_CAPACITY_STEP;
 
-		const struct entity **new_entities = realloc(scene->entities, new_capacity * sizeof *new_entities);
+		struct entity **new_entities = realloc(scene->entities, new_capacity * sizeof *new_entities);
 		if (!new_entities) {
 			return false;
 		}
