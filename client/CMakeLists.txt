@@ -11,6 +11,7 @@ ADD_EXECUTABLE(
     src/renderer.c
     src/scene.c
     src/shader.c
+    src/state.c
     src/texture.c
     src/ui.c
     src/window.c

@@ -1,5 +1,3 @@
-#include "cimgui.h"
-#include "cimgui_impl.h"
 #include "incbin.h"
 #include "renderer.h"
 #include "texture.h"
@@ -7,17 +5,6 @@
 #include <stdlib.h>
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
-
-struct ui {
-	// UI via (c)imgui, aka ig.
-	struct ImGuiContext *ig_context;
-	struct ImGuiIO *ig_io;
-
-	struct renderer *renderer;
-
-	bool show_demo;
-	struct texture *logo;
-};
 
 struct ui *ui_create(struct renderer *renderer) {
 	struct ui *ui = malloc(sizeof *ui);
@@ -31,6 +18,7 @@ struct ui *ui_create(struct renderer *renderer) {
 	ui->ig_io->IniFilename = NULL;
 	ui->show_demo = false;
 	ui->renderer = renderer;
+	ui->show = false;
 
 	ImGui_ImplGlfw_InitForOpenGL(renderer->window->glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
@@ -185,13 +173,15 @@ void ui_render(struct ui *ui) {
 	ImGui_ImplGlfw_NewFrame();
 	igNewFrame();
 
-	if (ui->show_demo) {
-		igShowDemoWindow(NULL);
-	}
+	if (ui->show) {
+		ui_render_main_navigation(ui);
+		// ui_render_fps_tracker(ui);
+		// ui_render_sidebar(ui);
 
-	ui_render_main_navigation(ui);
-	// ui_render_fps_tracker(ui);
-	// ui_render_sidebar(ui);
+		if (ui->show_demo) {
+			igShowDemoWindow(NULL);
+		}
+	}
 
 	igRender();
 	ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());

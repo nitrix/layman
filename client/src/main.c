@@ -1,26 +1,23 @@
+#include "GLFW/glfw3.h"
 #include "camera.h"
 #include "environment.h"
 #include "renderer.h"
 #include "scene.h"
+#include "state.h"
+#include "state.h"
+#include "ui.h"
 #include "window.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-struct state {
-	struct window *window;
-	struct renderer *renderer;
-	struct camera *camera;
-	struct scene *scene;
-	struct environment *environment;
-};
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+		state.renderer->ui->show = !state.renderer->ui->show;
+	}
+}
 
-struct state state = {
-	.window = NULL,
-	.renderer = NULL,
-};
-
-bool setup() {
+bool setup(void) {
 	state.window = window_create(1280, 720, "Example", false);
 	if (!state.window) {
 		fprintf(stderr, "Unable to create the window\n");
@@ -56,6 +53,8 @@ bool setup() {
 	}
 
 	scene_assign_environment(state.scene, state.environment);
+
+	glfwSetKeyCallback(state.window->glfw_window, key_callback);
 
 	return true;
 }
