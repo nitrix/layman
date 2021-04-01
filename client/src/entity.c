@@ -10,7 +10,7 @@ struct entity *entity_create(void) {
 
 	entity->model = NULL;
 	glm_vec3_zero(entity->translation);
-	glm_mat4_identity(entity->rotation);
+	glm_quat_identity(entity->rotation);
 	entity->scale = 1;
 
 	return entity;

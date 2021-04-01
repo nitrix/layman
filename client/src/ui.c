@@ -241,9 +241,7 @@ void ui_render_scene_editor(struct ui *ui) {
 				glm_quat_mul(rx, ry, r);
 				glm_quat_mul(r, rz, r);
 
-				mat4 delta_matrix;
-				glm_quat_mat4(r, delta_matrix);
-				glm_mat4_mul(selected_entity->rotation, delta_matrix, selected_entity->rotation);
+				glm_quat_mul(selected_entity->rotation, r, selected_entity->rotation);
 			}
 
 			if (igButton("R##reset-scale", (ImVec2) { 0, 0})) {

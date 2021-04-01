@@ -147,7 +147,7 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 
 	// Translation, rotation, scale.
 	glm_translate(model_matrix, (float *) entity->translation);
-	glm_mul(model_matrix, entity->rotation, model_matrix);
+	glm_quat_rotate(model_matrix, entity->rotation, model_matrix);
 	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
 
 	glUniformMatrix4fv(modelMatrixLocation, 1, false, model_matrix[0]);
