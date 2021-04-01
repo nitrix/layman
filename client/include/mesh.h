@@ -19,7 +19,6 @@ struct mesh {
 	GLuint vbo_uvs;
 	GLuint ebo_indices;
 	GLuint vbo_tangents;
-	GLuint vbo_bitangents;
 	size_t indices_count;
 
 	struct shader *shader;

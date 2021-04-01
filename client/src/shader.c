@@ -136,7 +136,7 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 	        "#define HAS_BASE_COLOR_MAP\n"
 	        "#define HAS_NORMAL_MAP\n"
 	        "#define HAS_OCCLUSION_MAP\n"
-	        "#define HAS_EMISSIVE_MAP\n"
+	        "#define HAS_EMISSIVE_MAP\n" // FIXME: When this is turned off, emissiveFactor must be forced to 0.
 	        "#define HAS_METALLIC_ROUGHNESS_MAP\n"
 
 	        // Material workflow.
@@ -148,7 +148,7 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 	        "#define USE_HDR\n"
 	        "#define USE_IBL\n"
 	        // "#define USE_PUNCTUAL\n"
-	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
+	        // "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
 	        // Tonemapping.
 	        "#define TONEMAP_UNCHARTED\n"
@@ -159,6 +159,7 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 	        // "#define DEBUG_OUTPUT\n"
 	        // "#define DEBUG_BASECOLOR\n"
 	        // "#define DEBUG_NORMAL\n"
+	        // "#define DEBUG_TANGENT\n"
 	        // "#define DEBUG_METALLIC\n"
 	        // "#define DEBUG_ROUGHNESS\n"
 	        // "#define DEBUG_OCCLUSION\n"
@@ -404,15 +405,15 @@ void shader_bind_uniform_material(const struct shader *shader, const struct mate
 	shader_switch(shader);
 
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
-	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->kind);
-	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->kind);
+	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
+	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);
 	glUniform1f(shader->uniform_metallic_factor, material->metallic_factor);
 	glUniform1f(shader->uniform_roughness_factor, material->roughness_factor);
-	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->kind);
+	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->gl_unit);
 	glUniform1f(shader->uniform_normal_scale, material->normal_scale);
-	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->kind);
+	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->gl_unit);
 	glUniform1f(shader->uniform_occlusion_strength, material->occlusion_strength);
-	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->kind);
+	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->gl_unit);
 	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor);
 }
 
@@ -420,11 +421,11 @@ void shader_bind_uniform_environment(const struct shader *shader, const struct e
 	shader_switch(shader);
 
 	glUniform1i(shader->uniform_environment_mip_count, environment->mip_count);
-	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->kind);
-	glUniform1i(shader->uniform_environment_ggx, environment->ggx->kind);
-	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut->kind);
-	glUniform1i(shader->uniform_environment_charlie, environment->charlie->kind);
-	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut->kind);
+	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->gl_unit);
+	glUniform1i(shader->uniform_environment_ggx, environment->ggx->gl_unit);
+	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut->gl_unit);
+	glUniform1i(shader->uniform_environment_charlie, environment->charlie->gl_unit);
+	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut->gl_unit);
 }
 
 void shader_bind_uniform_camera(const struct shader *shader, const struct camera *camera) {

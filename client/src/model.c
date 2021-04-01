@@ -134,8 +134,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			struct material *material = material_create();
 
 			// Base color factor.
-			cgltf_float *base_color_factor = primitive->material->pbr_metallic_roughness.base_color_factor;
-			VEC4_ASSIGN(material->base_color_factor, base_color_factor[0], base_color_factor[1], base_color_factor[2], base_color_factor[3]);
+			glm_vec3_copy(primitive->material->pbr_metallic_roughness.base_color_factor, material->base_color_factor);
 			// Base color texture
 			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
 			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;
@@ -156,7 +155,9 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			const void *occlusion_texture_data = gltf->bin + occlusion_texture->image->buffer_view->offset;
 			size_t occlusion_texture_size = primitive->material->occlusion_texture.texture->image->buffer_view->size;
 			material->occlusion_texture = texture_create_from_memory(TEXTURE_KIND_OCCLUSION, occlusion_texture_data, occlusion_texture_size);
-			// Emission texture
+			// Emissive factor.
+			glm_vec3_copy(primitive->material->emissive_factor, material->emissive_factor);
+			// Emissive texture
 			cgltf_texture *emission_texture = primitive->material->emissive_texture.texture;
 			const void *emission_texture_data = gltf->bin + emission_texture->image->buffer_view->offset;
 			size_t emission_texture_size = primitive->material->emissive_texture.texture->image->buffer_view->size;

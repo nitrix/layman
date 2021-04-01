@@ -19,7 +19,7 @@ struct material *material_create(void) {
 	material->occlusion_texture = NULL;
 	material->occlusion_strength = 1;
 	material->emissive_texture = NULL;
-	glm_vec3_one(material->emissive_factor);
+	glm_vec3_zero(material->emissive_factor);
 
 	return material;
 }

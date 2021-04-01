@@ -44,7 +44,6 @@ struct mesh *mesh_create(void) {
 	mesh->vbo_uvs = 0;
 	mesh->ebo_indices = 0;
 	mesh->vbo_tangents = 0;
-	mesh->vbo_bitangents = 0;
 
 	mesh->material = NULL;
 
@@ -137,10 +136,20 @@ void mesh_switch(const struct mesh *new) {
 void mesh_destroy(struct mesh *mesh) {
 	shader_destroy(mesh->shader);
 
-	glDeleteBuffers(1, &mesh->ebo_indices);
 	glDeleteBuffers(1, &mesh->vbo_positions);
-	glDeleteBuffers(1, &mesh->vbo_normals);
-	glDeleteBuffers(1, &mesh->vbo_tangents);
-	glDeleteBuffers(1, &mesh->vbo_bitangents);
+	glDeleteBuffers(1, &mesh->ebo_indices);
+
+	if (mesh->vbo_normals) {
+		glDeleteBuffers(1, &mesh->vbo_normals);
+	}
+
+	if (mesh->vbo_normals) {
+		glDeleteBuffers(1, &mesh->vbo_uvs);
+	}
+
+	if (mesh->vbo_tangents) {
+		glDeleteBuffers(1, &mesh->vbo_tangents);
+	}
+
 	glDeleteVertexArrays(1, &mesh->vao);
 }

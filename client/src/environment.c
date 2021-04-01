@@ -10,6 +10,7 @@
 #include "utils.h"
 #include <stdio.h>
 
+// FIXME: This needs to embedded the newer files on changes, maybe even hot-reload?
 INCBIN(shaders_equirect2cube_main_vert, "../shaders/equirect2cube/main.vert");
 INCBIN(shaders_equirect2cube_main_frag, "../shaders/equirect2cube/main.frag");
 INCBIN(shaders_iblsampler_main_vert, "../shaders/iblsampler/main.vert");
@@ -155,7 +156,7 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	// TODO: This should use the texture module and not be created manually here.
 	struct texture *cubemap = malloc(sizeof *cubemap);
 	cubemap->gl_id = cubemap_id;
-	cubemap->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_CUBEMAP;
+	cubemap->gl_unit = TEXTURE_KIND_CUBEMAP;
 	cubemap->kind = TEXTURE_KIND_CUBEMAP;
 	cubemap->gl_target = GL_TEXTURE_CUBE_MAP;
 	cubemap->width = width;
@@ -354,37 +355,37 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	environment->lambertian = malloc(sizeof *environment->lambertian);
 	environment->lambertian->gl_id = lambertian_id;
 	environment->lambertian->kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
-	environment->lambertian->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
+	environment->lambertian->gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
 	environment->lambertian->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->lambertian_lut = malloc(sizeof *environment->lambertian_lut);
 	environment->lambertian_lut->gl_id = lambertian_lut_id;
 	environment->lambertian_lut->kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
-	environment->lambertian_lut->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
+	environment->lambertian_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
 	environment->lambertian_lut->gl_target = GL_TEXTURE_2D;
 
 	environment->ggx = malloc(sizeof *environment->ggx);
 	environment->ggx->gl_id = ggx_id;
 	environment->ggx->kind = TEXTURE_KIND_ENVIRONMENT_GGX;
-	environment->ggx->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_GGX;
+	environment->ggx->gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX;
 	environment->ggx->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->ggx_lut = malloc(sizeof *environment->ggx_lut);
 	environment->ggx_lut->gl_id = ggx_lut_id;
 	environment->ggx_lut->kind = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
-	environment->ggx_lut->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
+	environment->ggx_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
 	environment->ggx_lut->gl_target = GL_TEXTURE_2D;
 
 	environment->charlie = malloc(sizeof *environment->charlie);
 	environment->charlie->gl_id = charlie_id;
 	environment->charlie->kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
-	environment->charlie->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_CHARLIE;
+	environment->charlie->gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
 	environment->charlie->gl_target = GL_TEXTURE_CUBE_MAP;
 
 	environment->charlie_lut = malloc(sizeof *environment->charlie_lut);
 	environment->charlie_lut->gl_id = charlie_lut_id;
 	environment->charlie_lut->kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
-	environment->charlie_lut->gl_unit = GL_TEXTURE0 + TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
+	environment->charlie_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
 	environment->charlie_lut->gl_target = GL_TEXTURE_2D;
 
 	shader_destroy(iblsampler_shader);

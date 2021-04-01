@@ -118,6 +118,7 @@ int main(void) {
 		// model = model_load("assets/DamagedHelmet_Tangents.glb");
 		// model = model_load("assets/DamagedHelmet.glb");
 		model = model_load("assets/foo.glb");
+		// model = model_load("assets/foo2.glb");
 		if (!model) {
 			fprintf(stderr, "Unable to load model\n");
 			break;
@@ -141,8 +142,10 @@ int main(void) {
 			break;
 		}
 
+		light->position[2] = -3;
+
 		scene_add_entity(state.scene, entity1);
-		scene_add_entity(state.scene, entity2);
+		// scene_add_entity(state.scene, entity2);
 		scene_add_light(state.scene, light);
 
 		main_loop();

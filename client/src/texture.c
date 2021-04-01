@@ -24,10 +24,7 @@ struct texture *texture_create(enum texture_kind kind, size_t width, size_t heig
 		}
 	}
 
-	// Figure out what OpenGL texture unit a given texture should be assigned to (based on its kind).
-	// This is actually the recommended way to enumerate that constant.
-	// You use the texture unit 0 and add your offset to it.
-	texture->gl_unit = GL_TEXTURE0 + texture->kind;
+	texture->gl_unit = texture->kind;
 
 	// Figure out what OpenGL target to use based on the kind.
 	switch (kind) {
@@ -200,7 +197,10 @@ void texture_switch(const struct texture *new) {
 	current = new;
 
 	if (new) {
-		glActiveTexture(new->gl_unit);
+		// Figure out what OpenGL texture unit a given texture should be assigned to (based on its kind).
+		// This is actually the recommended way to enumerate that constant.
+		// You use the texture unit 0 and add your offset to it.
+		glActiveTexture(GL_TEXTURE0 + new->gl_unit);
 		glBindTexture(new->gl_target, new->gl_id);
 	}
 }
