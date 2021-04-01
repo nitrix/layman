@@ -221,11 +221,30 @@ void ui_render_scene_editor(struct ui *ui) {
 			igDragFloat3("Translation", selected_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 
 			if (igButton("R##reset-rotation", (ImVec2) { 0, 0})) {
-				glm_vec3_zero(selected_entity->rotation);
+				glm_mat4_identity(selected_entity->rotation);
 			}
 
 			igSameLine(0, -1);
-			igDragFloat3("Rotation", selected_entity->rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+
+			static vec3 old_euler_rotation, new_euler_rotation;
+			glm_euler_angles(selected_entity->rotation, old_euler_rotation);
+			glm_vec3_copy(old_euler_rotation, new_euler_rotation);
+
+			if (igDragFloat3("Rotation", new_euler_rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+				vec3 delta_euler_rotation;
+				glm_vec3_sub(new_euler_rotation, old_euler_rotation, delta_euler_rotation);
+
+				versor rx, ry, rz, r;
+				glm_quat(rx, delta_euler_rotation[0], 1, 0, 0);
+				glm_quat(ry, delta_euler_rotation[1], 0, 1, 0);
+				glm_quat(rz, delta_euler_rotation[2], 0, 0, 1);
+				glm_quat_mul(rx, ry, r);
+				glm_quat_mul(r, rz, r);
+
+				mat4 delta_matrix;
+				glm_quat_mat4(r, delta_matrix);
+				glm_mat4_mul(selected_entity->rotation, delta_matrix, selected_entity->rotation);
+			}
 
 			if (igButton("R##reset-scale", (ImVec2) { 0, 0})) {
 				selected_entity->scale = 1;
