@@ -221,13 +221,16 @@ void ui_render_scene_editor(struct ui *ui) {
 			igDragFloat3("Translation", selected_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 
 			if (igButton("R##reset-rotation", (ImVec2) { 0, 0})) {
-				glm_mat4_identity(selected_entity->rotation);
+				glm_quat_identity(selected_entity->rotation);
 			}
 
 			igSameLine(0, -1);
 
-			static vec3 old_euler_rotation, new_euler_rotation;
-			glm_euler_angles(selected_entity->rotation, old_euler_rotation);
+			vec3 old_euler_rotation, new_euler_rotation;
+			mat4 rotation;
+
+			glm_quat_mat4(selected_entity->rotation, rotation);
+			glm_euler_angles(rotation, old_euler_rotation);
 			glm_vec3_copy(old_euler_rotation, new_euler_rotation);
 
 			if (igDragFloat3("Rotation", new_euler_rotation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
