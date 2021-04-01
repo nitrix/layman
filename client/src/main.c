@@ -23,7 +23,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	}
 }
 
-void resize_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
 	UNUSED(window);
 
 	state.renderer->viewport_width = width;
@@ -40,7 +40,7 @@ bool setup(void) {
 
 	// Set our callbacks before the UI add theirs on top.
 	glfwSetKeyCallback(state.window->glfw_window, key_callback);
-	glfwSetWindowSizeCallback(state.window->glfw_window, resize_callback);
+	glfwSetFramebufferSizeCallback(state.window->glfw_window, framebuffer_resize_callback);
 
 	state.renderer = renderer_create(state.window);
 	if (!state.renderer) {
