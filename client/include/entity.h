@@ -5,6 +5,7 @@
 #include "model.h"
 
 struct entity {
+	uint32_t id;
 	const struct model *model;
 	vec3 translation;
 	versor rotation;
@@ -38,5 +39,8 @@ struct entity *entity_create_from_model(const struct model *model);
  * @param[in] entity A pointer to the entity to destroy.
  */
 void entity_destroy(struct entity *entity);
+
+void entity_id_as_color(uint32_t id, vec4 color);
+uint32_t entity_color_as_id(vec4 color);
 
 #endif

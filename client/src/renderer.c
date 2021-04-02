@@ -17,6 +17,9 @@
 INCBIN(shaders_skybox_main_vert, "../shaders/skybox/main.vert");
 INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 
+INCBIN(shaders_mousepicking_main_vert, "../shaders/mousepicking/main.vert");
+INCBIN(shaders_mousepicking_main_frag, "../shaders/mousepicking/main.frag");
+
 struct renderer *renderer_create(const struct window *window) {
 	struct renderer *renderer = malloc(sizeof *renderer);
 	if (!renderer) {
@@ -51,6 +54,14 @@ struct renderer *renderer_create(const struct window *window) {
 		renderer->fps_history[i] = 0;
 	}
 
+	renderer->mousepicking_shader = shader_load_from_memory(shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
+	if (!renderer->mousepicking_shader) {
+		free(renderer);
+		return NULL;
+	}
+
+	renderer->mousepicking_entity_id = 0;
+
 	return renderer;
 }
 
@@ -59,6 +70,7 @@ void renderer_destroy(struct renderer *renderer) {
 		return;
 	}
 
+	shader_destroy(renderer->mousepicking_shader);
 	ui_destroy(renderer->ui);
 	free(renderer);
 }
@@ -105,30 +117,8 @@ void renderer_switch(const struct renderer *new) {
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-static void render_mesh(struct renderer *renderer, const struct camera *camera, const struct scene *scene, const struct entity *entity, const struct mesh *mesh) {
-	static GLint viewProjectionMatrixLocation = -1;
-	static GLint modelMatrixLocation = -1;
-	static GLint normalMatrixLocation = -1;
-	static GLint exposureLocation = -1;
-
+static void render_mesh(struct renderer *renderer, const struct camera *camera, const struct scene *scene, const struct entity *entity, const struct shader *shader, const struct mesh *mesh) {
 	mesh_switch(mesh);
-
-	// Uniforms.
-	shader_bind_uniform_environment(mesh->shader, scene->environment);
-	shader_bind_uniform_material(mesh->shader, mesh->material);
-	shader_bind_uniform_camera(mesh->shader, camera);
-	shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
-
-	// FIXME: Horrible, please don't do this every frames!
-	if (viewProjectionMatrixLocation == -1) {
-		viewProjectionMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ViewProjectionMatrix");
-		modelMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_ModelMatrix");
-		normalMatrixLocation = glGetUniformLocation(mesh->shader->program_id, "u_NormalMatrix");
-		exposureLocation = glGetUniformLocation(mesh->shader->program_id, "u_Exposure");
-	}
-
-	// TODO: More uniforms, tidy this up.
-	// TODO: Should all move into the model file and stuff.
 
 	mat4 view_matrix, projection_matrix, view_projection_matrix;
 	glm_lookat((float *) camera->translation, (vec3) { 0, 0, 0}, (vec3) { 0, 1, 0}, view_matrix);
@@ -140,7 +130,6 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	// glm_rotate_x(view_matrix, camera->rotation[0], view_matrix);
 
 	glm_mat4_mul(projection_matrix, view_matrix, view_projection_matrix);
-	glUniformMatrix4fv(viewProjectionMatrixLocation, 1, false, view_projection_matrix[0]);
 
 	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
@@ -150,9 +139,12 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	glm_quat_rotate(model_matrix, entity->rotation, model_matrix);
 	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
 
-	glUniformMatrix4fv(modelMatrixLocation, 1, false, model_matrix[0]);
-	glUniformMatrix4fv(normalMatrixLocation, 1, false, model_matrix[0]);
-	glUniform1f(exposureLocation, renderer->exposure);
+	// Uniforms.
+	shader_bind_uniform_environment(mesh->shader, scene->environment);
+	shader_bind_uniform_material(mesh->shader, mesh->material);
+	shader_bind_uniform_camera(mesh->shader, camera);
+	shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
+	shader_bind_uniform_mvp(shader, view_projection_matrix, model_matrix, renderer->exposure);
 
 	// Render.
 	// FIXME: Support more than just unsigned shorts.
@@ -230,6 +222,47 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	environment_switch(scene->environment);
 
 	// Clear the screen.
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Render all entities, for mouse picking.
+	for (size_t i = 0; i < scene->entity_count; i++) {
+		const struct entity *entity = scene->entities[i];
+
+		// Render all meshes.
+		for (size_t i = 0; i < entity->model->meshes_count; i++) {
+			struct mesh *mesh = entity->model->meshes[i];
+
+			// Render mesh.
+			shader_switch(renderer->mousepicking_shader);
+			static GLint picking_color_location = -1;
+			if (picking_color_location == -1) {
+				picking_color_location = glGetUniformLocation(renderer->mousepicking_shader->program_id, "u_pickingColor");
+			}
+
+			// Convert entity ID to color.
+			vec4 color;
+			entity_id_as_color(entity->id, color);
+			glUniform4fv(picking_color_location, 1, color);
+
+			render_mesh(renderer, camera, scene, entity, renderer->mousepicking_shader, mesh);
+		}
+	}
+
+	// Mouse picking; super-duper slow, the framebuffer is on the GPU.
+	double mouseX, mouseY;
+	int x, y;
+	glfwGetCursorPos(renderer->window->glfw_window, &mouseX, &mouseY);
+	x = mouseX;
+	y = mouseY;
+	vec4 color;
+	glReadPixels(x, renderer->viewport_height - y, 1, 1, GL_RGBA, GL_FLOAT, color);
+
+	// Convert color back to entity ID.
+	renderer->mousepicking_entity_id = entity_color_as_id(color);
+
+	// Start over.
+	glClearColor(0, 0, 0, 255);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Render all entities.
@@ -241,7 +274,15 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 			struct mesh *mesh = entity->model->meshes[i];
 
 			// Render mesh.
-			render_mesh(renderer, camera, scene, entity, mesh);
+			shader_switch(mesh->shader);
+
+			if (renderer->mousepicking_entity_id == entity->id) {
+				renderer->exposure = 3.0f;
+			} else {
+				renderer->exposure = 1.0;
+			}
+
+			render_mesh(renderer, camera, scene, entity, mesh->shader, mesh);
 		}
 	}
 

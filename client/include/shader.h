@@ -39,6 +39,12 @@ struct shader {
 	GLint uniform_lights_direction[MAX_LIGHTS];
 	GLint uniform_lights_color[MAX_LIGHTS];
 	GLint uniform_lights_intensity[MAX_LIGHTS];
+
+	// Model/View/Projection (MVP matrices).
+	GLint uniform_view_projection_matrix;
+	GLint uniform_model_matrix;
+	GLint uniform_normal_matrix;
+	GLint uniform_exposure;
 };
 
 void shader_switch(const struct shader *shader);
@@ -52,16 +58,10 @@ struct shader *shader_load_from_memory(const unsigned char *vertex_content, size
 // TODO: Documentation.
 void shader_destroy(struct shader *shader);
 
-// TODO: Documentation.
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material);
-
-// TODO: Documentation.
 void shader_bind_uniform_camera(const struct shader *shader, const struct camera *camera);
-
-// TODO: Documentation.
 void shader_bind_uniform_lights(const struct shader *shader, const struct light **lights, size_t count);
-
-// TODO: Documentation.
 void shader_bind_uniform_environment(const struct shader *shader, const struct environment *environment);
+void shader_bind_uniform_mvp(const struct shader *shader, mat4 view_projection_matrix, mat4 model_matrix, float exposure);
 
 #endif

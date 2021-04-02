@@ -125,7 +125,6 @@ void mesh_switch(const struct mesh *new) {
 
 	if (new) {
 		glBindVertexArray(new->vao);
-		shader_switch(new->shader);
 		material_switch(new->material);
 	} else {
 		shader_switch(NULL);

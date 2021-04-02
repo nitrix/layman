@@ -145,7 +145,7 @@ int main(void) {
 		light->position[2] = -3;
 
 		scene_add_entity(state.scene, entity1);
-		// scene_add_entity(state.scene, entity2);
+		scene_add_entity(state.scene, entity2);
 		scene_add_light(state.scene, light);
 
 		main_loop();

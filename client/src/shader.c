@@ -240,6 +240,11 @@ static void find_uniforms(struct shader *shader) {
 		sprintf(name, "u_Lights[%zu].intensity", i);
 		shader->uniform_lights_intensity[i] = glGetUniformLocation(shader->program_id, name);
 	}
+
+	shader->uniform_view_projection_matrix = glGetUniformLocation(shader->program_id, "u_ViewProjectionMatrix");
+	shader->uniform_model_matrix = glGetUniformLocation(shader->program_id, "u_ModelMatrix");
+	shader->uniform_normal_matrix = glGetUniformLocation(shader->program_id, "u_NormalMatrix");
+	shader->uniform_exposure = glGetUniformLocation(shader->program_id, "u_Exposure");
 }
 
 struct shader *shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath) {
@@ -402,8 +407,6 @@ void shader_switch(const struct shader *new) {
 }
 
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material) {
-	shader_switch(shader);
-
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
 	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
 	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);
@@ -418,8 +421,6 @@ void shader_bind_uniform_material(const struct shader *shader, const struct mate
 }
 
 void shader_bind_uniform_environment(const struct shader *shader, const struct environment *environment) {
-	shader_switch(shader);
-
 	glUniform1i(shader->uniform_environment_mip_count, environment->mip_count);
 	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->gl_unit);
 	glUniform1i(shader->uniform_environment_ggx, environment->ggx->gl_unit);
@@ -429,14 +430,10 @@ void shader_bind_uniform_environment(const struct shader *shader, const struct e
 }
 
 void shader_bind_uniform_camera(const struct shader *shader, const struct camera *camera) {
-	shader_switch(shader);
-
 	glUniform3fv(shader->uniform_camera, 1, camera->translation);
 }
 
 void shader_bind_uniform_lights(const struct shader *shader, const struct light **lights, size_t count) {
-	shader_switch(shader);
-
 	for (size_t i = 0; i < count; i++) {
 		// TODO: This doesn't clean up old light uniforms when they're removed!
 		if (i >= MAX_LIGHTS) {
@@ -465,4 +462,11 @@ void shader_bind_uniform_lights(const struct shader *shader, const struct light 
 		    default: break;
 		}
 	}
+}
+
+void shader_bind_uniform_mvp(const struct shader *shader, mat4 view_projection_matrix, mat4 model_matrix, float exposure) {
+	glUniformMatrix4fv(shader->uniform_view_projection_matrix, 1, false, view_projection_matrix[0]);
+	glUniformMatrix4fv(shader->uniform_model_matrix, 1, false, model_matrix[0]);
+	glUniformMatrix4fv(shader->uniform_normal_matrix, 1, false, model_matrix[0]);
+	glUniform1f(shader->uniform_exposure, exposure);
 }

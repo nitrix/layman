@@ -30,8 +30,10 @@ struct renderer {
 	float fps_history[FPS_HISTORY_MAX_COUNT];
 	float fps_history_highest;
 	size_t fps_history_total_count;
-};
 
+	struct shader *mousepicking_shader;
+	uint32_t mousepicking_entity_id;
+};
 void renderer_switch(const struct renderer *renderer);
 
 // TODO: Documentation.

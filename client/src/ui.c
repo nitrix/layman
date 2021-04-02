@@ -274,6 +274,8 @@ void ui_render_debug_window(struct ui *ui) {
 		if (igCheckbox("Fullscreen", &state.window->fullscreen)) {
 			window_fullscreen(state.window, state.window->fullscreen);
 		}
+
+		igText("Mouse picked: %u", ui->renderer->mousepicking_entity_id);
 	}
 
 	igEnd();
