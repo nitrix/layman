@@ -17,7 +17,6 @@ TARGET_INCLUDE_DIRECTORIES(cimgui PUBLIC ../../lib/cimgui)
 TARGET_LINK_LIBRARIES(cimgui PRIVATE glfw glad)
 TARGET_COMPILE_DEFINITIONS(cimgui INTERFACE CIMGUI_DEFINE_ENUMS_AND_STRUCTS)
 
-# Work-around for regression in cimgui introduced by imgui 1.82. See https://github.com/cimgui/cimgui/issues/184
 IF(WIN32)
     TARGET_LINK_LIBRARIES(cimgui PRIVATE imm32)
 ENDIF()

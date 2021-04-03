@@ -1,1 +1,0 @@
-ADD_EXECUTABLE(server src/main.c)
