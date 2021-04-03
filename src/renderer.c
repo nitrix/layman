@@ -166,6 +166,9 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Disable multisampling for color mouse-picking.
+	glDisable(GL_MULTISAMPLE);
+
 	// Render all entities, for mouse picking.
 	for (size_t i = 0; i < scene->entity_count; i++) {
 		const struct entity *entity = scene->entities[i];
@@ -205,6 +208,9 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	// Start over.
 	glClearColor(0, 0, 0, 255);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Re-enable multisampling.
+	glEnable(GL_MULTISAMPLE);
 
 	// Render all entities.
 	for (size_t i = 0; i < scene->entity_count; i++) {
