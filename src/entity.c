@@ -1,4 +1,6 @@
 #include "client.h"
+#include "entity.h"
+#include "model.h"
 
 static uint32_t next_entity_id = 1; // FIXME: Re-use entity ids after some point?
 

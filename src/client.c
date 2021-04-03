@@ -1,4 +1,12 @@
 #include "client.h"
+#include "entity.h"
+#include "environment.h"
+#include "light.h"
+#include "model.h"
+#include "utils.h"
+#include <stdlib.h>
+
+struct client client;
 
 // TODO: Isolate the GLFW calls in here to the window TU.
 
@@ -8,63 +16,57 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	UNUSED(mods);
 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
-		state.ui.show = !state.ui.show;
+		client.ui.show = !client.ui.show;
 	}
 }
 
 void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
 	UNUSED(window);
 
-	state.renderer->viewport_width = width;
-	state.renderer->viewport_height = height;
+	client.renderer.viewport_width = width;
+	client.renderer.viewport_height = height;
 	glViewport(0, 0, width, height);
 }
 
 bool setup(void) {
-	if (!window_init(&state.window, 1280, 720, "Example", false)) {
+	if (!window_init(&client.window, 1280, 720, "Example", false)) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
 	}
 
 	// Set our callbacks before the UI add theirs on top.
-	glfwSetKeyCallback(state.window.glfw_window, key_callback);
-	glfwSetFramebufferSizeCallback(state.window.glfw_window, framebuffer_resize_callback);
+	glfwSetKeyCallback(client.window.glfw_window, key_callback);
+	glfwSetFramebufferSizeCallback(client.window.glfw_window, framebuffer_resize_callback);
 
-	state.renderer = renderer_create(&state.window);
-	if (!state.renderer) {
-		fprintf(stderr, "Unable to create the window\n");
+	renderer_init(&client.renderer);
+	camera_init(&client.camera);
+	scene_init(&client.scene);
+	ui_init(&client.ui);
+
+	camera_translation(&client.camera, 0, 0, 3);
+
+	struct environment *pisa = malloc(sizeof *pisa);
+	if (!environment_init_from_file(pisa, "assets/pisa.hdr")) {
 		return false;
 	}
 
-	camera_init(&state.camera);
-	camera_translation(&state.camera, 0, 0, 3);
-
-	scene_init(&state.scene);
-	ui_init(&state.ui);
-
-	// state.environment = environment_create_from_hdr("assets/field.hdr");
-	// state.environment = environment_create_from_hdr("assets/neutral.hdr");
-	state.environment = environment_create_from_hdr("assets/pisa.hdr");
-	if (!state.environment) {
-		fprintf(stderr, "Unable to create the environment\n");
-		return false;
-	}
-
-	state.scene.environment = state.environment;
+	client.scene.environment = pisa;
 
 	return true;
 }
 
 void cleanup(void) {
-	ui_fini(&state.ui);
-	scene_fini(&state.scene);
-	window_fini(&state.window);
-	renderer_destroy(state.renderer);
+	environment_fini(client.scene.environment);
+
+	ui_fini(&client.ui);
+	scene_fini(&client.scene);
+	window_fini(&client.window);
+	renderer_fini(&client.renderer);
 }
 
 void main_loop(void) {
-	while (!window_closed(&state.window)) {
-		window_poll_events(&state.window);
+	while (!window_closed(&client.window)) {
+		window_poll_events(&client.window);
 
 		// double elapsed = window_elapsed(state.window);
 		// double angle = 3.1416 * 0.1f * elapsed;
@@ -76,9 +78,9 @@ void main_loop(void) {
 
 		// camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
 
-		renderer_render(state.renderer, &state.camera, &state.scene);
-		ui_render(&state.ui);
-		window_refresh(&state.window);
+		renderer_render(&client.renderer, &client.camera, &client.scene);
+		ui_render(&client.ui);
+		window_refresh(&client.window);
 	}
 }
 
@@ -112,8 +114,8 @@ int main(void) {
 		light_init(&light, LIGHT_TYPE_DIRECTIONAL);
 		light.position[2] = -3;
 
-		scene_add_entity(&state.scene, &entity1);
-		scene_add_entity(&state.scene, &entity2);
+		scene_add_entity(&client.scene, &entity1);
+		scene_add_entity(&client.scene, &entity2);
 		// scene_add_light(&state.scene, &light);
 
 		main_loop();

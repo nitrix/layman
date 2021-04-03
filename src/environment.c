@@ -1,80 +1,17 @@
-#include "client.h"
+#include "framebuffer.h"
+#include "glad/glad.h"
+#include "incbin.h"
+#include "shader.h"
+#include "texture.h"
+#include "utils.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 // FIXME: This needs to embedded the newer files on changes, maybe even hot-reload?
 INCBIN(shaders_equirect2cube_main_vert, "../shaders/equirect2cube/main.vert");
 INCBIN(shaders_equirect2cube_main_frag, "../shaders/equirect2cube/main.frag");
 INCBIN(shaders_iblsampler_main_vert, "../shaders/iblsampler/main.vert");
 INCBIN(shaders_iblsampler_main_frag, "../shaders/iblsampler/main.frag");
-
-// TODO: Mesh cube.
-void renderCube() {
-	static GLuint cubeVAO, cubeVBO;
-
-	// initialize (if necessary)
-	if (cubeVAO == 0) {
-		float vertices[] = {
-			// back face
-			-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
-			1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-			-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-			-1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-left
-			// front face
-			-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-			1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // bottom-right
-			1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
-			1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
-			-1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // top-left
-			-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-			// left face
-			-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-			-1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
-			-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
-			-1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-			// right face
-			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
-			1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
-			1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right
-			1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
-			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
-			1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
-			// bottom face
-			-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-			1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
-			1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-			1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-			-1.0f, -1.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-			-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-			// top face
-			-1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-			1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-right
-			1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-			-1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
-			-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left
-		};
-		glGenVertexArrays(1, &cubeVAO);
-		glGenBuffers(1, &cubeVBO);
-		// fill buffer
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-		// link vertex attributes
-		glBindVertexArray(cubeVAO);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *) 0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *) (3 * sizeof (float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *) (6 * sizeof (float)));
-	}
-
-	// render Cube
-	glBindVertexArray(cubeVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-}
 
 static bool convert_equirectangular_to_cubemap(const struct texture *equirectangular, struct texture *cubemap) {
 	// Load & convert equirectangular environment map to a cubemap texture.
@@ -138,7 +75,7 @@ static bool convert_equirectangular_to_cubemap(const struct texture *equirectang
 		glUniformMatrix4fv(view_location, 1, false, (float *) views[i]);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap_id, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		renderCube();
+		utils_render_cube();
 	}
 
 	shader_destroy(equirect2cube_shader);
@@ -156,22 +93,15 @@ static bool convert_equirectangular_to_cubemap(const struct texture *equirectang
 	return true;
 }
 
-struct environment *environment_create_from_hdr(const char *filepath) {
-	struct environment *environment = malloc(sizeof *environment);
-	if (!environment) {
-		return NULL;
-	}
-
+bool environment_init_from_file(struct environment *environment, const char *filepath) {
 	struct texture equirectangular;
 	if (!texture_init_from_file(&equirectangular, TEXTURE_KIND_EQUIRECTANGULAR, filepath)) {
-		free(environment);
-		return NULL;
+		return false;
 	}
 
 	if (!convert_equirectangular_to_cubemap(&equirectangular, &environment->cubemap)) {
 		texture_fini(&equirectangular);
-		free(environment);
-		return NULL;
+		return false;
 	}
 
 	texture_fini(&equirectangular);
@@ -183,9 +113,7 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	        );
 
 	if (!iblsampler_shader) {
-		fprintf(stderr, "Unable to load iblsampler shader\n");
-		environment_destroy(environment);
-		return NULL;
+		return false;
 	}
 
 	environment->mip_count = 10;
@@ -220,11 +148,6 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
 		}
 	}
-
-	GLuint lambertian_lut_id;
-	glGenTextures(1, &lambertian_lut_id);
-	glBindTexture(GL_TEXTURE_2D, lambertian_lut_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 
 	// GGX
 	GLuint ggx_id;
@@ -314,7 +237,7 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + face, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, lambertian_id, mip);
 		}
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, lambertian_lut_id, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, 0, 0); // Detach LUT.
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -348,11 +271,6 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	environment->lambertian.gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
 	environment->lambertian.gl_target = GL_TEXTURE_CUBE_MAP;
 
-	environment->lambertian_lut.gl_id = lambertian_lut_id;
-	environment->lambertian_lut.kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
-	environment->lambertian_lut.gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
-	environment->lambertian_lut.gl_target = GL_TEXTURE_2D;
-
 	environment->ggx.gl_id = ggx_id;
 	environment->ggx.kind = TEXTURE_KIND_ENVIRONMENT_GGX;
 	environment->ggx.gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX;
@@ -380,16 +298,13 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	return environment;
 }
 
-void environment_destroy(struct environment *environment) {
+void environment_fini(struct environment *environment) {
 	texture_fini(&environment->cubemap);
 	texture_fini(&environment->lambertian);
-	texture_fini(&environment->lambertian_lut);
 	texture_fini(&environment->ggx);
 	texture_fini(&environment->ggx_lut);
 	texture_fini(&environment->charlie);
 	texture_fini(&environment->charlie_lut);
-
-	free(environment);
 }
 
 void environment_switch(const struct environment *new) {
@@ -403,7 +318,6 @@ void environment_switch(const struct environment *new) {
 
 	if (new) {
 		texture_switch(&new->lambertian);
-		texture_switch(&new->lambertian_lut);
 		texture_switch(&new->ggx);
 		texture_switch(&new->ggx_lut);
 		texture_switch(&new->charlie);

@@ -9,7 +9,7 @@ struct scene {
 	const struct light **lights;
 	size_t lights_count;
 
-	const struct environment *environment;
+	struct environment *environment;
 };
 
 void scene_init(struct scene *scene);

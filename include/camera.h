@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "cglm/cglm.h"
+
 struct camera {
 	vec3 translation;
 	vec3 rotation;

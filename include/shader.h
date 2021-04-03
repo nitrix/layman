@@ -1,6 +1,11 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#include "camera.h"
+#include "environment.h"
+#include "light.h"
+#include "material.h"
+
 struct shader {
 	GLuint program_id;
 

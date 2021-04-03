@@ -1,4 +1,10 @@
+#include "cimgui.h"
+#include "cimgui_impl.h"
 #include "client.h"
+#include "entity.h"
+#include "incbin.h"
+#include "model.h"
+#include "ui.h"
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
@@ -14,7 +20,7 @@ bool ui_init(struct ui *ui) {
 	ui->show_debugging_tools = false;
 	ui->show = false;
 
-	ImGui_ImplGlfw_InitForOpenGL(state.renderer->window->glfw_window, true);
+	ImGui_ImplGlfw_InitForOpenGL(client.window.glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
 	igStyleColorsDark(NULL);
 
@@ -72,17 +78,17 @@ static void prepare_centered_text(const char *text) {
 
 static void render_debugging_tools(struct ui *ui) {
 	if (igBegin("Debugging tools", &ui->show_debugging_tools, ImGuiWindowFlags_None)) {
-		igText("Cursor position: %f %f", state.window.cursor_pos_x, state.window.cursor_pos_y);
-		igText("Mouse picked: %u", state.renderer->mousepicking_entity_id);
+		igText("Cursor position: %f %f", client.window.cursor_pos_x, client.window.cursor_pos_y);
+		igText("Mouse picked: %u", client.renderer.mousepicking_entity_id);
 
 		igSeparator();
 
-		if (igCheckbox("Wireframe mode", &state.renderer->wireframe)) {
-			renderer_wireframe(state.renderer, state.renderer->wireframe);
+		if (igCheckbox("Wireframe mode", &client.renderer.wireframe)) {
+			renderer_wireframe(&client.renderer, client.renderer.wireframe);
 		}
 
-		if (igCheckbox("Fullscreen", &state.window.fullscreen)) {
-			window_fullscreen(&state.window, state.window.fullscreen);
+		if (igCheckbox("Fullscreen", &client.window.fullscreen)) {
+			window_fullscreen(&client.window, client.window.fullscreen);
 		}
 
 		igCheckbox("ImGUI Demo Window", &ui->show_imgui_demo);
@@ -97,7 +103,7 @@ static void render_main_navigation(struct ui *ui) {
 	igSetNextWindowSize((ImVec2) { window_minimum_width, -1}, 0);
 
 	// Center the next window.
-	igSetNextWindowPos((ImVec2) { state.renderer->viewport_width / 2, state.renderer->viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
+	igSetNextWindowPos((ImVec2) { client.renderer.viewport_width / 2, client.renderer.viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
 
 	// The window.
 	if (igBegin("Layman Game Engine", NULL, ImGuiWindowFlags_NoCollapse)) {
@@ -158,8 +164,8 @@ static void render_scene_editor(struct ui *ui) {
 		static struct entity *selected_entity = NULL;
 		bool found_selected_entity = false;
 
-		for (size_t i = 0; i < state.scene.entity_count; i++) {
-			struct entity *entity = state.scene.entities[i];
+		for (size_t i = 0; i < client.scene.entity_count; i++) {
+			struct entity *entity = client.scene.entities[i];
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 

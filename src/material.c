@@ -1,4 +1,5 @@
-#include "client.h"
+#include "material.h"
+#include "texture.h"
 
 void material_init(struct material *material) {
 	// Mettalic/roughness.

@@ -1,4 +1,11 @@
+#include "cglm/cglm.h"
 #include "client.h"
+#include "entity.h"
+#include "incbin.h"
+#include "mesh.h"
+#include "model.h"
+#include "shader.h"
+#include "utils.h"
 
 #define RENDERER_FOV 45.0f
 #define RENDERER_PLANE_FAR 1000.0f
@@ -10,15 +17,10 @@ INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 INCBIN(shaders_mousepicking_main_vert, "../shaders/mousepicking/main.vert");
 INCBIN(shaders_mousepicking_main_frag, "../shaders/mousepicking/main.frag");
 
-struct renderer *renderer_create(const struct window *window) {
-	struct renderer *renderer = malloc(sizeof *renderer);
-	if (!renderer) {
-		return NULL;
-	}
-
+void renderer_init(struct renderer *renderer) {
 	// TODO: Dynamic dimensions; what happens when the window gets resized?
 	int width, height;
-	window_framebuffer_size(window, &width, &height);
+	window_framebuffer_size(&client.window, &width, &height);
 	renderer->viewport_width = width;
 	renderer->viewport_height = height;
 
@@ -28,31 +30,22 @@ struct renderer *renderer_create(const struct window *window) {
 	renderer->near_plane = RENDERER_PLANE_NEAR;
 	renderer->exposure = 1;
 
-	renderer->window = window;
 	renderer->wireframe = false;
 
 	renderer->mousepicking_shader = shader_load_from_memory(shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
 	if (!renderer->mousepicking_shader) {
-		free(renderer);
-		return NULL;
-	}
-
-	renderer->mousepicking_entity_id = 0;
-
-	return renderer;
-}
-
-void renderer_destroy(struct renderer *renderer) {
-	if (!renderer) {
 		return;
 	}
 
+	renderer->mousepicking_entity_id = 0;
+}
+
+void renderer_fini(struct renderer *renderer) {
 	shader_destroy(renderer->mousepicking_shader);
-	free(renderer);
 }
 
 void renderer_switch(const struct renderer *new) {
-	thread_local static const struct renderer *current;
+	_Thread_local static const struct renderer *current;
 
 	if (current == new) {
 		return;
@@ -161,7 +154,7 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 	glUniformMatrix4fv(view_location, 1, false, view[0]);
 
 	// glDisable(GL_CULL_FACE);
-	renderCube();
+	utils_render_cube();
 	// glEnable(GL_CULL_FACE);
 }
 
@@ -198,8 +191,8 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	}
 
 	// Mouse picking; super-duper slow, the framebuffer is on the GPU.
-	double mouseX = renderer->window->cursor_pos_x;
-	double mouseY = renderer->window->cursor_pos_y;
+	double mouseX = client.window.cursor_pos_x;
+	double mouseY = client.window.cursor_pos_y;
 	if (mouseX > 0 && mouseY > 0 && mouseX < renderer->viewport_width && mouseY < renderer->viewport_height) {
 		int x = mouseX, y = mouseY;
 		vec4 color;

@@ -1,4 +1,8 @@
 #include "client.h"
+#include "incbin.h"
+#include "material.h"
+#include "mesh.h"
+#include "shader.h"
 
 INCBIN(shaders_pbr_main_vert, "../shaders/pbr/main.vert");
 INCBIN(shaders_pbr_main_frag, "../shaders/pbr/main.frag");

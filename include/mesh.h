@@ -1,6 +1,10 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "glad/glad.h"
+#include "material.h"
+#include <stdbool.h>
+
 enum mesh_attribute {
 	MESH_ATTRIBUTE_POSITION,
 	MESH_ATTRIBUTE_UV,

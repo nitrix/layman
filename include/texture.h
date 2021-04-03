@@ -1,6 +1,8 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include "glad/glad.h"
+
 enum texture_kind {
 	// PBR textures.
 	TEXTURE_KIND_ALBEDO,

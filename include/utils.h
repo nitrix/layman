@@ -19,4 +19,6 @@
 #define EVAL_TO_STR(x) TO_STR(x)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
+void utils_render_cube(void);
+
 #endif

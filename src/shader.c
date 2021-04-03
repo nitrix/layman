@@ -1,4 +1,10 @@
-#include "client.h"
+#include "glad/glad.h"
+#include "mesh.h"
+#include "shader.h"
+#include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {
@@ -89,20 +95,6 @@ static char *read_shader_file(const char *filepath) {
 	return content;
 }
 
-/**
- * Compiles a shader.
- *
- * @param[in] type The type of shader.
- *      - GL_COMPUTE_SHADER
- *      - GL_VERTEX_SHADER
- *      - GL_TESS_CONTROL_SHADER
- *      - GL_TESS_EVALUATION_SHADER
- *      - GL_GEOMETRY_SHADER
- *      - GL_FRAGMENT_SHADER
- * @param[in] content The content of the shader file.
- *
- * @return The compiled shader id or `0` on error.
- */
 static GLuint compile_shader(GLenum type, const unsigned char *content, size_t length) {
 	GLuint shader_id = glCreateShader(type);
 	if (shader_id == 0) {

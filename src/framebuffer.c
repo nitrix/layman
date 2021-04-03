@@ -1,4 +1,5 @@
-#include "client.h"
+#include "framebuffer.h"
+#include "glad/glad.h"
 
 void framebuffer_init(struct framebuffer *fb, int width, int height) {
 	fb->width = width;
@@ -14,7 +15,7 @@ void framebuffer_fini(struct framebuffer *fb) {
 }
 
 void framebuffer_switch(const struct framebuffer *new) {
-	thread_local static const struct framebuffer *current;
+	_Thread_local static const struct framebuffer *current;
 
 	if (new == current) {
 		return;

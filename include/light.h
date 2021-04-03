@@ -1,6 +1,8 @@
 #ifndef LIGHT_H
 #define LIGHT_H
 
+#include "cglm/cglm.h"
+
 // Passed as-is to the shaders and must therefore match the enums in them.
 enum light_type {
 	LIGHT_TYPE_DIRECTIONAL = 0,

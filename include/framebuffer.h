@@ -1,6 +1,8 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#include "glad/glad.h"
+
 struct framebuffer {
 	int width, height;
 	GLuint fbo;

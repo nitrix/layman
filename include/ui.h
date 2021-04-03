@@ -1,6 +1,8 @@
 #ifndef UI_H
 #define UI_H
 
+#include "texture.h"
+
 struct ui {
 	// UI via (c)imgui, aka ig.
 	struct ImGuiContext *ig_context;

@@ -1,4 +1,7 @@
-#include "client.h"
+#include "GLFW/glfw3.h"
+#include "utils.h"
+#include "window.h"
+#include <stdbool.h>
 
 static void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
 	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();

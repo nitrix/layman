@@ -11,6 +11,9 @@ struct renderer {
 	float viewport_width;
 	float viewport_height;
 
+	// Necessary for PBR.
+	float exposure;
+
 	// Projection matrix.
 	float fov; // In degrees (gets converted to radians in a few places).
 	float far_plane;
@@ -19,18 +22,13 @@ struct renderer {
 	// Debugging features.
 	bool wireframe;
 
-	// TODO: Does this belongs here?
-	double start_time;
-	float exposure;
-
-	const struct window *window;
-
+	// Mouse picking.
 	struct shader *mousepicking_shader;
 	uint32_t mousepicking_entity_id;
 };
 
-struct renderer *renderer_create(const struct window *window);
-void renderer_destroy(struct renderer *renderer);
+void renderer_init(struct renderer *renderer);
+void renderer_fini(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, const struct camera *camera, const struct scene *scene);
 void renderer_wireframe(struct renderer *renderer, bool enabled);
 void renderer_switch(const struct renderer *renderer);

@@ -1,6 +1,9 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "GLFW/glfw3.h"
+#include <stdbool.h>
+
 struct window {
 	GLFWwindow *glfw_window;
 	unsigned int width, height;
