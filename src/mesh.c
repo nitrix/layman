@@ -79,22 +79,9 @@ void mesh_provide_tangents(struct mesh *mesh, const float *data, size_t count, s
 	glEnableVertexAttribArray(MESH_ATTRIBUTE_TANGENT);
 }
 
-void mesh_switch(const struct mesh *new) {
-	thread_local static const struct mesh *current;
-
-	if (current == new) {
-		return;
-	}
-
-	current = new;
-
-	if (new) {
-		glBindVertexArray(new->vao);
-		material_switch(&new->material);
-	} else {
-		shader_switch(NULL);
-		material_switch(NULL);
-	}
+void mesh_switch(const struct mesh *mesh) {
+	glBindVertexArray(mesh->vao);
+	material_switch(&mesh->material);
 }
 
 void mesh_fini(struct mesh *mesh) {

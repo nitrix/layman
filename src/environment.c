@@ -76,7 +76,7 @@ void renderCube() {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-static struct texture *convert_equirectangular_to_cubemap(const struct texture *equirectangular) {
+static bool convert_equirectangular_to_cubemap(const struct texture *equirectangular, struct texture *cubemap) {
 	// Load & convert equirectangular environment map to a cubemap texture.
 	struct shader *equirect2cube_shader = shader_load_from_memory(
 			shaders_equirect2cube_main_vert_data, shaders_equirect2cube_main_vert_size,
@@ -85,10 +85,10 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	        );
 
 	if (!equirect2cube_shader) {
-		return NULL;
+		return false;
 	}
 
-	shader_switch(equirect2cube_shader);
+	glUseProgram(equirect2cube_shader->program_id);
 
 	int width = 2048, height = 2048;
 
@@ -122,7 +122,7 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, 1}, (vec3) { 0, -1, 0}, views[4]);
 	glm_lookat((vec3) { 0, 0, 0}, (vec3) { 0, 0, -1}, (vec3) { 0, -1, 0}, views[5]);
 
-	shader_switch(equirect2cube_shader);
+	glUseProgram(equirect2cube_shader->program_id);
 	GLint equirectangular_map_location = glGetUniformLocation(equirect2cube_shader->program_id, "equirectangularMap");
 	glUniform1i(equirectangular_map_location, 0);
 	GLint projection_location = glGetUniformLocation(equirect2cube_shader->program_id, "projection");
@@ -144,7 +144,6 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	shader_destroy(equirect2cube_shader);
 
 	// TODO: This should use the texture module and not be created manually here.
-	struct texture *cubemap = malloc(sizeof *cubemap);
 	cubemap->gl_id = cubemap_id;
 	cubemap->gl_unit = TEXTURE_KIND_CUBEMAP;
 	cubemap->kind = TEXTURE_KIND_CUBEMAP;
@@ -154,7 +153,7 @@ static struct texture *convert_equirectangular_to_cubemap(const struct texture *
 	// Cleanup.
 	framebuffer_fini(&fb);
 
-	return cubemap;
+	return true;
 }
 
 struct environment *environment_create_from_hdr(const char *filepath) {
@@ -163,20 +162,19 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 		return NULL;
 	}
 
-	struct texture *equirectangular = texture_create_from_file(TEXTURE_KIND_EQUIRECTANGULAR, filepath);
-	if (!equirectangular) {
+	struct texture equirectangular;
+	if (!texture_init_from_file(&equirectangular, TEXTURE_KIND_EQUIRECTANGULAR, filepath)) {
 		free(environment);
 		return NULL;
 	}
 
-	environment->cubemap = convert_equirectangular_to_cubemap(equirectangular);
-	if (!environment->cubemap) {
-		texture_destroy(equirectangular);
+	if (!convert_equirectangular_to_cubemap(&equirectangular, &environment->cubemap)) {
+		texture_fini(&equirectangular);
 		free(environment);
 		return NULL;
 	}
 
-	texture_destroy(equirectangular);
+	texture_fini(&equirectangular);
 
 	struct shader *iblsampler_shader = shader_load_from_memory(
 			shaders_iblsampler_main_vert_data, shaders_iblsampler_main_vert_size,
@@ -194,7 +192,7 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	int sample_count = 1024;
 	size_t width = 1024, height = 1024;
 
-	shader_switch(iblsampler_shader);
+	glUseProgram(iblsampler_shader->program_id);
 
 	GLint pfp_roughness_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_roughness");
 	GLint pfp_samplecount_location = glGetUniformLocation(iblsampler_shader->program_id, "pfp_sampleCount");
@@ -266,9 +264,9 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	texture_switch(environment->cubemap);
+	texture_switch(&environment->cubemap);
 	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
-	glUniform1i(cubemap_location, environment->cubemap->kind);
+	glUniform1i(cubemap_location, environment->cubemap.gl_unit);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -343,41 +341,37 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 
 	// glEnable(GL_CULL_FACE);
 
-	environment->lambertian = malloc(sizeof *environment->lambertian);
-	environment->lambertian->gl_id = lambertian_id;
-	environment->lambertian->kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
-	environment->lambertian->gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
-	environment->lambertian->gl_target = GL_TEXTURE_CUBE_MAP;
+	// FIXME: These are bypassing texture_init and I don't like it.
 
-	environment->lambertian_lut = malloc(sizeof *environment->lambertian_lut);
-	environment->lambertian_lut->gl_id = lambertian_lut_id;
-	environment->lambertian_lut->kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
-	environment->lambertian_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
-	environment->lambertian_lut->gl_target = GL_TEXTURE_2D;
+	environment->lambertian.gl_id = lambertian_id;
+	environment->lambertian.kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
+	environment->lambertian.gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN;
+	environment->lambertian.gl_target = GL_TEXTURE_CUBE_MAP;
 
-	environment->ggx = malloc(sizeof *environment->ggx);
-	environment->ggx->gl_id = ggx_id;
-	environment->ggx->kind = TEXTURE_KIND_ENVIRONMENT_GGX;
-	environment->ggx->gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX;
-	environment->ggx->gl_target = GL_TEXTURE_CUBE_MAP;
+	environment->lambertian_lut.gl_id = lambertian_lut_id;
+	environment->lambertian_lut.kind = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
+	environment->lambertian_lut.gl_unit = TEXTURE_KIND_ENVIRONMENT_LAMBERTIAN_LUT;
+	environment->lambertian_lut.gl_target = GL_TEXTURE_2D;
 
-	environment->ggx_lut = malloc(sizeof *environment->ggx_lut);
-	environment->ggx_lut->gl_id = ggx_lut_id;
-	environment->ggx_lut->kind = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
-	environment->ggx_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
-	environment->ggx_lut->gl_target = GL_TEXTURE_2D;
+	environment->ggx.gl_id = ggx_id;
+	environment->ggx.kind = TEXTURE_KIND_ENVIRONMENT_GGX;
+	environment->ggx.gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX;
+	environment->ggx.gl_target = GL_TEXTURE_CUBE_MAP;
 
-	environment->charlie = malloc(sizeof *environment->charlie);
-	environment->charlie->gl_id = charlie_id;
-	environment->charlie->kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
-	environment->charlie->gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
-	environment->charlie->gl_target = GL_TEXTURE_CUBE_MAP;
+	environment->ggx_lut.gl_id = ggx_lut_id;
+	environment->ggx_lut.kind = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
+	environment->ggx_lut.gl_unit = TEXTURE_KIND_ENVIRONMENT_GGX_LUT;
+	environment->ggx_lut.gl_target = GL_TEXTURE_2D;
 
-	environment->charlie_lut = malloc(sizeof *environment->charlie_lut);
-	environment->charlie_lut->gl_id = charlie_lut_id;
-	environment->charlie_lut->kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
-	environment->charlie_lut->gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
-	environment->charlie_lut->gl_target = GL_TEXTURE_2D;
+	environment->charlie.gl_id = charlie_id;
+	environment->charlie.kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
+	environment->charlie.gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE;
+	environment->charlie.gl_target = GL_TEXTURE_CUBE_MAP;
+
+	environment->charlie_lut.gl_id = charlie_lut_id;
+	environment->charlie_lut.kind = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
+	environment->charlie_lut.gl_unit = TEXTURE_KIND_ENVIRONMENT_CHARLIE_LUT;
+	environment->charlie_lut.gl_target = GL_TEXTURE_2D;
 
 	// Cleanup.
 	framebuffer_fini(&fb);
@@ -387,14 +381,13 @@ struct environment *environment_create_from_hdr(const char *filepath) {
 }
 
 void environment_destroy(struct environment *environment) {
-	texture_destroy(environment->cubemap);
-
-	texture_destroy(environment->lambertian);
-	texture_destroy(environment->lambertian_lut);
-	texture_destroy(environment->ggx);
-	texture_destroy(environment->ggx_lut);
-	texture_destroy(environment->charlie);
-	texture_destroy(environment->charlie_lut);
+	texture_fini(&environment->cubemap);
+	texture_fini(&environment->lambertian);
+	texture_fini(&environment->lambertian_lut);
+	texture_fini(&environment->ggx);
+	texture_fini(&environment->ggx_lut);
+	texture_fini(&environment->charlie);
+	texture_fini(&environment->charlie_lut);
 
 	free(environment);
 }
@@ -409,13 +402,11 @@ void environment_switch(const struct environment *new) {
 	current = new;
 
 	if (new) {
-		texture_switch(new->lambertian);
-		texture_switch(new->lambertian_lut);
-		texture_switch(new->ggx);
-		texture_switch(new->ggx_lut);
-		texture_switch(new->charlie);
-		texture_switch(new->charlie_lut);
-	} else {
-		texture_switch(NULL);
+		texture_switch(&new->lambertian);
+		texture_switch(&new->lambertian_lut);
+		texture_switch(&new->ggx);
+		texture_switch(&new->ggx_lut);
+		texture_switch(&new->charlie);
+		texture_switch(&new->charlie_lut);
 	}
 }

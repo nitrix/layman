@@ -134,8 +134,8 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 	        // "#define MATERIAL_UNLIT\n"
 	        "#define USE_HDR\n"
 	        "#define USE_IBL\n"
-	        // "#define USE_PUNCTUAL\n"
-	        // "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
+	        "#define USE_PUNCTUAL\n"
+	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
 	        // Tonemapping.
 	        "#define TONEMAP_UNCHARTED\n"
@@ -190,6 +190,8 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 }
 
 static void find_uniforms(struct shader *shader) {
+	glUseProgram(shader->program_id);
+
 	shader->uniform_base_color_factor = glGetUniformLocation(shader->program_id, "u_BaseColorFactor");
 	shader->uniform_base_color_sampler = glGetUniformLocation(shader->program_id, "u_BaseColorSampler");
 	shader->uniform_normal_sampler = glGetUniformLocation(shader->program_id, "u_NormalSampler");
@@ -368,7 +370,6 @@ struct shader *shader_load_from_memory(const unsigned char *vertex_content, size
 
 	shader->program_id = program_id;
 
-	shader_switch(shader);
 	find_uniforms(shader);
 
 	return shader;
@@ -377,20 +378,6 @@ struct shader *shader_load_from_memory(const unsigned char *vertex_content, size
 void shader_destroy(struct shader *shader) {
 	glDeleteProgram(shader->program_id);
 	free(shader);
-}
-
-void shader_switch(const struct shader *new) {
-	thread_local static const struct shader *current;
-
-	if (current == new) {
-		return;
-	}
-
-	current = new;
-
-	if (new) {
-		glUseProgram(new->program_id);
-	}
 }
 
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material) {
@@ -409,11 +396,11 @@ void shader_bind_uniform_material(const struct shader *shader, const struct mate
 
 void shader_bind_uniform_environment(const struct shader *shader, const struct environment *environment) {
 	glUniform1i(shader->uniform_environment_mip_count, environment->mip_count);
-	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian->gl_unit);
-	glUniform1i(shader->uniform_environment_ggx, environment->ggx->gl_unit);
-	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut->gl_unit);
-	glUniform1i(shader->uniform_environment_charlie, environment->charlie->gl_unit);
-	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut->gl_unit);
+	glUniform1i(shader->uniform_environment_lambertian, environment->lambertian.gl_unit);
+	glUniform1i(shader->uniform_environment_ggx, environment->ggx.gl_unit);
+	glUniform1i(shader->uniform_environment_ggx_lut, environment->ggx_lut.gl_unit);
+	glUniform1i(shader->uniform_environment_charlie, environment->charlie.gl_unit);
+	glUniform1i(shader->uniform_environment_charlie_lut, environment->charlie_lut.gl_unit);
 }
 
 void shader_bind_uniform_camera(const struct shader *shader, const struct camera *camera) {

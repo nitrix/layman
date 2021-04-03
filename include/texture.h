@@ -67,14 +67,13 @@ struct texture {
 	GLenum gl_internal_format;
 };
 
-void texture_switch(const struct texture *texture);
+void texture_init(struct texture *texture, enum texture_kind kind, size_t width, size_t height, bool mipmapping, enum texture_type type, enum texture_format format, enum texture_format_internal format_internal);
+bool texture_init_from_file(struct texture *texture, enum texture_kind kind, const char *filepath);
+bool texture_init_from_memory(struct texture *texture, enum texture_kind kind, const unsigned char *data, size_t size);
+void texture_fini(struct texture *texture);
 
-// TODO: Documentation.
-struct texture *texture_create(enum texture_kind kind, size_t width, size_t height, bool mipmapping, enum texture_type type, enum texture_format format, enum texture_format_internal format_internal);
-struct texture *texture_create_from_file(enum texture_kind kind, const char *filepath);
-struct texture *texture_create_from_memory(enum texture_kind kind, const unsigned char *data, size_t size);
-void texture_destroy(struct texture *texture);
-void texture_provide_data(struct texture *texture, unsigned int level, unsigned int width, unsigned int height, const void *data);
+void texture_replace_data(struct texture *texture, unsigned int level, unsigned int width, unsigned int height, const void *data);
 void texture_anisotropic_filtering(struct texture *texture, float anisotropy);
+void texture_switch(const struct texture *texture);
 
 #endif

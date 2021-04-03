@@ -6,17 +6,17 @@ struct ui {
 	struct ImGuiContext *ig_context;
 	struct ImGuiIO *ig_io;
 
-	struct renderer *renderer;
-
 	bool show;
-	bool show_demo;
-	bool show_model_editor;
+	bool show_imgui_demo;
+	bool show_model_manager;
 	bool show_scene_editor;
-	struct texture *logo;
+	bool show_debugging_tools;
+
+	struct texture logo;
 };
 
-struct ui *ui_create(struct renderer *renderer);
-void ui_destroy(struct ui *ui);
+bool ui_init(struct ui *ui);
+void ui_fini(struct ui *ui);
 void ui_render(struct ui *ui);
 
 #endif

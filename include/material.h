@@ -2,11 +2,14 @@
 #define MATERIAL_H
 
 struct material {
+	// Mettalic/roughness.
 	vec4 base_color_factor;
 	struct texture *base_color_texture;
 	struct texture *metallic_roughness_texture;
 	float metallic_factor;
 	float roughness_factor;
+
+	// Other things.
 	struct texture *normal_texture;
 	float normal_scale;
 	struct texture *occlusion_texture;

@@ -2,108 +2,66 @@
 
 INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
 
-float step_size = 0.005;
+static float step_size = 0.005;
 
-struct ui *ui_create(struct renderer *renderer) {
-	struct ui *ui = malloc(sizeof *ui);
-
-	if (!ui) {
-		return NULL;
-	}
-
+bool ui_init(struct ui *ui) {
 	ui->ig_context = igCreateContext(NULL);
 	ui->ig_io = igGetIO();
 	ui->ig_io->IniFilename = NULL;
-	ui->show_demo = false;
-	ui->renderer = renderer;
-	ui->show_model_editor = false;
+	ui->show_imgui_demo = false;
+	ui->show_model_manager = false;
 	ui->show_scene_editor = false;
+	ui->show_debugging_tools = false;
 	ui->show = false;
 
-	ImGui_ImplGlfw_InitForOpenGL(renderer->window->glfw_window, true);
+	ImGui_ImplGlfw_InitForOpenGL(state.renderer->window->glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
 	igStyleColorsDark(NULL);
 
-	ui->logo = texture_create_from_memory(TEXTURE_KIND_IMAGE, assets_logo_white_png_data, assets_logo_white_png_size);
-	if (!ui->logo) {
-		// TODO: Cleanup.
-		return NULL;
+	if (!texture_init_from_memory(&ui->logo, TEXTURE_KIND_IMAGE, assets_logo_white_png_data, assets_logo_white_png_size)) {
+		// TODO: Cleanup imgui?
+		return false;
 	}
 
-	return ui;
+	return true;
 }
 
-void ui_destroy(struct ui *ui) {
+void ui_fini(struct ui *ui) {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	igDestroyContext(ui->ig_context);
-
-	texture_destroy(ui->logo);
-	free(ui);
+	texture_fini(&ui->logo);
 }
 
-void ui_render_model_editor(struct ui *ui) {
-	if (!ui->show_model_editor) {
-		return;
-	}
+/*
+    static void render_model_manager(struct ui *ui) {
+        if (igBegin("Model Manager", &ui->show_model_manager, ImGuiWindowFlags_None)) {
+                if (igBeginTabBar("##model-manager-tab-bar", ImGuiTabBarFlags_None)) {
+                        static bool open[2] = {true, true};
 
-	if (igBegin("Model Editor", &ui->show_model_editor, ImGuiWindowFlags_None)) {
-		if (igBeginTabBar("##model-editor-tab-bar", ImGuiTabBarFlags_None)) {
-			static bool open[2] = {true, true};
+                        if (igBeginTabItem("DamagedHelmet.glb", &open[0], ImGuiTabItemFlags_None)) {
+                                igEndTabItem();
+                        }
 
-			if (igBeginTabItem("DamagedHelmet.glb", &open[0], ImGuiTabItemFlags_None)) {
-				igEndTabItem();
-			}
+                        if (igBeginTabItem("BoomBox.glb", &open[1], ImGuiTabItemFlags_None)) {
+                                igEndTabItem();
+                        }
 
-			if (igBeginTabItem("BoomBox.glb", &open[1], ImGuiTabItemFlags_None)) {
-				igEndTabItem();
-			}
+                        if (igTabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+                                // active_tabs.push_back(next_tab_id++); // Add new tab
+                        }
 
-			if (igTabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-				// active_tabs.push_back(next_tab_id++); // Add new tab
-			}
+                        igEndTabBar();
+                }
 
-			igEndTabBar();
-		}
+                igText("Hello World!");
+        }
 
-		igText("Hello World!");
-	}
+        igEnd();
+   }
+ */
 
-	igEnd();
-}
-
-void ui_render_fps_tracker(struct ui *ui) {
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	const ImGuiViewport *viewport = igGetMainViewport();
-	ImVec2 work_pos = viewport->WorkPos;
-	ImVec2 window_pos, window_pos_pivot;
-	window_pos.x = work_pos.x + 10;
-	window_pos.y = work_pos.y + 10;
-	window_pos_pivot.x = 0.0f;
-	window_pos_pivot.y = 0.0f;
-	igSetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-	window_flags |= ImGuiWindowFlags_NoMove;
-
-	igSetNextWindowBgAlpha(0.35f); // Transparent background
-	igSetNextWindowSizeConstraints((ImVec2) { 100, -1}, (ImVec2) { -1, -1}, NULL, NULL);
-
-	if (igBegin("FPS counter", NULL, window_flags)) {
-		if (ui->renderer->fps_history_total_count) {
-			igText("FPS: %d\n", (int) ui->renderer->fps_history[(ui->renderer->fps_history_total_count - 1) % FPS_HISTORY_MAX_COUNT]);
-		} else {
-			igText("FPS: Unknown\n");
-		}
-
-		float scale_max = ui->renderer->fps_history_highest + (ui->renderer->fps_history_highest * 0.25);
-		igPushStyleColorVec4(ImGuiCol_FrameBg, (ImVec4) { 0, 0, 0, 0.25});
-		igPlotHistogramFloatPtr("", ui->renderer->fps_history, FPS_HISTORY_MAX_COUNT, ui->renderer->fps_history_total_count, NULL, 0, scale_max, (ImVec2) { 100, 50}, sizeof (float));
-		igPopStyleColor(1);
-	}
-
-	igEnd();
-}
-
-void prepare_centered_text(const char *text) {
+static void prepare_centered_text(const char *text) {
 	float window_width = igGetWindowWidth();
 
 	ImVec2 dimension;
@@ -112,39 +70,66 @@ void prepare_centered_text(const char *text) {
 	igSetCursorPosX(window_width / 2 - dimension.x / 2);
 }
 
-void ui_render_main_navigation(struct ui *ui) {
+static void render_debugging_tools(struct ui *ui) {
+	if (igBegin("Debugging tools", &ui->show_debugging_tools, ImGuiWindowFlags_None)) {
+		igText("Cursor position: %f %f", state.window.cursor_pos_x, state.window.cursor_pos_y);
+		igText("Mouse picked: %u", state.renderer->mousepicking_entity_id);
+
+		igSeparator();
+
+		if (igCheckbox("Wireframe mode", &state.renderer->wireframe)) {
+			renderer_wireframe(state.renderer, state.renderer->wireframe);
+		}
+
+		if (igCheckbox("Fullscreen", &state.window.fullscreen)) {
+			window_fullscreen(&state.window, state.window.fullscreen);
+		}
+
+		igCheckbox("ImGUI Demo Window", &ui->show_imgui_demo);
+	}
+
+	igEnd();
+}
+
+static void render_main_navigation(struct ui *ui) {
 	// Minimum width for then next window.
 	size_t window_minimum_width = 300;
 	igSetNextWindowSize((ImVec2) { window_minimum_width, -1}, 0);
 
 	// Center the next window.
-	igSetNextWindowPos((ImVec2) { ui->renderer->viewport_width / 2, ui->renderer->viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
+	igSetNextWindowPos((ImVec2) { state.renderer->viewport_width / 2, state.renderer->viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
 
 	// The window.
 	if (igBegin("Layman Game Engine", NULL, ImGuiWindowFlags_NoCollapse)) {
 		float width = igGetWindowWidth();
 
 		// Display the logo centered.
-		igSetCursorPosX((width - ui->logo->width / 2) / 2);
-		ImTextureID texture_id = (void *) (uintptr_t) ui->logo->gl_id; // Absolutely gross.
-		igImage(texture_id, (ImVec2) { ui->logo->width / 2, ui->logo->height / 2}, (ImVec2) { 0, 0}, (ImVec2) { 1, 1}, (ImVec4) { 1, 1, 1, 1}, (ImVec4) { 0, 0, 0, 0});
+		igSetCursorPosX((width - ui->logo.width / 2) / 2);
+		ImTextureID texture_id = (void *) (uintptr_t) ui->logo.gl_id; // Absolutely gross.
+		igImage(texture_id, (ImVec2) { ui->logo.width / 2, ui->logo.height / 2}, (ImVec2) { 0, 0}, (ImVec2) { 1, 1}, (ImVec4) { 1, 1, 1, 1}, (ImVec4) { 0, 0, 0, 0});
 
 		igSeparator();
 
 		// All the buttons.
-		igButton("World Editor", (ImVec2) { -1, 0});
-		if (igButton("Model Editor", (ImVec2) { -1, 0})) {
-			ui->show_model_editor = true;
+		if (igButton("Model Manager", (ImVec2) { -1, 0})) {
+			ui->show_model_manager = true;
 		}
 
-		igButton("Script Editor", (ImVec2) { -1, 0});
+		if (igButton("Scene Editor", (ImVec2) { -1, 0})) {
+			ui->show_scene_editor = true;
+		}
+
+		if (igButton("Debugging tools", (ImVec2) { -1, 0})) {
+			ui->show_debugging_tools = true;
+		}
+
 		igButton("Settings", (ImVec2) { -1, 0});
 		igButton("About", (ImVec2) { -1, 0});
 
 		igSeparator();
 
 		// Footer.
-		char *version = "Version 1.0.0 (build 5952a4c)";
+		char *version = "Version 1.0.0 (build 5952a4c)"; // FIXME: Needs to stay up-to-date.
 		prepare_centered_text(version);
 		igTextDisabled(version);
 	}
@@ -152,7 +137,7 @@ void ui_render_main_navigation(struct ui *ui) {
 	igEnd();
 }
 
-void ui_render_scene_editor(struct ui *ui) {
+static void render_scene_editor(struct ui *ui) {
 	igSetNextWindowSize((ImVec2) { 350, 340}, ImGuiCond_Once);
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
@@ -173,8 +158,8 @@ void ui_render_scene_editor(struct ui *ui) {
 		static struct entity *selected_entity = NULL;
 		bool found_selected_entity = false;
 
-		for (size_t i = 0; i < state.scene->entity_count; i++) {
-			struct entity *entity = state.scene->entities[i];
+		for (size_t i = 0; i < state.scene.entity_count; i++) {
+			struct entity *entity = state.scene.entities[i];
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 
@@ -256,43 +241,25 @@ void ui_render_scene_editor(struct ui *ui) {
 	igEnd();
 }
 
-void ui_render_debug_window(struct ui *ui) {
-	if (igBegin("Debug", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-		igCheckbox("ImGUI demo window", &ui->show_demo);
-
-		if (igCheckbox("Wireframe mode", &ui->renderer->wireframe)) {
-			renderer_wireframe(ui->renderer, ui->renderer->wireframe);
-		}
-
-		igCheckbox("Scene editor", &ui->show_scene_editor);
-
-		if (igCheckbox("Fullscreen", &state.window->fullscreen)) {
-			window_fullscreen(state.window, state.window->fullscreen);
-		}
-
-		igText("Mouse picked: %u", ui->renderer->mousepicking_entity_id);
-	}
-
-	igEnd();
-}
-
 void ui_render(struct ui *ui) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	igNewFrame();
 
 	if (ui->show) {
-		// ui_render_main_navigation(ui);
-		// ui_render_model_editor(ui);
-		// ui_render_fps_tracker(ui);
-		ui_render_debug_window(ui);
+		render_main_navigation(ui);
+		// render_model_editor(ui);
 
-		if (ui->show_scene_editor) {
-			ui_render_scene_editor(ui);
+		if (ui->show_debugging_tools) {
+			render_debugging_tools(ui);
 		}
 
-		if (ui->show_demo) {
-			igShowDemoWindow(&ui->show_demo);
+		if (ui->show_scene_editor) {
+			render_scene_editor(ui);
+		}
+
+		if (ui->show_imgui_demo) {
+			igShowDemoWindow(&ui->show_imgui_demo);
 		}
 	}
 

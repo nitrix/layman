@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 #include "scene.h"
+#include "ui.h"
 
 #define FPS_HISTORY_MAX_COUNT 20
 
@@ -23,11 +24,6 @@ struct renderer {
 	float exposure;
 
 	const struct window *window;
-	struct ui *ui;
-
-	float fps_history[FPS_HISTORY_MAX_COUNT];
-	float fps_history_highest;
-	size_t fps_history_total_count;
 
 	struct shader *mousepicking_shader;
 	uint32_t mousepicking_entity_id;

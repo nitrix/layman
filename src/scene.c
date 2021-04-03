@@ -5,26 +5,18 @@
 // Scenes can only grow in size. The idea being that if there was ever at some point X entities,
 // it's equally likely in the future to have just as many entities again.
 
-struct scene *scene_create(void) {
-	struct scene *scene = malloc(sizeof *scene);
-	if (!scene) {
-		return NULL;
-	}
-
+void scene_init(struct scene *scene) {
 	scene->entities = NULL;
 	scene->entity_count = 0;
 	scene->entity_capacity = 0;
 
 	scene->lights = NULL;
 	scene->lights_count = 0;
-
-	return scene;
 }
 
-void scene_destroy(struct scene *scene) {
+void scene_fini(struct scene *scene) {
 	free(scene->entities);
 	free(scene->lights);
-	free(scene);
 }
 
 bool scene_add_entity(struct scene *scene, struct entity *entity) {
@@ -59,8 +51,4 @@ bool scene_add_light(struct scene *scene, const struct light *light) {
 	scene->lights_count++;
 
 	return true;
-}
-
-void scene_assign_environment(struct scene *scene, const struct environment *environment) {
-	scene->environment = environment;
 }

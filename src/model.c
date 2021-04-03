@@ -115,35 +115,74 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			mesh_provide_indices(mesh, indices, indices_count);
 			mesh_provide_tangents(mesh, tangents, tangents_count, tangents_stride);
 
-			// Base color factor.
-			glm_vec3_copy(primitive->material->pbr_metallic_roughness.base_color_factor, mesh->material.base_color_factor);
-			// Base color texture
-			cgltf_texture *base_color_texture = primitive->material->pbr_metallic_roughness.base_color_texture.texture;
-			const void *base_color_texture_data = gltf->bin + base_color_texture->image->buffer_view->offset;
-			size_t base_color_texture_size = primitive->material->pbr_metallic_roughness.base_color_texture.texture->image->buffer_view->size;
-			mesh->material.base_color_texture = texture_create_from_memory(TEXTURE_KIND_ALBEDO, base_color_texture_data, base_color_texture_size);
-			// Normal texture
-			cgltf_texture *normal_texture = primitive->material->normal_texture.texture;
-			const void *normal_texture_data = gltf->bin + normal_texture->image->buffer_view->offset;
-			size_t normal_texture_size = primitive->material->normal_texture.texture->image->buffer_view->size;
-			mesh->material.normal_texture = texture_create_from_memory(TEXTURE_KIND_NORMAL, normal_texture_data, normal_texture_size);
-			// Metallic/roughness texture
-			cgltf_texture *metallic_roughness_texture = primitive->material->pbr_metallic_roughness.metallic_roughness_texture.texture;
-			const void *metallic_roughness_texture_data = gltf->bin + metallic_roughness_texture->image->buffer_view->offset;
-			size_t metallic_roughness_texture_size = primitive->material->pbr_metallic_roughness.metallic_roughness_texture.texture->image->buffer_view->size;
-			mesh->material.metallic_roughness_texture = texture_create_from_memory(TEXTURE_KIND_METALLIC_ROUGHNESS, metallic_roughness_texture_data, metallic_roughness_texture_size);
-			// Occlusion texture
-			cgltf_texture *occlusion_texture = primitive->material->occlusion_texture.texture;
-			const void *occlusion_texture_data = gltf->bin + occlusion_texture->image->buffer_view->offset;
-			size_t occlusion_texture_size = primitive->material->occlusion_texture.texture->image->buffer_view->size;
-			mesh->material.occlusion_texture = texture_create_from_memory(TEXTURE_KIND_OCCLUSION, occlusion_texture_data, occlusion_texture_size);
+			// FIXME: Handle allocation failures of the textures below.
+
+			// Metallic/roughness workflow (optional).
+			if (primitive->material->has_pbr_metallic_roughness) {
+				cgltf_pbr_metallic_roughness *mr = &primitive->material->pbr_metallic_roughness;
+
+				// Base color factor.
+				glm_vec3_copy(mr->base_color_factor, mesh->material.base_color_factor);
+
+				// Base color texture (optional).
+				if (mr->base_color_texture.texture) {
+					struct texture *texture = malloc(sizeof *texture);
+					texture_init_from_memory(texture, TEXTURE_KIND_ALBEDO,
+						gltf->bin + mr->base_color_texture.texture->image->buffer_view->offset,
+						mr->base_color_texture.texture->image->buffer_view->size
+					);
+					mesh->material.base_color_texture = texture;
+				}
+
+				// Metallic/roughness texture (optional).
+				if (mr->metallic_roughness_texture.texture) {
+					struct texture *texture = malloc(sizeof *texture);
+					texture_init_from_memory(texture, TEXTURE_KIND_METALLIC_ROUGHNESS,
+						gltf->bin + mr->metallic_roughness_texture.texture->image->buffer_view->offset,
+						mr->metallic_roughness_texture.texture->image->buffer_view->size
+					);
+					mesh->material.metallic_roughness_texture = texture;
+				}
+
+				// Metallic factor.
+				mesh->material.metallic_factor = mr->metallic_factor;
+
+				// Roughness factor.
+				mesh->material.roughness_factor = mr->roughness_factor;
+			}
+
+			// Normal texture (optional).
+			if (primitive->material->normal_texture.texture) {
+				struct texture *texture = malloc(sizeof *texture);
+				texture_init_from_memory(texture, TEXTURE_KIND_NORMAL,
+					gltf->bin + primitive->material->normal_texture.texture->image->buffer_view->offset,
+					primitive->material->normal_texture.texture->image->buffer_view->size
+				);
+				mesh->material.normal_texture = texture;
+			}
+
+			// Occlusion texture (optional).
+			if (primitive->material->occlusion_texture.texture) {
+				struct texture *texture = malloc(sizeof *texture);
+				texture_init_from_memory(texture, TEXTURE_KIND_OCCLUSION,
+					gltf->bin + primitive->material->occlusion_texture.texture->image->buffer_view->offset,
+					primitive->material->occlusion_texture.texture->image->buffer_view->size
+				);
+				mesh->material.occlusion_texture = texture;
+			}
+
 			// Emissive factor.
 			glm_vec3_copy(primitive->material->emissive_factor, mesh->material.emissive_factor);
-			// Emissive texture
-			cgltf_texture *emission_texture = primitive->material->emissive_texture.texture;
-			const void *emission_texture_data = gltf->bin + emission_texture->image->buffer_view->offset;
-			size_t emission_texture_size = primitive->material->emissive_texture.texture->image->buffer_view->size;
-			mesh->material.emissive_texture = texture_create_from_memory(TEXTURE_KIND_EMISSION, emission_texture_data, emission_texture_size);
+
+			// Emissive texture (optional).
+			if (primitive->material->emissive_texture.texture) {
+				struct texture *texture = malloc(sizeof *texture);
+				texture_init_from_memory(texture, TEXTURE_KIND_EMISSION,
+					gltf->bin + primitive->material->emissive_texture.texture->image->buffer_view->offset,
+					primitive->material->emissive_texture.texture->image->buffer_view->size
+				);
+				mesh->material.emissive_texture = texture;
+			}
 		}
 	}
 

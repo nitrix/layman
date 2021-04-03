@@ -12,10 +12,9 @@ struct scene {
 	const struct environment *environment;
 };
 
-struct scene *scene_create(void);
-void scene_destroy(struct scene *scene);
+void scene_init(struct scene *scene);
+void scene_fini(struct scene *scene);
 bool scene_add_entity(struct scene *scene, struct entity *entity);
 bool scene_add_light(struct scene *scene, const struct light *light);
-void scene_assign_environment(struct scene *scene, const struct environment *environment);
 
 #endif

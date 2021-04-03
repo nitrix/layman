@@ -1,16 +1,18 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
+#include "texture.h"
+
 struct environment {
-	struct texture *cubemap;
+	struct texture cubemap;
 
 	size_t mip_count;
-	struct texture *lambertian;
-	struct texture *lambertian_lut; // TODO: Remove, that's not a thing.
-	struct texture *ggx;
-	struct texture *ggx_lut;
-	struct texture *charlie;
-	struct texture *charlie_lut;
+	struct texture lambertian;
+	struct texture lambertian_lut; // TODO: Remove, that's not a thing.
+	struct texture ggx;
+	struct texture ggx_lut;
+	struct texture charlie;
+	struct texture charlie_lut;
 };
 
 void environment_debug(const struct environment *environment);

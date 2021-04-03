@@ -1,12 +1,14 @@
 #include "client.h"
 
+// TODO: Isolate the GLFW calls in here to the window TU.
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
 	UNUSED(window);
 	UNUSED(scancode);
 	UNUSED(mods);
 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
-		state.renderer->ui->show = !state.renderer->ui->show;
+		state.ui.show = !state.ui.show;
 	}
 }
 
@@ -19,17 +21,16 @@ void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
 }
 
 bool setup(void) {
-	state.window = window_create(1280, 720, "Example", false);
-	if (!state.window) {
+	if (!window_init(&state.window, 1280, 720, "Example", false)) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
 	}
 
 	// Set our callbacks before the UI add theirs on top.
-	glfwSetKeyCallback(state.window->glfw_window, key_callback);
-	glfwSetFramebufferSizeCallback(state.window->glfw_window, framebuffer_resize_callback);
+	glfwSetKeyCallback(state.window.glfw_window, key_callback);
+	glfwSetFramebufferSizeCallback(state.window.glfw_window, framebuffer_resize_callback);
 
-	state.renderer = renderer_create(state.window);
+	state.renderer = renderer_create(&state.window);
 	if (!state.renderer) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
@@ -38,11 +39,8 @@ bool setup(void) {
 	camera_init(&state.camera);
 	camera_translation(&state.camera, 0, 0, 3);
 
-	state.scene = scene_create();
-	if (!state.scene) {
-		fprintf(stderr, "Unable to create the scene\n");
-		return false;
-	}
+	scene_init(&state.scene);
+	ui_init(&state.ui);
 
 	// state.environment = environment_create_from_hdr("assets/field.hdr");
 	// state.environment = environment_create_from_hdr("assets/neutral.hdr");
@@ -52,20 +50,21 @@ bool setup(void) {
 		return false;
 	}
 
-	scene_assign_environment(state.scene, state.environment);
+	state.scene.environment = state.environment;
 
 	return true;
 }
 
 void cleanup(void) {
-	window_destroy(state.window);
+	ui_fini(&state.ui);
+	scene_fini(&state.scene);
+	window_fini(&state.window);
 	renderer_destroy(state.renderer);
-	scene_destroy(state.scene);
 }
 
 void main_loop(void) {
-	while (!window_closed(state.window)) {
-		window_poll_events(state.window);
+	while (!window_closed(&state.window)) {
+		window_poll_events(&state.window);
 
 		// double elapsed = window_elapsed(state.window);
 		// double angle = 3.1416 * 0.1f * elapsed;
@@ -77,7 +76,9 @@ void main_loop(void) {
 
 		// camera_rotation(state.camera, 0, 3.1416 * 0.1f * elapsed, 0);
 
-		renderer_render(state.renderer, &state.camera, state.scene);
+		renderer_render(state.renderer, &state.camera, &state.scene);
+		ui_render(&state.ui);
+		window_refresh(&state.window);
 	}
 }
 
@@ -111,9 +112,9 @@ int main(void) {
 		light_init(&light, LIGHT_TYPE_DIRECTIONAL);
 		light.position[2] = -3;
 
-		scene_add_entity(state.scene, &entity1);
-		scene_add_entity(state.scene, &entity2);
-		scene_add_light(state.scene, &light);
+		scene_add_entity(&state.scene, &entity1);
+		scene_add_entity(&state.scene, &entity2);
+		// scene_add_light(&state.scene, &light);
 
 		main_loop();
 	} while (false);

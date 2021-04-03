@@ -17,7 +17,7 @@ struct renderer *renderer_create(const struct window *window) {
 	}
 
 	// TODO: Dynamic dimensions; what happens when the window gets resized?
-	unsigned int width, height;
+	int width, height;
 	window_framebuffer_size(window, &width, &height);
 	renderer->viewport_width = width;
 	renderer->viewport_height = height;
@@ -26,23 +26,10 @@ struct renderer *renderer_create(const struct window *window) {
 	renderer->fov = RENDERER_FOV;
 	renderer->far_plane = RENDERER_PLANE_FAR;
 	renderer->near_plane = RENDERER_PLANE_NEAR;
-	renderer->start_time = glfwGetTime();
 	renderer->exposure = 1;
 
 	renderer->window = window;
 	renderer->wireframe = false;
-
-	renderer->ui = ui_create(renderer);
-	if (!renderer->ui) {
-		free(renderer);
-		return NULL;
-	}
-
-	renderer->fps_history_total_count = 0;
-	renderer->fps_history_highest = 0;
-	for (size_t i = 0; i < FPS_HISTORY_MAX_COUNT; i++) {
-		renderer->fps_history[i] = 0;
-	}
 
 	renderer->mousepicking_shader = shader_load_from_memory(shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
 	if (!renderer->mousepicking_shader) {
@@ -61,7 +48,6 @@ void renderer_destroy(struct renderer *renderer) {
 	}
 
 	shader_destroy(renderer->mousepicking_shader);
-	ui_destroy(renderer->ui);
 	free(renderer);
 }
 
@@ -155,16 +141,16 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 			exit(EXIT_FAILURE); // TODO: Handle failure more gracefully.
 		}
 
-		shader_switch(skybox_shader);
+		glUseProgram(skybox_shader->program_id);
 
 		environment_map_location = glGetUniformLocation(skybox_shader->program_id, "environmentMap");
 		projection_location = glGetUniformLocation(skybox_shader->program_id, "projection");
 		view_location = glGetUniformLocation(skybox_shader->program_id, "view");
 	}
 
-	shader_switch(skybox_shader);
-	texture_switch(scene->environment->cubemap);
-	glUniform1i(environment_map_location, scene->environment->cubemap->kind);
+	glUseProgram(skybox_shader->program_id);
+	texture_switch(&scene->environment->cubemap);
+	glUniform1i(environment_map_location, scene->environment->cubemap.kind);
 	mat4 projection_matrix = GLM_MAT4_IDENTITY_INIT;
 	// glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
 	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
@@ -177,34 +163,6 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 	// glDisable(GL_CULL_FACE);
 	renderCube();
 	// glEnable(GL_CULL_FACE);
-	mesh_switch(NULL);
-}
-
-void track_fps(struct renderer *renderer) {
-	static int fps_count = 0;
-	static double previous_time = 0;
-
-	double current_time = window_elapsed(renderer->window);
-	if (previous_time == 0) {
-		previous_time = current_time;
-	}
-
-	fps_count++;
-
-	if (current_time - previous_time > 1) {
-		previous_time = current_time;
-
-		renderer->fps_history_total_count++;
-
-		size_t index = (renderer->fps_history_total_count - 1) % FPS_HISTORY_MAX_COUNT;
-		renderer->fps_history[index] = fps_count;
-
-		if (fps_count > renderer->fps_history_highest) {
-			renderer->fps_history_highest = fps_count;
-		}
-
-		fps_count = 0;
-	}
 }
 
 void renderer_render(struct renderer *renderer, const struct camera *camera, const struct scene *scene) {
@@ -224,7 +182,7 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 			struct mesh *mesh = &entity->model->meshes[i];
 
 			// Render mesh.
-			shader_switch(renderer->mousepicking_shader);
+			glUseProgram(renderer->mousepicking_shader->program_id);
 			static GLint picking_color_location = -1;
 			if (picking_color_location == -1) {
 				picking_color_location = glGetUniformLocation(renderer->mousepicking_shader->program_id, "u_pickingColor");
@@ -240,8 +198,8 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	}
 
 	// Mouse picking; super-duper slow, the framebuffer is on the GPU.
-	double mouseX, mouseY;
-	glfwGetCursorPos(renderer->window->glfw_window, &mouseX, &mouseY);
+	double mouseX = renderer->window->cursor_pos_x;
+	double mouseY = renderer->window->cursor_pos_y;
 	if (mouseX > 0 && mouseY > 0 && mouseX < renderer->viewport_width && mouseY < renderer->viewport_height) {
 		int x = mouseX, y = mouseY;
 		vec4 color;
@@ -264,7 +222,7 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 			struct mesh *mesh = &entity->model->meshes[i];
 
 			// Render mesh.
-			shader_switch(mesh->shader);
+			glUseProgram(mesh->shader->program_id);
 
 			if (renderer->mousepicking_entity_id == entity->id) {
 				renderer->exposure = 3.0f;
@@ -280,15 +238,6 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 	// This is done last so that only the fragments that aren't hiding it gets computed.
 	// The shader is written such that the depth buffer is always 1.0 (the furtest away).
 	render_skybox(renderer, camera, scene);
-
-	// Track FPS.
-	track_fps(renderer);
-
-	// Render the UI.
-	ui_render(renderer->ui);
-
-	// Swap front and back buffers.
-	glfwSwapBuffers(renderer->window->glfw_window);
 }
 
 void renderer_wireframe(struct renderer *renderer, bool enabled) {

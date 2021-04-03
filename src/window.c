@@ -1,6 +1,6 @@
 #include "client.h"
 
-void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
+static void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
 	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
 	if (!primary_monitor) {
 		return;
@@ -20,6 +20,12 @@ void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
 	}
 }
 
+static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
+	struct window *window = glfwGetWindowUserPointer(glfw_window);
+	window->cursor_pos_x = x;
+	window->cursor_pos_y = y;
+}
+
 void window_fullscreen(struct window *window, bool fullscreen) {
 	static int original_width, original_height, original_x, original_y;
 
@@ -37,12 +43,7 @@ void window_fullscreen(struct window *window, bool fullscreen) {
 	window->fullscreen = fullscreen;
 }
 
-struct window *window_create(unsigned int width, unsigned int height, const char *title, bool fullscreen) {
-	struct window *window = malloc(sizeof *window);
-	if (!window) {
-		return NULL;
-	}
-
+bool window_init(struct window *window, unsigned int width, unsigned int height, const char *title, bool fullscreen) {
 	window->width = width;
 	window->height = height;
 	window->start_time = glfwGetTime();
@@ -51,8 +52,7 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 
 	// Automatically initializes the GLFW library for the first window created.
 	if (glfwInit() == GLFW_FALSE) {
-		free(window);
-		return NULL;
+		return false;
 	}
 
 	// Use the primary monitor's resolution when dimensions weren't specified.
@@ -66,7 +66,6 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Modern rendering pipeline.
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true); // Mac OS X requires forward compatibility.
-	// glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, wants_debugging());
 
 	// Fullscreen mode always uses the primary monitor for now.
 	GLFWmonitor *monitor = fullscreen ? glfwGetPrimaryMonitor() : NULL;
@@ -74,9 +73,8 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	// Create the actual window using the GLFW library.
 	window->glfw_window = glfwCreateWindow(window->width, window->height, title, monitor, NULL);
 	if (!window->glfw_window) {
-		free(window);
 		glfwTerminate();
-		return NULL;
+		return false;
 	}
 
 	// Make the current thread use the new window's OpenGL context so that we can initialize OpenGL for it.
@@ -85,40 +83,50 @@ struct window *window_create(unsigned int width, unsigned int height, const char
 	// Initialize OpenGL.
 	if (!gladLoadGL()) {
 		glfwDestroyWindow(window->glfw_window);
-		free(window);
 		glfwTerminate();
-		return NULL;
+		return false;
 	}
-
-	// Setup OpenGL debugging.
-	// setup_opengl_debugging();
 
 	// Minimum number of monitor refreshes the driver should wait after the call to glfwSwapBuffers before actually swapping the buffers on the display.
 	// Essentially, 0 = V-Sync off, 1 = V-Sync on. Leaving this on avoids ugly tearing artifacts.
 	// It requires the OpenGL context to be effective on Windows.
 	glfwSwapInterval(1);
 
-	return window;
+	// Initial cursor position.
+	glfwGetCursorPos(window->glfw_window, &window->cursor_pos_x, &window->cursor_pos_y);
+
+	// Tell GLFW about our window abstraction to be able to ask it back during callbacks.
+	glfwSetWindowUserPointer(window->glfw_window, window);
+
+	// Cursor movement callback.
+	glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
+
+	return true;
 }
 
 double window_elapsed(const struct window *window) {
 	return glfwGetTime() - window->start_time;
 }
 
-void window_destroy(struct window *window) {
-	if (!window) {
-		return;
-	}
-
-	free(window);
+void window_fini(struct window *window) {
+	glfwDestroyWindow(window->glfw_window);
 	glfwTerminate();
 }
 
-void window_close(const struct window *window) {
+void window_close(struct window *window, int force) {
 	glfwSetWindowShouldClose(window->glfw_window, 1);
+
+	if (force) {
+		glfwDestroyWindow(window->glfw_window);
+		window->glfw_window = NULL;
+	}
 }
 
 bool window_closed(const struct window *window) {
+	if (window->glfw_window == NULL) {
+		return true;
+	}
+
 	return glfwWindowShouldClose(window->glfw_window) == 1;
 }
 
@@ -127,9 +135,14 @@ void window_poll_events(const struct window *window) {
 	glfwPollEvents();
 }
 
-void window_framebuffer_size(const struct window *window, unsigned int *width, unsigned int *height) {
-	int tmp_width, tmp_height;
-	glfwGetFramebufferSize(window->glfw_window, &tmp_width, &tmp_height);
-	*width = tmp_width;
-	*height = tmp_height;
+void window_framebuffer_size(const struct window *window, int *width, int *height) {
+	glfwGetFramebufferSize(window->glfw_window, width, height);
+}
+
+bool window_extension_supported(const char *name) {
+	return glfwExtensionSupported(name) == GLFW_TRUE;
+}
+
+void window_refresh(const struct window *window) {
+	glfwSwapBuffers(window->glfw_window);
 }

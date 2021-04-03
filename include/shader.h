@@ -52,6 +52,4 @@ void shader_bind_uniform_lights(const struct shader *shader, const struct light 
 void shader_bind_uniform_environment(const struct shader *shader, const struct environment *environment);
 void shader_bind_uniform_mvp(const struct shader *shader, mat4 view_projection_matrix, mat4 model_matrix, float exposure);
 
-void shader_switch(const struct shader *shader); // FIXME: I don't like all of these *_switch functions anymore.
-
 #endif
