@@ -1,16 +1,28 @@
 #include "client.h"
 #include "entity.h"
 #include "model.h"
+#include "modelmanager.h"
+#include <stdbool.h>
 
 static uint32_t next_entity_id = 1; // FIXME: Re-use entity ids after some point?
 
-void entity_init(struct entity *entity, const struct model *model) {
+bool entity_init(struct entity *entity, const char *model_filepath) {
 	entity->model = NULL;
 	glm_vec3_zero(entity->translation);
 	glm_quat_identity(entity->rotation);
 	entity->scale = 1;
 	entity->id = next_entity_id++;
-	entity->model = model;
+
+	entity->model = modelmanager_use_model(model_filepath);
+	if (!entity->model) {
+		return false;
+	}
+
+	return true;
+}
+
+void entity_fini(struct entity *entity) {
+	modelmanager_unuse_model(entity->model);
 }
 
 void entity_id_as_color(uint32_t id, vec4 color) {

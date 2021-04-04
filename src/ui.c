@@ -177,7 +177,7 @@ static void render_scene_editor(struct ui *ui) {
 			char buffer[1024];
 			snprintf(buffer, sizeof buffer, "##entity-index-%d", i);
 
-			if (igTreeNodeExStrStr(buffer, flags, "%s", entity->model->name)) {
+			if (igTreeNodeExStrStr(buffer, flags, "%s", entity->model->filepath)) {
 				igTreePop();
 			}
 

@@ -45,18 +45,6 @@ void renderer_fini(struct renderer *renderer) {
 }
 
 void renderer_switch(const struct renderer *new) {
-	_Thread_local static const struct renderer *current;
-
-	if (current == new) {
-		return;
-	}
-
-	current = new;
-
-	if (!new) {
-		return;
-	}
-
 	// Resize the viewport, go back to the default framebuffer and clear color for rendering.
 	glViewport(0, 0, new->viewport_width, new->viewport_height);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -241,5 +229,4 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 
 void renderer_wireframe(struct renderer *renderer, bool enabled) {
 	renderer->wireframe = enabled;
-	renderer_switch(NULL);
 }

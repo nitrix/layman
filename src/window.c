@@ -1,4 +1,5 @@
 #include "GLFW/glfw3.h"
+#include "client.h"
 #include "utils.h"
 #include "window.h"
 #include <stdbool.h>
@@ -24,9 +25,26 @@ static void apply_fallback_resolution(unsigned int *width, unsigned int *height)
 }
 
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
-	struct window *window = glfwGetWindowUserPointer(glfw_window);
-	window->cursor_pos_x = x;
-	window->cursor_pos_y = y;
+	client.window.cursor_pos_x = x;
+	client.window.cursor_pos_y = y;
+}
+
+static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+	UNUSED(window);
+	UNUSED(scancode);
+	UNUSED(mods);
+
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+		client.ui.show = !client.ui.show;
+	}
+}
+
+static void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
+	UNUSED(window);
+
+	client.renderer.viewport_width = width;
+	client.renderer.viewport_height = height;
+	glViewport(0, 0, width, height);
 }
 
 void window_fullscreen(struct window *window, bool fullscreen) {
@@ -98,11 +116,10 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	// Initial cursor position.
 	glfwGetCursorPos(window->glfw_window, &window->cursor_pos_x, &window->cursor_pos_y);
 
-	// Tell GLFW about our window abstraction to be able to ask it back during callbacks.
-	glfwSetWindowUserPointer(window->glfw_window, window);
-
-	// Cursor movement callback.
+	// Configure callbacks.
 	glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
+	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_resize_callback);
+	glfwSetKeyCallback(window->glfw_window, key_callback);
 
 	return true;
 }

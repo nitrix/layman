@@ -3,40 +3,17 @@
 #include "environment.h"
 #include "light.h"
 #include "model.h"
+#include "modelmanager.h"
 #include "utils.h"
 #include <stdlib.h>
 
 struct client client;
-
-// TODO: Isolate the GLFW calls in here to the window TU.
-
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-	UNUSED(window);
-	UNUSED(scancode);
-	UNUSED(mods);
-
-	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
-		client.ui.show = !client.ui.show;
-	}
-}
-
-void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
-	UNUSED(window);
-
-	client.renderer.viewport_width = width;
-	client.renderer.viewport_height = height;
-	glViewport(0, 0, width, height);
-}
 
 bool setup(void) {
 	if (!window_init(&client.window, 1280, 720, "Example", false)) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
 	}
-
-	// Set our callbacks before the UI add theirs on top.
-	glfwSetKeyCallback(client.window.glfw_window, key_callback);
-	glfwSetFramebufferSizeCallback(client.window.glfw_window, framebuffer_resize_callback);
 
 	renderer_init(&client.renderer);
 	camera_init(&client.camera);
@@ -90,25 +67,12 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	// TODO: Load model by name, model manager please?
-
-	struct model *model = NULL;
 	struct entity entity1;
 	struct entity entity2;
 
 	do {
-		// model = model_load("assets/BoomBox.glb");
-		// model = model_load("assets/DamagedHelmet_Tangents.glb");
-		// model = model_load("assets/DamagedHelmet.glb");
-		model = model_load("assets/foo.glb");
-		// model = model_load("assets/foo2.glb");
-		if (!model) {
-			fprintf(stderr, "Unable to load model\n");
-			break;
-		}
-
-		entity_init(&entity1, model);
-		entity_init(&entity2, model);
+		entity_init(&entity1, "assets/foo.glb");
+		entity_init(&entity2, "assets/BoomBox.glb");
 
 		struct light light;
 		light_init(&light, LIGHT_TYPE_DIRECTIONAL);
@@ -121,7 +85,8 @@ int main(void) {
 		main_loop();
 	} while (false);
 
-	model_destroy(model);
+	entity_fini(&entity1);
+	entity_fini(&entity2);
 
 	cleanup();
 

@@ -212,7 +212,7 @@ struct model *model_load(const char *filepath) {
 	model->meshes_count = 0;
 
 	// Model name is the filepath for now.
-	model->name = strdup(filepath);
+	model->filepath = strdup(filepath);
 
 	bool loaded = load_meshes(model, gltf);
 
@@ -237,6 +237,6 @@ void model_destroy(struct model *model) {
 		model->meshes_count = 0;
 	}
 
-	free(model->name);
+	free(model->filepath);
 	free(model);
 }

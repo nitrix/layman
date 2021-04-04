@@ -1,8 +1,10 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include <stdlib.h>
+
 struct model {
-	char *name;
+	char *filepath;
 	struct mesh *meshes;
 	size_t meshes_count;
 };

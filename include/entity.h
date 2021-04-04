@@ -9,7 +9,8 @@ struct entity {
 	float scale;
 };
 
-void entity_init(struct entity *entity, const struct model *model);
+bool entity_init(struct entity *entity, const char *model_filepath);
+void entity_fini(struct entity *entity);
 void entity_id_as_color(uint32_t id, vec4 color);
 uint32_t entity_color_as_id(vec4 color);
 

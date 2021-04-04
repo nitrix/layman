@@ -15,18 +15,8 @@ void framebuffer_fini(struct framebuffer *fb) {
 }
 
 void framebuffer_switch(const struct framebuffer *new) {
-	_Thread_local static const struct framebuffer *current;
-
-	if (new == current) {
-		return;
-	}
-
-	current = new;
-
-	if (new) {
-		glBindFramebuffer(GL_FRAMEBUFFER, new->fbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, new->rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, new->width, new->height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, new->rbo);
-	}
+	glBindFramebuffer(GL_FRAMEBUFFER, new->fbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, new->rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, new->width, new->height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, new->rbo);
 }

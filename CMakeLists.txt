@@ -27,6 +27,7 @@ ADD_EXECUTABLE(
     src/material.c
     src/mesh.c
     src/model.c
+    src/modelmanager.c
     src/renderer.c
     src/scene.c
     src/shader.c
