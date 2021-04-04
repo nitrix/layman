@@ -1,4 +1,4 @@
-#include "light.h"
+#include "client.h"
 
 void light_init(struct light *light, enum light_type type) {
 	light->type = type;

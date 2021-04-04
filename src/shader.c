@@ -1,10 +1,4 @@
-#include "glad/glad.h"
-#include "mesh.h"
-#include "shader.h"
-#include "utils.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "client.h"
 
 // FIXME: This function is a disaster.
 static char *read_shader_file(const char *filepath) {

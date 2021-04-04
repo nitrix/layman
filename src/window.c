@@ -1,5 +1,8 @@
 #include "GLFW/glfw3.h"
+#include "cimgui.h"
 #include "client.h"
+#include "entity.h"
+#include "utils.h"
 #include "utils.h"
 #include "window.h"
 #include <stdbool.h>
@@ -25,8 +28,22 @@ static void apply_fallback_resolution(unsigned int *width, unsigned int *height)
 }
 
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
+	UNUSED(glfw_window);
+
 	client.window.cursor_pos_x = x;
 	client.window.cursor_pos_y = y;
+}
+
+static void mouse_button_callback(GLFWwindow *glfw_window, int button, int action, int mods) {
+	UNUSED(glfw_window);
+	UNUSED(mods);
+
+	// Mouse picking, as long as the UI doesn't intercept it.
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+		if (client.renderer.mousepicking_entity_id && !client.ui.ig_io->WantCaptureMouse) {
+			client.ui.selected_entity_id = client.renderer.mousepicking_entity_id;
+		}
+	}
 }
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -120,6 +137,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_resize_callback);
 	glfwSetKeyCallback(window->glfw_window, key_callback);
+	glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
 
 	return true;
 }

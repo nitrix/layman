@@ -1,5 +1,4 @@
-#include "framebuffer.h"
-#include "glad/glad.h"
+#include "client.h"
 
 void framebuffer_init(struct framebuffer *fb, int width, int height) {
 	fb->width = width;

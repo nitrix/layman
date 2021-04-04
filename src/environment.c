@@ -1,11 +1,4 @@
-#include "framebuffer.h"
-#include "glad/glad.h"
-#include "incbin.h"
-#include "shader.h"
-#include "texture.h"
-#include "utils.h"
-#include <stdbool.h>
-#include <stdlib.h>
+#include "client.h"
 
 // FIXME: This needs to embedded the newer files on changes, maybe even hot-reload?
 INCBIN(shaders_equirect2cube_main_vert, "../shaders/equirect2cube/main.vert");

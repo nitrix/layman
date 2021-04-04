@@ -1,5 +1,4 @@
 #include "client.h"
-#include "stb_image.h"
 
 void texture_init(struct texture *texture, enum texture_kind kind, size_t width, size_t height, bool mipmapping, enum texture_type type, enum texture_format format, enum texture_format_internal format_internal) {
 	texture->gl_id = 0;

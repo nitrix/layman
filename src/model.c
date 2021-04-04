@@ -1,9 +1,4 @@
-#include "gltf.h"
-#include "mesh.h"
-#include "model.h"
-#include "texture.h"
-#include <stdlib.h>
-#include <string.h>
+#include "client.h"
 
 bool load_meshes(struct model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;

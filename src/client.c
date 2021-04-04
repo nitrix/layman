@@ -1,11 +1,4 @@
 #include "client.h"
-#include "entity.h"
-#include "environment.h"
-#include "light.h"
-#include "model.h"
-#include "modelmanager.h"
-#include "utils.h"
-#include <stdlib.h>
 
 struct client client;
 
@@ -67,26 +60,15 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	struct entity entity1;
-	struct entity entity2;
-
 	do {
-		entity_init(&entity1, "assets/foo.glb");
-		entity_init(&entity2, "assets/BoomBox.glb");
-
 		struct light light;
 		light_init(&light, LIGHT_TYPE_DIRECTIONAL);
 		light.position[2] = -3;
 
-		scene_add_entity(&client.scene, &entity1);
-		scene_add_entity(&client.scene, &entity2);
 		// scene_add_light(&state.scene, &light);
 
 		main_loop();
 	} while (false);
-
-	entity_fini(&entity1);
-	entity_fini(&entity2);
 
 	cleanup();
 

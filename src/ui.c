@@ -19,6 +19,7 @@ bool ui_init(struct ui *ui) {
 	ui->show_scene_editor = false;
 	ui->show_debugging_tools = false;
 	ui->show = false;
+	ui->selected_entity_id = 0;
 
 	ImGui_ImplGlfw_InitForOpenGL(client.window.glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
@@ -80,6 +81,7 @@ static void render_debugging_tools(struct ui *ui) {
 	if (igBegin("Debugging tools", &ui->show_debugging_tools, ImGuiWindowFlags_None)) {
 		igText("Cursor position: %f %f", client.window.cursor_pos_x, client.window.cursor_pos_y);
 		igText("Mouse picked: %u", client.renderer.mousepicking_entity_id);
+		igText("Selected entity: %u", ui->selected_entity_id);
 
 		igSeparator();
 
@@ -147,13 +149,18 @@ static void render_scene_editor(struct ui *ui) {
 	igSetNextWindowSize((ImVec2) { 350, 340}, ImGuiCond_Once);
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
-		igAlignTextToFramePadding();
-		igText("Filter:");
+		static char buf[1024];
+		igSetNextItemWidth(-70);
+		igInputText("##scene-load", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 		igSameLine(0, -1);
-
-		static char buf[1024] = {0};
-		igSetNextItemWidth(-1);
-		igInputText("##scene-search", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
+		igSetNextItemWidth(70);
+		if (igButton("Load", (ImVec2) { -1, 0})) {
+			struct entity *entity = malloc(sizeof *entity);
+			if (entity_init(entity, buf)) {
+				scene_add_entity(&client.scene, entity);
+				buf[0] = '\0';
+			}
+		}
 
 		igSeparator();
 
@@ -161,17 +168,16 @@ static void render_scene_editor(struct ui *ui) {
 
 		igBeginChildStr("##scene-entities", (ImVec2) { -1, 200}, false, ImGuiWindowFlags_None);
 
-		static struct entity *selected_entity = NULL;
-		bool found_selected_entity = false;
+		struct entity *found_entity = NULL;
 
 		for (size_t i = 0; i < client.scene.entity_count; i++) {
 			struct entity *entity = client.scene.entities[i];
 
 			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
 
-			if (entity == selected_entity) {
+			if (entity->id == ui->selected_entity_id) {
 				flags |= ImGuiTreeNodeFlags_Selected;
-				found_selected_entity = true;
+				found_entity = entity;
 			}
 
 			char buffer[1024];
@@ -182,8 +188,8 @@ static void render_scene_editor(struct ui *ui) {
 			}
 
 			if (igIsItemClicked(ImGuiMouseButton_Left)) {
-				selected_entity = entity;
-				found_selected_entity = true;
+				ui->selected_entity_id = entity->id;
+				found_entity = entity;
 			}
 		}
 
@@ -191,23 +197,18 @@ static void render_scene_editor(struct ui *ui) {
 
 		igPopStyleColor(1);
 
-		// We have to clear the selected entity if it is no longer in the scene to avoid invalid memory access.
-		if (!found_selected_entity) {
-			selected_entity = NULL;
-		}
-
 		igSeparator();
 
-		if (selected_entity) {
+		if (found_entity) {
 			if (igButton("R##reset-translation", (ImVec2) { 0, 0})) {
-				glm_vec3_zero(selected_entity->translation);
+				glm_vec3_zero(found_entity->translation);
 			}
 
 			igSameLine(0, -1);
-			igDragFloat3("Translation", selected_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat3("Translation", found_entity->translation, step_size, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None);
 
 			if (igButton("R##reset-rotation", (ImVec2) { 0, 0})) {
-				glm_quat_identity(selected_entity->rotation);
+				glm_quat_identity(found_entity->rotation);
 			}
 
 			igSameLine(0, -1);
@@ -215,7 +216,7 @@ static void render_scene_editor(struct ui *ui) {
 			vec3 old_euler_rotation, new_euler_rotation;
 			mat4 rotation;
 
-			glm_quat_mat4(selected_entity->rotation, rotation);
+			glm_quat_mat4(found_entity->rotation, rotation);
 			glm_euler_angles(rotation, old_euler_rotation);
 			glm_vec3_copy(old_euler_rotation, new_euler_rotation);
 
@@ -230,15 +231,15 @@ static void render_scene_editor(struct ui *ui) {
 				glm_quat_mul(rx, ry, r);
 				glm_quat_mul(r, rz, r);
 
-				glm_quat_mul(selected_entity->rotation, r, selected_entity->rotation);
+				glm_quat_mul(found_entity->rotation, r, found_entity->rotation);
 			}
 
 			if (igButton("R##reset-scale", (ImVec2) { 0, 0})) {
-				selected_entity->scale = 1;
+				found_entity->scale = 1;
 			}
 
 			igSameLine(0, -1);
-			igDragFloat("Scale", &selected_entity->scale, step_size, 0, FLT_MAX, "%f", ImGuiSliderFlags_None);
+			igDragFloat("Scale", &found_entity->scale, step_size, 0, FLT_MAX, "%f", ImGuiSliderFlags_None);
 		} else {
 			igText("Select an entity.");
 		}

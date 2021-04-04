@@ -210,13 +210,6 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 
 			// Render mesh.
 			glUseProgram(mesh->shader->program_id);
-
-			if (renderer->mousepicking_entity_id == entity->id) {
-				renderer->exposure = 3.0f;
-			} else {
-				renderer->exposure = 1.0;
-			}
-
 			render_mesh(renderer, camera, scene, entity, mesh->shader, mesh);
 		}
 	}

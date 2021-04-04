@@ -14,6 +14,7 @@ struct ui {
 	bool show_scene_editor;
 	bool show_debugging_tools;
 
+	uint32_t selected_entity_id;
 	struct texture logo;
 };
 
