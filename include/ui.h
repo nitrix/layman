@@ -14,6 +14,7 @@ struct ui {
 	bool show_debugging_tools;
 	bool show_settings;
 	bool show_about;
+	bool show_test;
 
 	uint32_t selected_entity_id;
 

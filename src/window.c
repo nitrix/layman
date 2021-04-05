@@ -54,15 +54,15 @@ static void recalculate_cursor_ray(void) {
 	        for (size_t i = 0; i < client.scene.entity_count; i++) {
 	                struct entity *entity = client.scene.entities[i];
 	                if (client.ui.selected_entity_id == entity->id) {
-	                        float distance = tmp;
+	                                        float distance = tmp;
 
-	                        vec3 position, direction_further;
-	                        glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
-	                        glm_vec3_copy(origin, position);
-	                        glm_vec3_add(position, direction_further, position);
+	                                        vec3 position, direction_further;
+	                                        glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
+	                                        glm_vec3_copy(origin, position);
+	                                        glm_vec3_add(position, direction_further, position);
 
-	                        // printf("-> %f %f %f\n", position[0], position[1], position[2]);
-	                        glm_vec3_copy(position, entity->translation);
+	                                        // printf("-> %f %f %f\n", position[0], position[1], position[2]);
+	                                        glm_vec3_copy(position, entity->translation);
 	                }
 	        }
 	   }

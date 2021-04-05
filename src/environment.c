@@ -301,19 +301,9 @@ void environment_fini(struct environment *environment) {
 }
 
 void environment_switch(const struct environment *new) {
-	thread_local static const struct environment *current = NULL;
-
-	if (current == new) {
-		return;
-	}
-
-	current = new;
-
-	if (new) {
-		texture_switch(&new->lambertian);
-		texture_switch(&new->ggx);
-		texture_switch(&new->ggx_lut);
-		texture_switch(&new->charlie);
-		texture_switch(&new->charlie_lut);
-	}
+	texture_switch(&new->lambertian);
+	texture_switch(&new->ggx);
+	texture_switch(&new->ggx_lut);
+	texture_switch(&new->charlie);
+	texture_switch(&new->charlie_lut);
 }

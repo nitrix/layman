@@ -37,7 +37,7 @@ ADD_EXECUTABLE(
     src/window.c
 )
 
-TARGET_COMPILE_OPTIONS(client PRIVATE -std=c11 -Wall -Wextra -static)
+# TARGET_COMPILE_OPTIONS(client PRIVATE -std=c11 -Wall -Wextra -static)
 TARGET_LINK_LIBRARIES(client PRIVATE cglm glad glfw gltf stb_image cimgui incbin)
 TARGET_INCLUDE_DIRECTORIES(client PRIVATE include)
 
@@ -51,6 +51,12 @@ TARGET_COMPILE_DEFINITIONS(client PRIVATE INCBIN_STYLE=INCBIN_STYLE_SNAKE)
 TARGET_COMPILE_DEFINITIONS(client PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 TARGET_COMPILE_OPTIONS(client PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
 TARGET_COMPILE_OPTIONS(client PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
+
+# Useful sometimes for debugging.
+# TARGET_COMPILE_OPTIONS(client PUBLIC -fsanitize=undefined -fsanitize-undefined-trap-on-error)
+# TARGET_COMPILE_OPTIONS(client PUBLIC -fsanitize=address)
+# TARGET_LINK_OPTIONS(client PUBLIC -fsanitize=undefined)
+# TARGET_LINK_OPTIONS(client PUBLIC -fsanitize=address)
 
 # ======================================================================================================================
 #                                                    SERVER
