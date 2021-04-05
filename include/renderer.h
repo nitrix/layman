@@ -33,5 +33,6 @@ void renderer_fini(struct renderer *renderer);
 void renderer_render(struct renderer *renderer, const struct camera *camera, const struct scene *scene);
 void renderer_wireframe(struct renderer *renderer, bool enabled);
 void renderer_switch(const struct renderer *renderer);
+void renderer_update_projection_matrix(struct renderer *renderer);
 
 #endif

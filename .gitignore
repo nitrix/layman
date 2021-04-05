@@ -2,6 +2,6 @@
 /.vscode
 /build
 
-# Temporary: do not commit assets.
-/assets
-/imgui.ini
+# Do not commit large assets.
+/assets/*.glb
+/assets/*.hdr

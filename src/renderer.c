@@ -17,7 +17,7 @@ INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 INCBIN(shaders_mousepicking_main_vert, "../shaders/mousepicking/main.vert");
 INCBIN(shaders_mousepicking_main_frag, "../shaders/mousepicking/main.frag");
 
-static void update_projection_matrix(struct renderer *renderer) {
+void renderer_update_projection_matrix(struct renderer *renderer) {
 	glm_mat4_identity(renderer->projection_matrix);
 	// glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
 	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, renderer->projection_matrix);
@@ -34,7 +34,7 @@ void renderer_init(struct renderer *renderer) {
 	renderer->fov = RENDERER_FOV;
 	renderer->far_plane = RENDERER_PLANE_FAR;
 	renderer->near_plane = RENDERER_PLANE_NEAR;
-	update_projection_matrix(renderer);
+	renderer_update_projection_matrix(renderer);
 
 	renderer->exposure = 1;
 	renderer->wireframe = false;
@@ -85,7 +85,7 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	mesh_switch(mesh);
 
 	mat4 view_projection_matrix;
-	glm_mat4_mul(renderer->projection_matrix, camera->view_matrix, view_projection_matrix);
+	glm_mat4_mul(renderer->projection_matrix, (vec4 *) camera->view_matrix, view_projection_matrix);
 
 	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;

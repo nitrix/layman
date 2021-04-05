@@ -10,7 +10,10 @@ struct window {
 	double start_time;
 	int samples;
 	bool fullscreen;
+	char *title;
+
 	double cursor_pos_x, cursor_pos_y;
+	vec4 cursor_ray_origin, cursor_ray_direction;
 };
 
 bool window_init(struct window *window, unsigned int width, unsigned int height, const char *title, bool fullscreen);
@@ -23,5 +26,6 @@ void window_framebuffer_size(const struct window *window, int *width, int *heigh
 void window_fullscreen(struct window *window, bool fullscreen);
 bool window_extension_supported(const char *name);
 void window_refresh(const struct window *window);
+void window_update_title(struct window *window, const char *title);
 
 #endif
