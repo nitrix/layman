@@ -10,12 +10,18 @@ struct ui {
 
 	bool show;
 	bool show_imgui_demo;
-	bool show_model_manager;
 	bool show_scene_editor;
 	bool show_debugging_tools;
+	bool show_settings;
+	bool show_about;
 
 	uint32_t selected_entity_id;
-	struct texture logo;
+
+	struct texture assets_logo_png;
+	struct texture assets_gear_png;
+	struct texture assets_bug_png;
+	struct texture assets_question_png;
+	struct texture assets_cube_png;
 };
 
 bool ui_init(struct ui *ui);

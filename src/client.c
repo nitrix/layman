@@ -3,7 +3,7 @@
 struct client client;
 
 bool setup(void) {
-	if (!window_init(&client.window, 1280, 720, "Example", false)) {
+	if (!window_init(&client.window, 1280, 720, DEFAULT_TITLE, false)) {
 		fprintf(stderr, "Unable to create the window\n");
 		return false;
 	}

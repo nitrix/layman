@@ -369,14 +369,30 @@ void shader_destroy(struct shader *shader) {
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material) {
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
 	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
-	glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);
+
+	if (material->metallic_roughness_texture) {
+		glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);
+	}
+
 	glUniform1f(shader->uniform_metallic_factor, material->metallic_factor);
 	glUniform1f(shader->uniform_roughness_factor, material->roughness_factor);
-	glUniform1i(shader->uniform_normal_sampler, material->normal_texture->gl_unit);
+
+	if (material->normal_texture) {
+		glUniform1i(shader->uniform_normal_sampler, material->normal_texture->gl_unit);
+	}
+
 	glUniform1f(shader->uniform_normal_scale, material->normal_scale);
-	glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->gl_unit);
+
+	if (material->occlusion_texture) {
+		glUniform1i(shader->uniform_occlusion_sampler, material->occlusion_texture->gl_unit);
+	}
+
 	glUniform1f(shader->uniform_occlusion_strength, material->occlusion_strength);
-	glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->gl_unit);
+
+	if (material->emissive_texture) {
+		glUniform1i(shader->uniform_emissive_sampler, material->emissive_texture->gl_unit);
+	}
+
 	glUniform3fv(shader->uniform_emissive_factor, 1, material->emissive_factor);
 }
 

@@ -27,11 +27,61 @@ static void apply_fallback_resolution(unsigned int *width, unsigned int *height)
 	}
 }
 
+static void recalculate_cursor_ray(void) {
+	// Normalize the cursor position to the [-1, 1] range (normalized device space).
+	double normalized_x = -1.0 + 2.0 * client.window.cursor_pos_x / (double) client.window.width;
+	double normalized_y = 1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height;
+	// double normalized_y = -(1.0 - 2.0 * state.window.cursor_pos_y / (double) state.window.height);
+	vec2 n = {normalized_x, normalized_y};
+
+	// Generate the inverse view-projection matrix, to convert from normalized device space to world space.
+	mat4 view_projection_matrix, view_projection_inverse;
+	glm_mat4_mul(client.renderer.projection_matrix, client.camera.view_matrix, view_projection_matrix);
+	glm_mat4_inv(view_projection_matrix, view_projection_inverse);
+
+	vec4 ray_start, ray_end;
+	glm_mat4_mulv(view_projection_inverse, (vec4) { n[0], n[1], 0.f, 1.f}, ray_start);
+	glm_vec4_scale(ray_start, 1.f / ray_start[3], ray_start);
+	glm_mat4_mulv(view_projection_inverse, (vec4) { n[0], n[1], 1.f, 1.f}, ray_end);
+	glm_vec4_scale(ray_end, 1.f / ray_end[3], ray_end);
+
+	glm_vec4_copy(ray_start, client.window.cursor_ray_origin);
+	glm_vec4_sub(ray_end, ray_start, client.window.cursor_ray_direction);
+	glm_normalize(client.window.cursor_ray_direction);
+
+	/*
+	   if (tracking) {
+	        for (size_t i = 0; i < client.scene.entity_count; i++) {
+	                struct entity *entity = client.scene.entities[i];
+	                if (client.ui.selected_entity_id == entity->id) {
+	                        float distance = tmp;
+
+	                        vec3 position, direction_further;
+	                        glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
+	                        glm_vec3_copy(origin, position);
+	                        glm_vec3_add(position, direction_further, position);
+
+	                        // printf("-> %f %f %f\n", position[0], position[1], position[2]);
+	                        glm_vec3_copy(position, entity->translation);
+	                }
+	        }
+	   }
+	 */
+}
+
+static void scroll_callback(GLFWwindow *glfw_window, double xoffset, double yoffset) {
+	UNUSED(glfw_window);
+	UNUSED(xoffset);
+	UNUSED(yoffset);
+}
+
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
 	UNUSED(glfw_window);
 
 	client.window.cursor_pos_x = x;
 	client.window.cursor_pos_y = y;
+
+	recalculate_cursor_ray();
 }
 
 static void mouse_button_callback(GLFWwindow *glfw_window, int button, int action, int mods) {
@@ -54,6 +104,13 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
 		client.ui.show = !client.ui.show;
 	}
+}
+
+static void window_size_callback(GLFWwindow *window, int width, int height) {
+	UNUSED(window);
+
+	client.window.width = width;
+	client.window.height = height;
 }
 
 static void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
@@ -87,9 +144,15 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	window->start_time = glfwGetTime();
 	window->samples = 4; // TODO: Support changing the number of samples. This requires recreating the window and sharing the context.
 	window->fullscreen = fullscreen;
+	window->title = strdup(title);
+
+	if (!window->title) {
+		return false;
+	}
 
 	// Automatically initializes the GLFW library for the first window created.
 	if (glfwInit() == GLFW_FALSE) {
+		free(window->title);
 		return false;
 	}
 
@@ -112,6 +175,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	window->glfw_window = glfwCreateWindow(window->width, window->height, title, monitor, NULL);
 	if (!window->glfw_window) {
 		glfwTerminate();
+		free(window->title);
 		return false;
 	}
 
@@ -122,6 +186,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	if (!gladLoadGL()) {
 		glfwDestroyWindow(window->glfw_window);
 		glfwTerminate();
+		free(window->title);
 		return false;
 	}
 
@@ -136,8 +201,10 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	// Configure callbacks.
 	glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_resize_callback);
+	glfwSetWindowSizeCallback(window->glfw_window, window_size_callback);
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 	glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
+	glfwSetScrollCallback(window->glfw_window, scroll_callback);
 
 	return true;
 }
@@ -147,8 +214,20 @@ double window_elapsed(const struct window *window) {
 }
 
 void window_fini(struct window *window) {
+	free(window->title);
 	glfwDestroyWindow(window->glfw_window);
 	glfwTerminate();
+}
+
+void window_update_title(struct window *window, const char *title) {
+	char *title_copy = strdup(title);
+	if (!title_copy) {
+		return;
+	}
+
+	free(window->title);
+	window->title = title_copy;
+	glfwSetWindowTitle(window->glfw_window, title_copy);
 }
 
 void window_close(struct window *window, int force) {

@@ -6,7 +6,11 @@
 #include "model.h"
 #include "ui.h"
 
-INCBIN(assets_logo_white_png, "../../assets/logo_white.png");
+INCBIN(assets_logo_png, "../assets/logo.png");
+INCBIN(assets_gear_png, "../assets/gear.png");
+INCBIN(assets_bug_png, "../assets/bug.png");
+INCBIN(assets_question_png, "../assets/question.png");
+INCBIN(assets_cube_png, "../assets/cube.png");
 
 static float step_size = 0.005;
 
@@ -14,21 +18,25 @@ bool ui_init(struct ui *ui) {
 	ui->ig_context = igCreateContext(NULL);
 	ui->ig_io = igGetIO();
 	ui->ig_io->IniFilename = NULL;
+
+	ui->show = false;
 	ui->show_imgui_demo = false;
-	ui->show_model_manager = false;
 	ui->show_scene_editor = false;
 	ui->show_debugging_tools = false;
-	ui->show = false;
+	ui->show_settings = false;
+	ui->show_about = false;
+
 	ui->selected_entity_id = 0;
 
 	ImGui_ImplGlfw_InitForOpenGL(client.window.glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
 	igStyleColorsDark(NULL);
 
-	if (!texture_init_from_memory(&ui->logo, TEXTURE_KIND_IMAGE, assets_logo_white_png_data, assets_logo_white_png_size)) {
-		// TODO: Cleanup imgui?
-		return false;
-	}
+	texture_init_from_memory(&ui->assets_logo_png, TEXTURE_KIND_IMAGE, assets_logo_png_data, assets_logo_png_size);
+	texture_init_from_memory(&ui->assets_gear_png, TEXTURE_KIND_IMAGE, assets_gear_png_data, assets_gear_png_size);
+	texture_init_from_memory(&ui->assets_bug_png, TEXTURE_KIND_IMAGE, assets_bug_png_data, assets_bug_png_size);
+	texture_init_from_memory(&ui->assets_question_png, TEXTURE_KIND_IMAGE, assets_question_png_data, assets_question_png_size);
+	texture_init_from_memory(&ui->assets_cube_png, TEXTURE_KIND_IMAGE, assets_cube_png_data, assets_cube_png_size);
 
 	return true;
 }
@@ -37,36 +45,16 @@ void ui_fini(struct ui *ui) {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	igDestroyContext(ui->ig_context);
-	texture_fini(&ui->logo);
+	texture_fini(&ui->assets_logo_png);
+	texture_fini(&ui->assets_gear_png);
+	texture_fini(&ui->assets_bug_png);
+	texture_fini(&ui->assets_question_png);
+	texture_fini(&ui->assets_cube_png);
 }
 
-/*
-    static void render_model_manager(struct ui *ui) {
-        if (igBegin("Model Manager", &ui->show_model_manager, ImGuiWindowFlags_None)) {
-                if (igBeginTabBar("##model-manager-tab-bar", ImGuiTabBarFlags_None)) {
-                        static bool open[2] = {true, true};
-
-                        if (igBeginTabItem("DamagedHelmet.glb", &open[0], ImGuiTabItemFlags_None)) {
-                                igEndTabItem();
-                        }
-
-                        if (igBeginTabItem("BoomBox.glb", &open[1], ImGuiTabItemFlags_None)) {
-                                igEndTabItem();
-                        }
-
-                        if (igTabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-                                // active_tabs.push_back(next_tab_id++); // Add new tab
-                        }
-
-                        igEndTabBar();
-                }
-
-                igText("Hello World!");
-        }
-
-        igEnd();
-   }
- */
+static void center_next_window(void) {
+	igSetNextWindowPos((ImVec2) { client.renderer.viewport_width / 2, client.renderer.viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
+}
 
 static void prepare_centered_text(const char *text) {
 	float window_width = igGetWindowWidth();
@@ -77,9 +65,33 @@ static void prepare_centered_text(const char *text) {
 	igSetCursorPosX(window_width / 2 - dimension.x / 2);
 }
 
+static void render_settings(struct ui *ui) {
+	center_next_window();
+
+	igSetNextWindowSize((ImVec2) { 300, 0}, ImGuiCond_Once);
+
+	if (igBegin("Settings", &ui->show_settings, ImGuiWindowFlags_None)) {
+		char buffer[1024];
+		snprintf(buffer, sizeof buffer, "%s", client.window.title);
+		if (igInputText("Window title", buffer, sizeof buffer, ImGuiInputTextFlags_None, NULL, NULL)) {
+			window_update_title(&client.window, buffer);
+		}
+
+		if (igSliderFloat("FOV", &client.renderer.fov, 10.0f, 120.0f, "%.0f", ImGuiSliderFlags_None)) {
+			renderer_update_projection_matrix(&client.renderer);
+		}
+	}
+
+	igEnd();
+}
+
 static void render_debugging_tools(struct ui *ui) {
+	center_next_window();
+
+	igSetNextWindowSize((ImVec2) { 200, 0}, ImGuiCond_Once);
+
 	if (igBegin("Debugging tools", &ui->show_debugging_tools, ImGuiWindowFlags_None)) {
-		igText("Cursor position: %f %f", client.window.cursor_pos_x, client.window.cursor_pos_y);
+		igText("Cursor position: %.0f %.0f", client.window.cursor_pos_x, client.window.cursor_pos_y);
 		igText("Mouse picked: %u", client.renderer.mousepicking_entity_id);
 		igText("Selected entity: %u", ui->selected_entity_id);
 
@@ -99,45 +111,27 @@ static void render_debugging_tools(struct ui *ui) {
 	igEnd();
 }
 
-static void render_main_navigation(struct ui *ui) {
-	// Minimum width for then next window.
-	size_t window_minimum_width = 300;
-	igSetNextWindowSize((ImVec2) { window_minimum_width, -1}, 0);
-
-	// Center the next window.
-	igSetNextWindowPos((ImVec2) { client.renderer.viewport_width / 2, client.renderer.viewport_height / 2}, ImGuiCond_Once, (ImVec2) { 0.5, 0.5});
+static void render_about(struct ui *ui) {
+	center_next_window();
 
 	// The window.
-	if (igBegin("Layman Game Engine", NULL, ImGuiWindowFlags_NoCollapse)) {
+	if (igBegin(DEFAULT_TITLE, &ui->show_about, ImGuiWindowFlags_NoCollapse)) {
 		float width = igGetWindowWidth();
 
 		// Display the logo centered.
-		igSetCursorPosX((width - ui->logo.width / 2) / 2);
-		ImTextureID texture_id = (void *) (uintptr_t) ui->logo.gl_id; // Absolutely gross.
-		igImage(texture_id, (ImVec2) { ui->logo.width / 2, ui->logo.height / 2}, (ImVec2) { 0, 0}, (ImVec2) { 1, 1}, (ImVec4) { 1, 1, 1, 1}, (ImVec4) { 0, 0, 0, 0});
+		igSetCursorPosX((width - ui->assets_logo_png.width / 2) / 2);
+		ImTextureID texture_id = (void *) (uintptr_t) ui->assets_logo_png.gl_id; // Absolutely gross.
+		igImage(texture_id, (ImVec2) { ui->assets_logo_png.width / 2, ui->assets_logo_png.height / 2}, (ImVec2) { 0, 0}, (ImVec2) { 1, 1}, (ImVec4) { 1, 1, 1, 1}, (ImVec4) { 0, 0, 0, 0});
 
 		igSeparator();
 
-		// All the buttons.
-		if (igButton("Model Manager", (ImVec2) { -1, 0})) {
-			ui->show_model_manager = true;
-		}
-
-		if (igButton("Scene Editor", (ImVec2) { -1, 0})) {
-			ui->show_scene_editor = true;
-		}
-
-		if (igButton("Debugging tools", (ImVec2) { -1, 0})) {
-			ui->show_debugging_tools = true;
-		}
-
-		igButton("Settings", (ImVec2) { -1, 0});
-		igButton("About", (ImVec2) { -1, 0});
+		igText("Alex Belanger (nitrix)");
+		igText("https://github.com/nitrix/layman");
 
 		igSeparator();
 
 		// Footer.
-		char *version = "Version 1.0.0 (build 5952a4c)"; // FIXME: Needs to stay up-to-date.
+		char *version = "Version 1.0.0"; // FIXME: Needs to stay up-to-date.
 		prepare_centered_text(version);
 		igTextDisabled(version);
 	}
@@ -147,6 +141,8 @@ static void render_main_navigation(struct ui *ui) {
 
 static void render_scene_editor(struct ui *ui) {
 	igSetNextWindowSize((ImVec2) { 350, 340}, ImGuiCond_Once);
+
+	center_next_window();
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
 		static char buf[1024];
@@ -248,14 +244,40 @@ static void render_scene_editor(struct ui *ui) {
 	igEnd();
 }
 
+static void render_menu_bar_entry(GLuint texture_id, bool *active) {
+	if (*active) {
+		igPushStyleColorVec4(ImGuiCol_Button, (ImVec4) { 0.26, 0.59, 0.98, 0.6});
+	} else {
+		igPushStyleColorVec4(ImGuiCol_Button, (ImVec4) { 0.06, 0.53, 0.98, 0.2});
+	}
+
+	if (igImageButton((void *) (uintptr_t) texture_id, (ImVec2) { 32, 32}, (ImVec2) { 0, 0}, (ImVec2) { 1, 1}, 10, (ImVec4) { 0, 0, 0, 0}, (ImVec4) { 1, 1, 1, 1})) {
+		*active = !*active;
+	}
+
+	igPopStyleColor(1);
+}
+
+static void render_menu_bar(struct ui *ui) {
+	igSetNextWindowPos((ImVec2) { 10, 10}, ImGuiCond_Always, (ImVec2) { 0, 0});
+
+	if (igBegin("Menu", NULL, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration)) {
+		render_menu_bar_entry(ui->assets_cube_png.gl_id, &ui->show_scene_editor);
+		render_menu_bar_entry(ui->assets_bug_png.gl_id, &ui->show_debugging_tools);
+		render_menu_bar_entry(ui->assets_gear_png.gl_id, &ui->show_settings);
+		render_menu_bar_entry(ui->assets_question_png.gl_id, &ui->show_about);
+	}
+
+	igEnd();
+}
+
 void ui_render(struct ui *ui) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	igNewFrame();
 
 	if (ui->show) {
-		render_main_navigation(ui);
-		// render_model_editor(ui);
+		render_menu_bar(ui);
 
 		if (ui->show_debugging_tools) {
 			render_debugging_tools(ui);
@@ -263,6 +285,14 @@ void ui_render(struct ui *ui) {
 
 		if (ui->show_scene_editor) {
 			render_scene_editor(ui);
+		}
+
+		if (ui->show_settings) {
+			render_settings(ui);
+		}
+
+		if (ui->show_about) {
+			render_about(ui);
 		}
 
 		if (ui->show_imgui_demo) {

@@ -18,6 +18,7 @@
 #define TO_STR(x) #x
 #define EVAL_TO_STR(x) TO_STR(x)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define DEFAULT_TITLE "Layman Game Engine"
 
 void utils_render_cube(void);
 
