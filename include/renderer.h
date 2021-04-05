@@ -18,6 +18,7 @@ struct renderer {
 	float fov; // In degrees (gets converted to radians in a few places).
 	float far_plane;
 	float near_plane;
+	mat4 projection_matrix;
 
 	// Debugging features.
 	bool wireframe;

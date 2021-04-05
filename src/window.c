@@ -7,6 +7,9 @@
 #include "window.h"
 #include <stdbool.h>
 
+double tmp = 15;
+bool tracking = false;
+
 static void apply_fallback_resolution(unsigned int *width, unsigned int *height) {
 	GLFWmonitor *primary_monitor = glfwGetPrimaryMonitor();
 	if (!primary_monitor) {
@@ -27,11 +30,66 @@ static void apply_fallback_resolution(unsigned int *width, unsigned int *height)
 	}
 }
 
+static void recalculate_cursor_ray(void) {
+	// gives mouse pixel coordinates in the [-1, 1] range
+	double normalized_x = -1.0 + 2.0 * client.window.cursor_pos_x / (double) client.window.width;
+	double normalized_y = 1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height;
+	// double normalized_y = -(1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height);
+	vec2 n = {normalized_x, normalized_y};
+
+	// printf("%f %f\n", normalized_x, normalized_y);
+
+	mat4 view_projection_matrix, view_projection_inverse;
+	glm_mat4_mul(client.renderer.projection_matrix, client.camera.view_matrix, view_projection_matrix);
+	glm_mat4_inv(view_projection_matrix, view_projection_inverse);
+
+	vec4 ray_start, ray_end;
+	glm_mat4_mulv(view_projection_inverse, (vec4) { n[0], n[1], 0.f, 1.f}, ray_start);
+	glm_vec4_scale(ray_start, 1.f / ray_start[3], ray_start);
+	glm_mat4_mulv(view_projection_inverse, (vec4) { n[0], n[1], 1.f, 1.f}, ray_end);
+	glm_vec4_scale(ray_end, 1.f / ray_end[3], ray_end);
+
+	vec4 origin, direction;
+	glm_vec4_copy(ray_start, origin);
+	glm_vec4_sub(ray_end, ray_start, direction);
+	glm_normalize(direction);
+	float t = FLT_MAX;
+
+	// -----------------------------------------
+
+	if (tracking) {
+		for (size_t i = 0; i < client.scene.entity_count; i++) {
+			struct entity *entity = client.scene.entities[i];
+			if (client.ui.selected_entity_id == entity->id) {
+				float distance = tmp;
+
+				vec3 position, direction_further;
+				glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
+				glm_vec3_copy(origin, position);
+				glm_vec3_add(position, direction_further, position);
+
+				// printf("-> %f %f %f\n", position[0], position[1], position[2]);
+				glm_vec3_copy(position, entity->translation);
+			}
+		}
+	}
+
+	// printf("%f %f %f %f | %f %f %f %f | %f\n", origin[0], origin[1], origin[2], origin[3], direction[0], direction[1], direction[2], direction[3], t);
+}
+
+static void scroll_callback(GLFWwindow *glfw_window, double xoffset, double yoffset) {
+	UNUSED(glfw_window);
+
+	tmp += yoffset * 0.10f;
+}
+
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
 	UNUSED(glfw_window);
 
 	client.window.cursor_pos_x = x;
 	client.window.cursor_pos_y = y;
+
+	recalculate_cursor_ray();
 }
 
 static void mouse_button_callback(GLFWwindow *glfw_window, int button, int action, int mods) {
@@ -54,6 +112,17 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
 		client.ui.show = !client.ui.show;
 	}
+
+	if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
+		tracking = !tracking;
+	}
+}
+
+static void window_size_callback(GLFWwindow *window, int width, int height) {
+	UNUSED(window);
+
+	client.window.width = width;
+	client.window.height = height;
 }
 
 static void framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
@@ -136,8 +205,10 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	// Configure callbacks.
 	glfwSetCursorPosCallback(window->glfw_window, cursor_pos_callback);
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_resize_callback);
+	glfwSetWindowSizeCallback(window->glfw_window, window_size_callback);
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 	glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
+	glfwSetScrollCallback(window->glfw_window, scroll_callback);
 
 	return true;
 }

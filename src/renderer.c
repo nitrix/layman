@@ -17,6 +17,12 @@ INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 INCBIN(shaders_mousepicking_main_vert, "../shaders/mousepicking/main.vert");
 INCBIN(shaders_mousepicking_main_frag, "../shaders/mousepicking/main.frag");
 
+static void update_projection_matrix(struct renderer *renderer) {
+	glm_mat4_identity(renderer->projection_matrix);
+	// glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
+	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, renderer->projection_matrix);
+}
+
 void renderer_init(struct renderer *renderer) {
 	// TODO: Dynamic dimensions; what happens when the window gets resized?
 	int width, height;
@@ -28,8 +34,9 @@ void renderer_init(struct renderer *renderer) {
 	renderer->fov = RENDERER_FOV;
 	renderer->far_plane = RENDERER_PLANE_FAR;
 	renderer->near_plane = RENDERER_PLANE_NEAR;
-	renderer->exposure = 1;
+	update_projection_matrix(renderer);
 
+	renderer->exposure = 1;
 	renderer->wireframe = false;
 
 	renderer->mousepicking_shader = shader_load_from_memory(shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
@@ -77,16 +84,8 @@ void renderer_switch(const struct renderer *new) {
 static void render_mesh(struct renderer *renderer, const struct camera *camera, const struct scene *scene, const struct entity *entity, const struct shader *shader, const struct mesh *mesh) {
 	mesh_switch(mesh);
 
-	mat4 view_matrix, projection_matrix, view_projection_matrix;
-	glm_lookat((float *) camera->translation, (vec3) { 0, 0, 0}, (vec3) { 0, 1, 0}, view_matrix);
-	glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection_matrix);
-	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
-
-	// glm_rotate_z(view_matrix, camera->rotation[2], view_matrix);
-	// glm_rotate_y(view_matrix, camera->rotation[1], view_matrix);
-	// glm_rotate_x(view_matrix, camera->rotation[0], view_matrix);
-
-	glm_mat4_mul(projection_matrix, view_matrix, view_projection_matrix);
+	mat4 view_projection_matrix;
+	glm_mat4_mul(renderer->projection_matrix, camera->view_matrix, view_projection_matrix);
 
 	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
@@ -136,10 +135,7 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 	// glm_perspective_default(renderer->viewport_width / renderer->viewport_height, projection);
 	glm_perspective(glm_rad(renderer->fov), renderer->viewport_width / renderer->viewport_height, renderer->near_plane, renderer->far_plane, projection_matrix);
 	glUniformMatrix4fv(projection_location, 1, false, projection_matrix[0]);
-	mat4 view = GLM_MAT4_IDENTITY_INIT;
-	glm_lookat((float *) camera->translation, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, view);
-	glm_rotate_y(view, camera->rotation[1], view);
-	glUniformMatrix4fv(view_location, 1, false, view[0]);
+	glUniformMatrix4fv(view_location, 1, false, camera->view_matrix[0]);
 
 	// glDisable(GL_CULL_FACE);
 	utils_render_cube();

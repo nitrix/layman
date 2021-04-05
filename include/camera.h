@@ -6,6 +6,7 @@
 struct camera {
 	vec3 translation;
 	vec3 rotation;
+	mat4 view_matrix;
 };
 
 void camera_init(struct camera *camera);
