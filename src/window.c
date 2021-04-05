@@ -31,7 +31,7 @@ static void recalculate_cursor_ray(void) {
 	// Normalize the cursor position to the [-1, 1] range (normalized device space).
 	double normalized_x = -1.0 + 2.0 * client.window.cursor_pos_x / (double) client.window.width;
 	double normalized_y = 1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height;
-	// double normalized_y = -(1.0 - 2.0 * state.window.cursor_pos_y / (double) state.window.height);
+	// double normalized_y = -(1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height);
 	vec2 n = {normalized_x, normalized_y};
 
 	// Generate the inverse view-projection matrix, to convert from normalized device space to world space.

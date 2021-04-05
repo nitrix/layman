@@ -69,16 +69,16 @@ static float closest_distance_between_two_rays(vec3 r1_origin, vec3 r1_direction
 		float dpv1 = glm_vec3_dot(dp, r1_direction);
 		float dpv2 = glm_vec3_dot(dp, r2_direction);
 
-		float t1 = inv_det * (v22 * dpv1 - v1v2 * dpv2);
-		float t2 = inv_det * (v1v2 * dpv1 - v12 * dpv2);
+		// FIXME: I had to invert their signs, not sure why.
+		float t1 = -1 * inv_det * (v22 * dpv1 - v1v2 * dpv2);
+		float t2 = -1 * inv_det * (v1v2 * dpv1 - v12 * dpv2);
 
 		*d1 = t1;
 		*d2 = t2;
 
-		// return norm(dp + l2.direction * l2.t - l1.direction * l1.t);
 		glm_vec3_muladds(r2_direction, t2, dp);
 		glm_vec3_muladds(r1_direction, -t1, dp);
-		return glm_vec3_norm2(dp);
+		return glm_vec3_norm(dp);
 	} else {
 		vec3 a;
 		glm_vec3_cross(dp, r1_direction, a);
@@ -129,7 +129,7 @@ static void render_test(struct ui *ui) {
 				struct entity *entity = client.scene.entities[i];
 				if (entity->id == ui->selected_entity_id) {
 					glm_vec3_copy(r2_origin, entity->translation);
-					glm_vec3_muladds(r2_direction, -t2, entity->translation);
+					glm_vec3_muladds(r2_direction, t2, entity->translation);
 				}
 			}
 		}
@@ -236,7 +236,7 @@ static void render_scene_editor(struct ui *ui) {
 	center_next_window();
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
-		static char buf[1024];
+		static char buf[1024] = "assets/foo.glb";
 		igSetNextItemWidth(-70);
 		igInputText("##scene-load", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 		igSameLine(0, -1);
