@@ -19,5 +19,6 @@
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 void utils_render_cube(void);
+struct entity *find_selected_entity(void);
 
 #endif

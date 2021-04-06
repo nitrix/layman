@@ -79,6 +79,10 @@ void renderer_switch(const struct renderer *new) {
 
 	// Necessary to avoid the seams of the cubemap being visible.
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	// Transparency.
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 static void render_mesh(struct renderer *renderer, const struct camera *camera, const struct scene *scene, const struct entity *entity, const struct shader *shader, const struct mesh *mesh) {
@@ -87,13 +91,13 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	mat4 view_projection_matrix;
 	glm_mat4_mul(renderer->projection_matrix, (vec4 *) camera->view_matrix, view_projection_matrix);
 
-	// FIXME: Should we add the model initial transforms to this too? Or maybe they should just be copied to entities when they're created.
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
 
 	// Translation, rotation, scale.
 	glm_translate(model_matrix, (float *) entity->translation);
 	glm_quat_rotate(model_matrix, (float *) entity->rotation, model_matrix);
 	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
+	glm_mat4_mul(model_matrix, mesh->initial_transform, model_matrix);
 
 	// Uniforms.
 	shader_bind_uniform_environment(mesh->shader, scene->environment);
@@ -103,8 +107,7 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	shader_bind_uniform_mvp(shader, view_projection_matrix, model_matrix, renderer->exposure);
 
 	// Render.
-	// FIXME: Support more than just unsigned shorts.
-	glDrawElements(GL_TRIANGLES, mesh->indices_count, GL_UNSIGNED_SHORT, NULL);
+	glDrawElements(GL_TRIANGLES, mesh->indices_count, mesh->indices_type, NULL);
 }
 
 static void render_skybox(const struct renderer *renderer, const struct camera *camera, const struct scene *scene) {

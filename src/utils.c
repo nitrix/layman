@@ -68,3 +68,17 @@ void utils_render_cube(void) {
 	glBindVertexArray(cubeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
+
+struct entity *find_selected_entity(void) {
+	if (client.ui.selected_entity_id == 0) {
+		return NULL;
+	}
+
+	for (size_t i = 0; i < client.scene.entity_count; i++) {
+		if (client.scene.entities[i]->id == client.ui.selected_entity_id) {
+			return client.scene.entities[i];
+		}
+	}
+
+	return NULL;
+}

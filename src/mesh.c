@@ -11,6 +11,10 @@ bool mesh_init(struct mesh *mesh) {
 	mesh->ebo_indices = 0;
 	mesh->vbo_tangents = 0;
 
+	mesh->indices_type = 0;
+
+	glm_mat4_identity(mesh->initial_transform);
+
 	// FIXME: Currently, each mesh has its own material, but I believe glTF is able to share common materials.
 	// If so, there should probably be a material manager of some sort.
 	material_init(&mesh->material);
@@ -58,14 +62,27 @@ void mesh_provide_uvs(struct mesh *mesh, const float *data, size_t count, size_t
 	glEnableVertexAttribArray(MESH_ATTRIBUTE_UV);
 }
 
-void mesh_provide_indices(struct mesh *mesh, const unsigned short *data, size_t count) {
+void mesh_provide_indices(struct mesh *mesh, const void *data, size_t count, GLenum type) {
 	mesh_switch(mesh);
 
 	// Most buffers get assigned to a shader attribute (aka shader input variables) using glVertexAttribPointer.
 	// The one exception is this indice buffer. Instead, we pass the count explicitly during the render call (glDrawElements).
+
+	size_t size;
+	switch (type) {
+	    case GL_BYTE: size = 1; break;
+	    case GL_UNSIGNED_BYTE: size = 1; break;
+	    case GL_SHORT: size = sizeof (short); break;
+	    case GL_UNSIGNED_SHORT: size = sizeof (unsigned short); break;
+	    case GL_UNSIGNED_INT: size = sizeof (unsigned int); break;
+	    default:
+		    fprintf(stderr, "Unsupported type for indices\n");
+		    return;
+	}
+
 	glGenBuffers(1, &mesh->ebo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo_indices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * 1 * sizeof (unsigned short), data, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * size, data, GL_STATIC_DRAW);
 	mesh->indices_count = count;
 }
 

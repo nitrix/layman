@@ -23,6 +23,7 @@ ADD_EXECUTABLE(
     src/entity.c
     src/environment.c
     src/framebuffer.c
+    src/gizmo.c
     src/light.c
     src/material.c
     src/mesh.c

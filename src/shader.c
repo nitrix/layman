@@ -120,7 +120,7 @@ static GLuint compile_shader(GLenum type, const unsigned char *content, size_t l
 	        // "#define MATERIAL_UNLIT\n"
 	        "#define USE_HDR\n"
 	        "#define USE_IBL\n"
-	        "#define USE_PUNCTUAL\n"
+	        // "#define USE_PUNCTUAL\n"
 	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
 
 	        // Tonemapping.
@@ -368,7 +368,10 @@ void shader_destroy(struct shader *shader) {
 
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material) {
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
-	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
+
+	if (material->base_color_texture) {
+		glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
+	}
 
 	if (material->metallic_roughness_texture) {
 		glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);

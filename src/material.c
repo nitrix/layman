@@ -1,6 +1,8 @@
 #include "client.h"
 
 void material_init(struct material *material) {
+	material->name = NULL;
+
 	// Mettalic/roughness.
 	glm_vec4_one(material->base_color_factor);
 	material->base_color_texture = NULL;
@@ -18,6 +20,8 @@ void material_init(struct material *material) {
 }
 
 void material_fini(struct material *material) {
+	free(material->name);
+
 	if (material->base_color_texture) {
 		texture_fini(material->base_color_texture);
 	}

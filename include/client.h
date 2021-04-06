@@ -15,6 +15,7 @@
 #include "entity.h"
 #include "environment.h"
 #include "framebuffer.h"
+#include "gizmo.h"
 #include "light.h"
 #include "material.h"
 #include "mesh.h"

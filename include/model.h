@@ -11,6 +11,5 @@ struct model {
 
 struct model *model_load(const char *filepath);
 void model_destroy(struct model *model);
-void model_render(const struct model *model);
 
 #endif

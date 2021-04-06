@@ -4,6 +4,8 @@
 #include "cglm/cglm.h"
 
 struct material {
+	char *name;
+
 	// Mettalic/roughness.
 	vec4 base_color_factor;
 	struct texture *base_color_texture;

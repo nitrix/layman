@@ -89,9 +89,13 @@ static void mouse_button_callback(GLFWwindow *glfw_window, int button, int actio
 	UNUSED(mods);
 
 	// Mouse picking, as long as the UI doesn't intercept it.
-	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
-		if (client.renderer.mousepicking_entity_id && !client.ui.ig_io->WantCaptureMouse) {
-			client.ui.selected_entity_id = client.renderer.mousepicking_entity_id;
+	if (button == GLFW_MOUSE_BUTTON_1 && !client.ui.ig_io->WantCaptureMouse) {
+		static uint32_t saved = 0;
+
+		if (action == GLFW_PRESS) {
+			saved = client.renderer.mousepicking_entity_id;
+		} else if (action == GLFW_RELEASE && saved == client.renderer.mousepicking_entity_id) {
+			client.ui.selected_entity_id = saved;
 		}
 	}
 }

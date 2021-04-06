@@ -1,6 +1,7 @@
 #ifndef UI_H
 #define UI_H
 
+#include "gizmo.h"
 #include "texture.h"
 
 struct ui {
@@ -11,10 +12,9 @@ struct ui {
 	bool show;
 	bool show_imgui_demo;
 	bool show_scene_editor;
-	bool show_debugging_tools;
+	bool show_debug_tools;
 	bool show_settings;
 	bool show_about;
-	bool show_test;
 
 	uint32_t selected_entity_id;
 
@@ -23,6 +23,8 @@ struct ui {
 	struct texture assets_bug_png;
 	struct texture assets_question_png;
 	struct texture assets_cube_png;
+
+	struct gizmo gizmo;
 };
 
 bool ui_init(struct ui *ui);
