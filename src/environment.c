@@ -162,8 +162,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glGenTextures(1, &ggx_lut_id);
 	glBindTexture(GL_TEXTURE_2D, ggx_lut_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// Charlie
 	GLuint charlie_id;
@@ -183,8 +183,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glGenTextures(1, &charlie_lut_id);
 	glBindTexture(GL_TEXTURE_2D, charlie_lut_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	texture_switch(&environment->cubemap);
 	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
