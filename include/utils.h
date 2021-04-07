@@ -14,8 +14,6 @@
 
 #define UNUSED(x) (void) (x)
 #define ARRAY_COUNT(x) (sizeof (x) / sizeof (x)[0])
-#define TO_STR(x) #x
-#define EVAL_TO_STR(x) TO_STR(x)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 void utils_render_cube(void);

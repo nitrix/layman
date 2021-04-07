@@ -47,8 +47,46 @@ struct shader {
 	GLint uniform_exposure;
 };
 
-struct shader *shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath);
-struct shader *shader_load_from_memory(const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length);
+struct shader_options {
+	bool has_normals;
+	bool has_uv_set1;
+	bool has_tangents;
+	bool has_base_color_map;
+	bool has_normal_map;
+	bool has_occlusion_map;
+	bool has_emissive_map;
+	bool has_metallic_roughness_map;
+
+	// FIXME: Enum for the workflow?
+	bool material_metallicroughness;
+	bool material_specularglossiness;
+
+	bool material_unlit;
+	bool use_hdr;
+	bool use_ibl;
+	bool use_punctual;
+	int light_count;
+
+	// FIXME: Enum for this?
+	bool tonemap_uncharted;
+	bool tonemap_hejlrichard;
+	bool tonemap_aces;
+
+	// FIXME: Enum for this?
+	bool debug_output;
+	bool debug_basecolor;
+	bool debug_normal;
+	bool debug_tangent;
+	bool debug_metallic;
+	bool debug_roughness;
+	bool debug_occlusion;
+	bool debug_fdiffuse;
+	bool debug_fspecular;
+	bool debug_femissive;
+};
+
+struct shader *shader_load_from_files(const struct shader_options *options, const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath);
+struct shader *shader_load_from_memory(const struct shader_options *options, const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length);
 void shader_destroy(struct shader *shader);
 
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material);

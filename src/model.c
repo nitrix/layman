@@ -1,5 +1,8 @@
 #include "client.h"
 
+INCBIN(shaders_pbr_main_vert, "../shaders/pbr/main.vert");
+INCBIN(shaders_pbr_main_frag, "../shaders/pbr/main.frag");
+
 bool load_meshes(struct model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;
 
@@ -34,6 +37,14 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				fprintf(stderr, "Unsupported primitives\n");
 				return false;
 			}
+
+			struct shader_options options = {
+				.tonemap_uncharted = true,
+				.use_hdr = true,
+				.use_ibl = true,
+				// .use_punctual = true,
+				// .light_count = MAX_LIGHTS,
+			};
 
 			// Attributes.
 			const float *vertices = NULL;
@@ -70,6 +81,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 						    break;
 					    }
 
+					    options.has_normals = true;
+
 					    normals = gltf->bin + attribute->data->buffer_view->offset;
 					    normals_count = attribute->data->count;
 					    normals_stride = attribute->data->stride;
@@ -80,6 +93,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 						    break;
 					    }
 
+					    options.has_tangents = true;
+
 					    tangents = gltf->bin + attribute->data->buffer_view->offset;
 					    tangents_count = attribute->data->count;
 					    tangents_stride = attribute->data->stride;
@@ -89,6 +104,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 					    if (attribute->data->type != cgltf_type_vec2) {
 						    break;
 					    }
+
+					    options.has_uv_set1 = true;
 
 					    uvs = gltf->bin + attribute->data->buffer_view->offset;
 					    uvs_count = attribute->data->count;
@@ -130,11 +147,15 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			if (primitive->material->has_pbr_metallic_roughness) {
 				cgltf_pbr_metallic_roughness *mr = &primitive->material->pbr_metallic_roughness;
 
+				options.material_metallicroughness = true;
+
 				// Base color factor.
 				glm_vec3_copy(mr->base_color_factor, mesh->material.base_color_factor);
 
 				// Base color texture (optional).
 				if (mr->base_color_texture.texture) {
+					options.has_base_color_map = true;
+
 					struct texture *texture = malloc(sizeof *texture);
 					texture_init_from_memory(texture, TEXTURE_KIND_ALBEDO,
 						gltf->bin + mr->base_color_texture.texture->image->buffer_view->offset,
@@ -145,6 +166,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 				// Metallic/roughness texture (optional).
 				if (mr->metallic_roughness_texture.texture) {
+					options.has_metallic_roughness_map = true;
+
 					struct texture *texture = malloc(sizeof *texture);
 					texture_init_from_memory(texture, TEXTURE_KIND_METALLIC_ROUGHNESS,
 						gltf->bin + mr->metallic_roughness_texture.texture->image->buffer_view->offset,
@@ -162,6 +185,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 			// Normal texture (optional).
 			if (primitive->material->normal_texture.texture) {
+				options.has_normal_map = true;
+
 				struct texture *texture = malloc(sizeof *texture);
 				texture_init_from_memory(texture, TEXTURE_KIND_NORMAL,
 					gltf->bin + primitive->material->normal_texture.texture->image->buffer_view->offset,
@@ -172,6 +197,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 			// Occlusion texture (optional).
 			if (primitive->material->occlusion_texture.texture) {
+				options.has_occlusion_map = true;
+
 				struct texture *texture = malloc(sizeof *texture);
 				texture_init_from_memory(texture, TEXTURE_KIND_OCCLUSION,
 					gltf->bin + primitive->material->occlusion_texture.texture->image->buffer_view->offset,
@@ -185,6 +212,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 			// Emissive texture (optional).
 			if (primitive->material->emissive_texture.texture) {
+				options.has_emissive_map = true;
+
 				struct texture *texture = malloc(sizeof *texture);
 				texture_init_from_memory(texture, TEXTURE_KIND_EMISSION,
 					gltf->bin + primitive->material->emissive_texture.texture->image->buffer_view->offset,
@@ -215,6 +244,13 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 						}
 					}
 				}
+			}
+
+			// Shader.
+			// TODO: Shader caching based on the #defines that it needs. Each mesh having their own shader is a bit wasteful otherwise.
+			mesh->shader = shader_load_from_memory(&options, shaders_pbr_main_vert_data, shaders_pbr_main_vert_size, shaders_pbr_main_frag_data, shaders_pbr_main_frag_size, NULL, 0);
+			if (!mesh->shader) {
+				return false;
 			}
 		}
 	}

@@ -213,7 +213,7 @@ static void render_scene_editor(struct ui *ui) {
 
 	center_next_window();
 
-	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
+	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_NoResize)) {
 		static char buf[1024] = "assets/DamagedHelmet.glb";
 		igSetNextItemWidth(-70);
 		igInputText("##scene-load", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
@@ -305,16 +305,6 @@ static void render_scene_editor(struct ui *ui) {
 
 			igSameLine(0, -1);
 			igDragFloat("Scale", &found_entity->scale, step_size, 0, FLT_MAX, "%f", ImGuiSliderFlags_None);
-
-			igSeparator();
-
-			for (size_t i = 0; i < found_entity->model->meshes_count; i++) {
-				if (strcmp(found_entity->model->meshes[i].material.name, "BaseMaterial") == 0) {
-					igText("Model's base material");
-					igDragFloat("Roughness factor", &found_entity->model->meshes[i].material.roughness_factor, 0.01, 0, 1, "%f", ImGuiSliderFlags_None);
-					igDragFloat("Metallic factor", &found_entity->model->meshes[i].material.metallic_factor, 0.01, 0, 1, "%f", ImGuiSliderFlags_None);
-				}
-			}
 		} else {
 			igText("Select an entity.");
 		}

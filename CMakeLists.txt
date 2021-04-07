@@ -18,6 +18,7 @@ ADD_SUBDIRECTORY(lib/stb)
 
 ADD_EXECUTABLE(
     client
+    src/buffer.c
     src/camera.c
     src/client.c
     src/entity.c

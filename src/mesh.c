@@ -1,8 +1,5 @@
 #include "client.h"
 
-INCBIN(shaders_pbr_main_vert, "../shaders/pbr/main.vert");
-INCBIN(shaders_pbr_main_frag, "../shaders/pbr/main.frag");
-
 bool mesh_init(struct mesh *mesh) {
 	mesh->vao = 0;
 	mesh->vbo_positions = 0;
@@ -13,17 +10,13 @@ bool mesh_init(struct mesh *mesh) {
 
 	mesh->indices_type = 0;
 
+	mesh->shader = NULL;
+
 	glm_mat4_identity(mesh->initial_transform);
 
 	// FIXME: Currently, each mesh has its own material, but I believe glTF is able to share common materials.
 	// If so, there should probably be a material manager of some sort.
 	material_init(&mesh->material);
-
-	// TODO: Shader caching based on the #defines that it needs. Each mesh having their own shader is a bit wasteful otherwise.
-	mesh->shader = shader_load_from_memory(shaders_pbr_main_vert_data, shaders_pbr_main_vert_size, shaders_pbr_main_frag_data, shaders_pbr_main_frag_size, NULL, 0);
-	if (!mesh->shader) {
-		return false;
-	}
 
 	// Vertex Array Object (VAO).
 	// This contains multiple buffers and is the preferred way to change from one group of buffers to another when rendering models.

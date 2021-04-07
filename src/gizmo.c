@@ -156,6 +156,9 @@ static void gizmo_render_translation(struct gizmo *gizmo) {
 }
 
 void gizmo_render(struct gizmo *gizmo) {
+	// FIXME: Disabled.
+	return;
+
 	// Don't draw any gizmo if no entity is selected.
 	if (!client.ui.selected_entity_id) {
 		return;

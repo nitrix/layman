@@ -8,7 +8,7 @@ INCBIN(shaders_iblsampler_main_frag, "../shaders/iblsampler/main.frag");
 
 static bool convert_equirectangular_to_cubemap(const struct texture *equirectangular, struct texture *cubemap) {
 	// Load & convert equirectangular environment map to a cubemap texture.
-	struct shader *equirect2cube_shader = shader_load_from_memory(
+	struct shader *equirect2cube_shader = shader_load_from_memory(NULL,
 			shaders_equirect2cube_main_vert_data, shaders_equirect2cube_main_vert_size,
 			shaders_equirect2cube_main_frag_data, shaders_equirect2cube_main_frag_size,
 			NULL, 0
@@ -99,7 +99,7 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 
 	texture_fini(&equirectangular);
 
-	struct shader *iblsampler_shader = shader_load_from_memory(
+	struct shader *iblsampler_shader = shader_load_from_memory(NULL,
 			shaders_iblsampler_main_vert_data, shaders_iblsampler_main_vert_size,
 			shaders_iblsampler_main_frag_data, shaders_iblsampler_main_frag_size,
 			NULL, 0

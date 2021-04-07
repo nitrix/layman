@@ -39,7 +39,7 @@ void renderer_init(struct renderer *renderer) {
 	renderer->exposure = 1;
 	renderer->wireframe = false;
 
-	renderer->mousepicking_shader = shader_load_from_memory(shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
+	renderer->mousepicking_shader = shader_load_from_memory(NULL, shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
 	if (!renderer->mousepicking_shader) {
 		return;
 	}
@@ -118,7 +118,7 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 
 	// FIXME: All this shouldn't be here.
 	if (skybox_shader == NULL) {
-		skybox_shader = shader_load_from_memory(shaders_skybox_main_vert_data, shaders_skybox_main_vert_size, shaders_skybox_main_frag_data, shaders_skybox_main_frag_size, NULL, 0);
+		skybox_shader = shader_load_from_memory(NULL, shaders_skybox_main_vert_data, shaders_skybox_main_vert_size, shaders_skybox_main_frag_data, shaders_skybox_main_frag_size, NULL, 0);
 		if (skybox_shader == NULL) {
 			fprintf(stderr, "Unable to load skybox shader\n");
 			exit(EXIT_FAILURE); // TODO: Handle failure more gracefully.
