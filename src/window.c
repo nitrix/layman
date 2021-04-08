@@ -31,7 +31,7 @@ static void recalculate_cursor_ray(void) {
 	// Normalize the cursor position to the [-1, 1] range (normalized device space).
 	double normalized_x = -1.0 + 2.0 * client.window.cursor_pos_x / (double) client.window.width;
 	double normalized_y = 1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height;
-	// double normalized_y = -(1.0 - 2.0 * state.window.cursor_pos_y / (double) state.window.height);
+	// double normalized_y = -(1.0 - 2.0 * client.window.cursor_pos_y / (double) client.window.height);
 	vec2 n = {normalized_x, normalized_y};
 
 	// Generate the inverse view-projection matrix, to convert from normalized device space to world space.
@@ -54,15 +54,15 @@ static void recalculate_cursor_ray(void) {
 	        for (size_t i = 0; i < client.scene.entity_count; i++) {
 	                struct entity *entity = client.scene.entities[i];
 	                if (client.ui.selected_entity_id == entity->id) {
-	                        float distance = tmp;
+	                                        float distance = tmp;
 
-	                        vec3 position, direction_further;
-	                        glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
-	                        glm_vec3_copy(origin, position);
-	                        glm_vec3_add(position, direction_further, position);
+	                                        vec3 position, direction_further;
+	                                        glm_vec3_mul(direction, (vec3) { distance, distance, distance}, direction_further);
+	                                        glm_vec3_copy(origin, position);
+	                                        glm_vec3_add(position, direction_further, position);
 
-	                        // printf("-> %f %f %f\n", position[0], position[1], position[2]);
-	                        glm_vec3_copy(position, entity->translation);
+	                                        // printf("-> %f %f %f\n", position[0], position[1], position[2]);
+	                                        glm_vec3_copy(position, entity->translation);
 	                }
 	        }
 	   }
@@ -89,9 +89,13 @@ static void mouse_button_callback(GLFWwindow *glfw_window, int button, int actio
 	UNUSED(mods);
 
 	// Mouse picking, as long as the UI doesn't intercept it.
-	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
-		if (client.renderer.mousepicking_entity_id && !client.ui.ig_io->WantCaptureMouse) {
-			client.ui.selected_entity_id = client.renderer.mousepicking_entity_id;
+	if (button == GLFW_MOUSE_BUTTON_1 && !client.ui.ig_io->WantCaptureMouse) {
+		static uint32_t saved = 0;
+
+		if (action == GLFW_PRESS) {
+			saved = client.renderer.mousepicking_entity_id;
+		} else if (action == GLFW_RELEASE && saved == client.renderer.mousepicking_entity_id) {
+			client.ui.selected_entity_id = saved;
 		}
 	}
 }
@@ -119,6 +123,15 @@ static void framebuffer_resize_callback(GLFWwindow *window, int width, int heigh
 	client.renderer.viewport_width = width;
 	client.renderer.viewport_height = height;
 	glViewport(0, 0, width, height);
+}
+
+// TODO: Would be nice to use this functionality for something.
+static void drop_callback(GLFWwindow *window, int nb, const char *paths[]) {
+	UNUSED(window);
+
+	for (int i = 0; i < nb; i++) {
+		printf("--> %s\n", paths[i]);
+	}
 }
 
 void window_fullscreen(struct window *window, bool fullscreen) {
@@ -205,6 +218,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 	glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
 	glfwSetScrollCallback(window->glfw_window, scroll_callback);
+	glfwSetDropCallback(window->glfw_window, drop_callback);
 
 	return true;
 }

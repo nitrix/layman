@@ -1,161 +1,64 @@
 #include "client.h"
+#include "toolkit.h"
 
 // FIXME: This function is a disaster.
-static char *read_shader_file(const char *filepath) {
-	FILE *file = fopen(filepath, "rb");
-	if (!file) {
-		return NULL;
-	}
 
-	char *content = NULL;
-	size_t content_size = 0;
-	char line[1024];
-
-	while (!feof(file)) {
-		char *ok = fgets(line, sizeof line, file);
-		if (!ok) {
-			break;
-		}
-
-		size_t read = strlen(line);
-
-		if (strncmp(line, "#include", 8) == 0) {
-			const char *bracket_start = strchr(line, '<');
-			const char *bracket_end = strchr(line, '>');
-
-			const char *dir_end = strrchr(filepath, '/') + 1;
-			size_t length = snprintf(NULL, 0, "%.*s/%.*s", (int) (dir_end - filepath - 1), filepath, (int) (bracket_end - bracket_start - 1), bracket_start + 1);
-			char *new_filepath = malloc(length + 1);
-			if (!new_filepath) {
-				free(content);
-				fclose(file);
-				return NULL;
-			}
-
-			sprintf(new_filepath, "%.*s/%.*s", (int) (dir_end - filepath - 1), filepath, (int) (bracket_end - bracket_start - 1), bracket_start + 1);
-
-			char *other_content = read_shader_file(new_filepath);
-			if (!other_content) {
-				free(content);
-				fclose(file);
-				return NULL;
-			}
-
-			size_t other_content_size = strlen(other_content);
-
-			char *new_content = realloc(content, content_size + other_content_size);
-			if (!new_content) {
-				free(content);
-				fclose(file);
-				return NULL;
-			}
-
-			memcpy(new_content + content_size, other_content, other_content_size);
-
-			content = new_content;
-			content_size += other_content_size;
-
-			free(new_filepath);
-		} else {
-			char *new_content = realloc(content, content_size + read);
-			if (!new_content) {
-				free(content);
-				fclose(file);
-				return NULL;
-			}
-
-			// Append to the new content.
-			memcpy(new_content + content_size, line, read);
-
-			content = new_content;
-			content_size += read;
-		}
-	}
-
-	// Resize to final size and null terminate.
-
-	char *new_content = realloc(content, content_size + 1);
-	if (!new_content) {
-		fclose(file);
-		free(content);
-		return NULL;
-	}
-
-	content = new_content;
-	content[content_size] = '\0';
-
-	fclose(file);
-
-	return content;
-}
-
-static GLuint compile_shader(GLenum type, const unsigned char *content, size_t length) {
+static GLuint compile_shader(GLenum type, const struct shader_options *options, const unsigned char *content, size_t length) {
 	GLuint shader_id = glCreateShader(type);
 	if (shader_id == 0) {
 		return 0;
 	}
 
-	const char *prefix =
-	        "#version 410 core\n\n"
+	struct tk_buffer buffer;
+	tk_buffer_init(&buffer);
 
-	        // TODO: All of the has should be set accordinly to what the mesh actually has, not hardcoded.
+	bool ok = true;
 
-	        // Attributes.
-	        "#define HAS_NORMALS\n"
-	        "#define HAS_UV_SET1\n"
-	        // "#define HAS_TANGENTS\n"
+	#define SHADER_OPTION(cond, ...) (cond ? ok &= tk_buffer_append_format(&buffer, __VA_ARGS__) : 0)
 
-	        // Textures.
-	        "#define HAS_BASE_COLOR_MAP\n"
-	        "#define HAS_NORMAL_MAP\n"
-	        "#define HAS_OCCLUSION_MAP\n"
-	        "#define HAS_EMISSIVE_MAP\n" // FIXME: When this is turned off, emissiveFactor must be forced to 0.
-	        "#define HAS_METALLIC_ROUGHNESS_MAP\n"
+	// Version.
+	tk_buffer_append_format(&buffer, "#version 410 core\n");
 
-	        // Material workflow.
-	        "#define MATERIAL_METALLICROUGHNESS\n"
-	        // "#define MATERIAL_SPECULARGLOSSINESS\n"
+	// If there are options, process them.
+	if (options) {
+		// Attributes.
+		SHADER_OPTION(options->has_normals, "#define HAS_NORMALS\n");
+		SHADER_OPTION(options->has_uv_set1, "#define HAS_UV_SET1\n");
+		SHADER_OPTION(options->has_tangents, "#define HAS_TANGENTS\n");
 
-	        // Lighting.
-	        // "#define MATERIAL_UNLIT\n"
-	        "#define USE_HDR\n"
-	        "#define USE_IBL\n"
-	        "#define USE_PUNCTUAL\n"
-	        "#define LIGHT_COUNT " EVAL_TO_STR(MAX_LIGHTS) "\n"
+		// Textures.
+		SHADER_OPTION(options->has_base_color_map, "#define HAS_BASE_COLOR_MAP\n");
+		SHADER_OPTION(options->has_normal_map, "#define HAS_NORMAL_MAP\n");
+		SHADER_OPTION(options->has_occlusion_map, "#define HAS_OCCLUSION_MAP\n");
+		SHADER_OPTION(options->has_emissive_map, "#define HAS_EMISSIVE_MAP\n");
+		SHADER_OPTION(options->has_metallic_roughness_map, "#define HAS_METALLIC_ROUGHNESS_MAP\n");
 
-	        // Tonemapping.
-	        "#define TONEMAP_UNCHARTED\n"
-	        // "#define TONEMAP_HEJLRICHARD\n"
-	        // "#define TONEMAP_ACES\n"
+		// Material workflow.
+		SHADER_OPTION(options->material_metallicroughness, "#define MATERIAL_METALLICROUGHNESS\n");
+		SHADER_OPTION(options->material_specularglossiness, "#define MATERIAL_SPECULARGLOSSINESS\n");
 
-	        // Debugging.
-	        // "#define DEBUG_OUTPUT\n"
-	        // "#define DEBUG_BASECOLOR\n"
-	        // "#define DEBUG_NORMAL\n"
-	        // "#define DEBUG_TANGENT\n"
-	        // "#define DEBUG_METALLIC\n"
-	        // "#define DEBUG_ROUGHNESS\n"
-	        // "#define DEBUG_OCCLUSION\n"
-	        // "#define DEBUG_FDIFFUSE\n"
-	        // "#define DEBUG_FSPECULAR\n"
-	        // "#define DEBUG_FEMISSIVE\n"
+		// Lighting.
+		SHADER_OPTION(options->material_unlit, "#define MATERIAL_UNLIT\n");
+		SHADER_OPTION(options->use_hdr, "#define USE_HDR\n");
+		SHADER_OPTION(options->use_ibl, "#define USE_IBL\n");
+		SHADER_OPTION(options->use_punctual, "#define USE_PUNCTUAL\n");
+		SHADER_OPTION(options->light_count, "#define LIGHT_COUNT %d\n", MAX_LIGHTS);
+	}
 
-	        "#define DUMMY 1\n\n";
+	// FIXME: When has_emissive_map is turned off, emissiveFactor must be forced to 0.
 
-	size_t new_length = snprintf(NULL, 0, "%s\n%.*s", prefix, (int) length, content);
-	char *new_content = malloc(new_length + 1);
-	if (!new_content) {
+	ok &= tk_buffer_append(&buffer, content, length);
+
+	if (!ok) {
 		glDeleteShader(shader_id);
 		return 0;
 	}
 
-	sprintf(new_content, "%s\n%.*s", prefix, (int) length, content);
-	new_content[new_length] = '\0';
-
-	const char *const source = new_content;
-	GLint source_length = new_length;
+	const char *const source = buffer.data;
+	GLint source_length = buffer.used;
 	glShaderSource(shader_id, 1, &source, &source_length);
-	free(new_content);
+
+	tk_buffer_fini(&buffer);
 
 	glCompileShader(shader_id);
 
@@ -222,7 +125,7 @@ static void find_uniforms(struct shader *shader) {
 	shader->uniform_exposure = glGetUniformLocation(shader->program_id, "u_Exposure");
 }
 
-struct shader *shader_load_from_files(const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath) {
+struct shader *shader_load_from_files(const struct shader_options *options, const char *vertex_filepath, const char *fragment_filepath, const char *compute_filepath) {
 	char *vertex_content = NULL;
 	char *fragment_content = NULL;
 	char *compute_content = NULL;
@@ -232,21 +135,21 @@ struct shader *shader_load_from_files(const char *vertex_filepath, const char *f
 	size_t compute_length = 0;
 
 	if (vertex_filepath) {
-		vertex_content = read_shader_file(vertex_filepath);
+		vertex_content = tk_file_get_content(vertex_filepath);
 		vertex_length = strlen(vertex_content);
 	}
 
 	if (fragment_filepath) {
-		fragment_content = read_shader_file(fragment_filepath);
+		fragment_content = tk_file_get_content(fragment_filepath);
 		fragment_length = strlen(fragment_content);
 	}
 
 	if (compute_filepath) {
-		compute_content = read_shader_file(compute_filepath);
+		compute_content = tk_file_get_content(compute_filepath);
 		compute_length = strlen(compute_content);
 	}
 
-	struct shader *shader = shader_load_from_memory(
+	struct shader *shader = shader_load_from_memory(options,
 			(unsigned char *) vertex_content, vertex_length,
 			(unsigned char *) fragment_content, fragment_length,
 			(unsigned char *) compute_content, compute_length
@@ -259,28 +162,28 @@ struct shader *shader_load_from_files(const char *vertex_filepath, const char *f
 	return shader;
 }
 
-struct shader *shader_load_from_memory(const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length) {
+struct shader *shader_load_from_memory(const struct shader_options *options, const unsigned char *vertex_content, size_t vertex_length, const unsigned char *fragment_content, size_t fragment_length, const unsigned char *compute_content, size_t compute_length) {
 	GLuint vertex_shader_id = 0;
 	GLuint fragment_shader_id = 0;
 	GLuint compute_shader_id = 0;
 	bool something_went_wrong = false;
 
 	if (vertex_content) {
-		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, vertex_content, vertex_length);
+		vertex_shader_id = compile_shader(GL_VERTEX_SHADER, options, vertex_content, vertex_length);
 		if (!vertex_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
 	if (fragment_content) {
-		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, fragment_content, fragment_length);
+		fragment_shader_id = compile_shader(GL_FRAGMENT_SHADER, options, fragment_content, fragment_length);
 		if (!fragment_shader_id) {
 			something_went_wrong = true;
 		}
 	}
 
 	if (compute_content) {
-		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, compute_content, compute_length);
+		compute_shader_id = compile_shader(GL_COMPUTE_SHADER, options, compute_content, compute_length);
 		if (!compute_shader_id) {
 			something_went_wrong = true;
 		}
@@ -368,7 +271,10 @@ void shader_destroy(struct shader *shader) {
 
 void shader_bind_uniform_material(const struct shader *shader, const struct material *material) {
 	glUniform4fv(shader->uniform_base_color_factor, 1, material->base_color_factor);
-	glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
+
+	if (material->base_color_texture) {
+		glUniform1i(shader->uniform_base_color_sampler, material->base_color_texture->gl_unit);
+	}
 
 	if (material->metallic_roughness_texture) {
 		glUniform1i(shader->uniform_metallic_roughness_sampler, material->metallic_roughness_texture->gl_unit);

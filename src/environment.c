@@ -8,7 +8,7 @@ INCBIN(shaders_iblsampler_main_frag, "../shaders/iblsampler/main.frag");
 
 static bool convert_equirectangular_to_cubemap(const struct texture *equirectangular, struct texture *cubemap) {
 	// Load & convert equirectangular environment map to a cubemap texture.
-	struct shader *equirect2cube_shader = shader_load_from_memory(
+	struct shader *equirect2cube_shader = shader_load_from_memory(NULL,
 			shaders_equirect2cube_main_vert_data, shaders_equirect2cube_main_vert_size,
 			shaders_equirect2cube_main_frag_data, shaders_equirect2cube_main_frag_size,
 			NULL, 0
@@ -99,7 +99,7 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 
 	texture_fini(&equirectangular);
 
-	struct shader *iblsampler_shader = shader_load_from_memory(
+	struct shader *iblsampler_shader = shader_load_from_memory(NULL,
 			shaders_iblsampler_main_vert_data, shaders_iblsampler_main_vert_size,
 			shaders_iblsampler_main_frag_data, shaders_iblsampler_main_frag_size,
 			NULL, 0
@@ -136,6 +136,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glBindTexture(GL_TEXTURE_CUBE_MAP, lambertian_id);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	for (size_t mip = 0; mip < environment->mip_count; mip++) {
 		for (size_t face = 0; face < 6; face++) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -148,6 +150,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glBindTexture(GL_TEXTURE_CUBE_MAP, ggx_id);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	for (size_t mip = 0; mip < environment->mip_count; mip++) {
 		for (size_t face = 0; face < 6; face++) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -158,8 +162,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glGenTextures(1, &ggx_lut_id);
 	glBindTexture(GL_TEXTURE_2D, ggx_lut_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	// Charlie
 	GLuint charlie_id;
@@ -167,6 +171,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glBindTexture(GL_TEXTURE_CUBE_MAP, charlie_id);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, environment->mip_count - 1);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	for (size_t mip = 0; mip < environment->mip_count; mip++) {
 		for (size_t face = 0; face < 6; face++) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, GL_RGBA16F, width >> mip, height >> mip, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -177,8 +183,8 @@ bool environment_init_from_file(struct environment *environment, const char *fil
 	glGenTextures(1, &charlie_lut_id);
 	glBindTexture(GL_TEXTURE_2D, charlie_lut_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	texture_switch(&environment->cubemap);
 	GLint cubemap_location = glGetUniformLocation(iblsampler_shader->program_id, "uCubeMap");
@@ -301,19 +307,9 @@ void environment_fini(struct environment *environment) {
 }
 
 void environment_switch(const struct environment *new) {
-	thread_local static const struct environment *current = NULL;
-
-	if (current == new) {
-		return;
-	}
-
-	current = new;
-
-	if (new) {
-		texture_switch(&new->lambertian);
-		texture_switch(&new->ggx);
-		texture_switch(&new->ggx_lut);
-		texture_switch(&new->charlie);
-		texture_switch(&new->charlie_lut);
-	}
+	texture_switch(&new->lambertian);
+	texture_switch(&new->ggx);
+	texture_switch(&new->ggx_lut);
+	texture_switch(&new->charlie);
+	texture_switch(&new->charlie_lut);
 }

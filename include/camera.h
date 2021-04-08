@@ -12,5 +12,6 @@ struct camera {
 void camera_init(struct camera *camera);
 void camera_translation(struct camera *, float x, float y, float z);
 void camera_rotation(struct camera *, float x, float y, float z);
+void camera_update_view_matrix(struct camera *camera);
 
 #endif

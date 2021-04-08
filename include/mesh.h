@@ -19,10 +19,14 @@ struct mesh {
 	GLuint vbo_uvs;
 	GLuint ebo_indices;
 	GLuint vbo_tangents;
+
 	size_t indices_count;
+	GLenum indices_type;
 
 	struct shader *shader;
 	struct material material;
+
+	mat4 initial_transform;
 };
 
 bool mesh_init(struct mesh *mesh);
@@ -30,7 +34,7 @@ void mesh_fini(struct mesh *mesh);
 void mesh_provide_vertices(struct mesh *mesh, const float *data, size_t count, size_t stride);
 void mesh_provide_normals(struct mesh *mesh, const float *data, size_t count, size_t stride);
 void mesh_provide_uvs(struct mesh *mesh, const float *data, size_t count, size_t stride);
-void mesh_provide_indices(struct mesh *mesh, const unsigned short *data, size_t count);
+void mesh_provide_indices(struct mesh *mesh, const void *data, size_t count, GLenum type);
 void mesh_provide_tangents(struct mesh *mesh, const float *data, size_t count, size_t stride);
 void mesh_switch(const struct mesh *mesh);
 

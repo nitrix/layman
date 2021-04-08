@@ -22,11 +22,11 @@ bool ui_init(struct ui *ui) {
 	ui->show = false;
 	ui->show_imgui_demo = false;
 	ui->show_scene_editor = false;
-	ui->show_debugging_tools = false;
+	ui->show_debug_tools = false;
 	ui->show_settings = false;
 	ui->show_about = false;
 
-	ui->selected_entity_id = 0;
+	ui->selected_entity_id = 0; // FIXME: Does not belong here.
 
 	ImGui_ImplGlfw_InitForOpenGL(client.window.glfw_window, true);
 	ImGui_ImplOpenGL3_Init("#version 410 core");
@@ -37,6 +37,8 @@ bool ui_init(struct ui *ui) {
 	texture_init_from_memory(&ui->assets_bug_png, TEXTURE_KIND_IMAGE, assets_bug_png_data, assets_bug_png_size);
 	texture_init_from_memory(&ui->assets_question_png, TEXTURE_KIND_IMAGE, assets_question_png_data, assets_question_png_size);
 	texture_init_from_memory(&ui->assets_cube_png, TEXTURE_KIND_IMAGE, assets_cube_png_data, assets_cube_png_size);
+
+	gizmo_init(&ui->gizmo);
 
 	return true;
 }
@@ -50,6 +52,7 @@ void ui_fini(struct ui *ui) {
 	texture_fini(&ui->assets_bug_png);
 	texture_fini(&ui->assets_question_png);
 	texture_fini(&ui->assets_cube_png);
+	gizmo_fini(&ui->gizmo);
 }
 
 static void center_next_window(void) {
@@ -65,12 +68,48 @@ static void prepare_centered_text(const char *text) {
 	igSetCursorPosX(window_width / 2 - dimension.x / 2);
 }
 
+static void bring_window_to_focus_back(struct ui *ui, ImGuiWindow *window) {
+	// Sorted in focus order, back to front.
+
+	if (ui->ig_context->WindowsFocusOrder.Size > 1) {
+		ImGuiWindow *carry = NULL;
+
+		// If the first element is our window, no need to do anything else.
+		if (ui->ig_context->WindowsFocusOrder.Data[0] == window) {
+			return;
+		}
+
+		// Save the first element to the carry.
+		carry = ui->ig_context->WindowsFocusOrder.Data[0];
+
+		// Replace the first element with our window.
+		ui->ig_context->WindowsFocusOrder.Data[0] = window;
+
+		// Nodge all of the remainder elements to the right, stopping if we find our previous selves again.
+		for (int i = 1; i < ui->ig_context->WindowsFocusOrder.Size; i++) {
+			// Fetch the current element.
+			ImGuiWindow *element = ui->ig_context->WindowsFocusOrder.Data[i];
+
+			// Replace the element by the carry.
+			ui->ig_context->WindowsFocusOrder.Data[i] = carry;
+
+			// The element becomes the new carry.
+			carry = element;
+
+			// At this point, if we meet the original window, we can short-circuit the algorithm.
+			if (element == window) {
+				break;
+			}
+		}
+	}
+}
+
 static void render_settings(struct ui *ui) {
 	center_next_window();
 
 	igSetNextWindowSize((ImVec2) { 300, 0}, ImGuiCond_Once);
 
-	if (igBegin("Settings", &ui->show_settings, ImGuiWindowFlags_None)) {
+	if (igBegin("Settings", &ui->show_settings, ImGuiWindowFlags_NoResize)) {
 		char buffer[1024];
 		snprintf(buffer, sizeof buffer, "%s", client.window.title);
 		if (igInputText("Window title", buffer, sizeof buffer, ImGuiInputTextFlags_None, NULL, NULL)) {
@@ -85,12 +124,12 @@ static void render_settings(struct ui *ui) {
 	igEnd();
 }
 
-static void render_debugging_tools(struct ui *ui) {
+static void render_debug_tools(struct ui *ui) {
 	center_next_window();
 
-	igSetNextWindowSize((ImVec2) { 200, 0}, ImGuiCond_Once);
+	igSetNextWindowSize((ImVec2) { 380, 0}, ImGuiCond_Once);
 
-	if (igBegin("Debugging tools", &ui->show_debugging_tools, ImGuiWindowFlags_None)) {
+	if (igBegin("Debugging", &ui->show_debug_tools, ImGuiWindowFlags_NoResize)) {
 		igText("Cursor position: %.0f %.0f", client.window.cursor_pos_x, client.window.cursor_pos_y);
 		igText("Mouse picked: %u", client.renderer.mousepicking_entity_id);
 		igText("Selected entity: %u", ui->selected_entity_id);
@@ -106,6 +145,35 @@ static void render_debugging_tools(struct ui *ui) {
 		}
 
 		igCheckbox("ImGUI Demo Window", &ui->show_imgui_demo);
+
+		igSeparator();
+
+		igSetNextItemWidth(-130);
+
+		if (igDragFloat3("Camera translation", client.camera.translation, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update_view_matrix(&client.camera);
+		}
+
+		igSetNextItemWidth(-130);
+
+		if (igDragFloat3("Camera rotation", client.camera.rotation, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update_view_matrix(&client.camera);
+		}
+
+		igSeparator();
+
+		igSetNextItemWidth(-130);
+
+		const char *choices[] = {"None", "Translation", "Rotation", "Scale"};
+		static int mode = 0;
+		if (igComboStr_arr("Gizmo mode", &mode, choices, ARRAY_COUNT(choices), 5)) {
+			switch (mode) {
+			    case 1: ui->gizmo.mode = GIZMO_MODE_TRANSLATION; break;
+			    case 2: ui->gizmo.mode = GIZMO_MODE_ROTATION; break;
+			    case 3: ui->gizmo.mode = GIZMO_MODE_SCALE; break;
+			    default: ui->gizmo.mode = GIZMO_MODE_NONE;
+			}
+		}
 	}
 
 	igEnd();
@@ -115,7 +183,7 @@ static void render_about(struct ui *ui) {
 	center_next_window();
 
 	// The window.
-	if (igBegin(DEFAULT_TITLE, &ui->show_about, ImGuiWindowFlags_NoCollapse)) {
+	if (igBegin(DEFAULT_TITLE, &ui->show_about, ImGuiWindowFlags_NoResize)) {
 		float width = igGetWindowWidth();
 
 		// Display the logo centered.
@@ -131,9 +199,10 @@ static void render_about(struct ui *ui) {
 		igSeparator();
 
 		// Footer.
-		char *version = "Version 1.0.0"; // FIXME: Needs to stay up-to-date.
-		prepare_centered_text(version);
-		igTextDisabled(version);
+		char buffer[256];
+		sprintf(buffer, "Version %s", VERSION);
+		prepare_centered_text(buffer);
+		igTextDisabled(buffer);
 	}
 
 	igEnd();
@@ -144,8 +213,8 @@ static void render_scene_editor(struct ui *ui) {
 
 	center_next_window();
 
-	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_None)) {
-		static char buf[1024];
+	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_NoResize)) {
+		static char buf[1024] = "assets/DamagedHelmet.glb";
 		igSetNextItemWidth(-70);
 		igInputText("##scene-load", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 		igSameLine(0, -1);
@@ -244,7 +313,7 @@ static void render_scene_editor(struct ui *ui) {
 	igEnd();
 }
 
-static void render_menu_bar_entry(GLuint texture_id, bool *active) {
+static void render_menu_entry(GLuint texture_id, bool *active) {
 	if (*active) {
 		igPushStyleColorVec4(ImGuiCol_Button, (ImVec4) { 0.26, 0.59, 0.98, 0.6});
 	} else {
@@ -258,14 +327,20 @@ static void render_menu_bar_entry(GLuint texture_id, bool *active) {
 	igPopStyleColor(1);
 }
 
-static void render_menu_bar(struct ui *ui) {
+static void render_menu(struct ui *ui) {
 	igSetNextWindowPos((ImVec2) { 10, 10}, ImGuiCond_Always, (ImVec2) { 0, 0});
 
-	if (igBegin("Menu", NULL, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration)) {
-		render_menu_bar_entry(ui->assets_cube_png.gl_id, &ui->show_scene_editor);
-		render_menu_bar_entry(ui->assets_bug_png.gl_id, &ui->show_debugging_tools);
-		render_menu_bar_entry(ui->assets_gear_png.gl_id, &ui->show_settings);
-		render_menu_bar_entry(ui->assets_question_png.gl_id, &ui->show_about);
+	if (igBegin("Menu", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoBringToFrontOnFocus)) {
+		// Force our menu to be behind everything.
+		igBringWindowToDisplayBack(igGetCurrentWindow());
+
+		// Force our menu window to have the least focus.
+		bring_window_to_focus_back(ui, igGetCurrentWindow());
+
+		render_menu_entry(ui->assets_cube_png.gl_id, &ui->show_scene_editor);
+		render_menu_entry(ui->assets_bug_png.gl_id, &ui->show_debug_tools);
+		render_menu_entry(ui->assets_gear_png.gl_id, &ui->show_settings);
+		render_menu_entry(ui->assets_question_png.gl_id, &ui->show_about);
 	}
 
 	igEnd();
@@ -277,10 +352,10 @@ void ui_render(struct ui *ui) {
 	igNewFrame();
 
 	if (ui->show) {
-		render_menu_bar(ui);
+		render_menu(ui);
 
-		if (ui->show_debugging_tools) {
-			render_debugging_tools(ui);
+		if (ui->show_debug_tools) {
+			render_debug_tools(ui);
 		}
 
 		if (ui->show_scene_editor) {
@@ -298,6 +373,8 @@ void ui_render(struct ui *ui) {
 		if (ui->show_imgui_demo) {
 			igShowDemoWindow(&ui->show_imgui_demo);
 		}
+
+		gizmo_render(&client.ui.gizmo);
 	}
 
 	igRender();

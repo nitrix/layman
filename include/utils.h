@@ -1,6 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define DEFAULT_TITLE "Layman Game Engine"
+#define VERSION "1.0.0"
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -9,17 +12,12 @@
 #define M_PI_2 1.57079632679489661923
 #endif
 
-#ifndef thread_local
-#define thread_local _Thread_local
-#endif
-
 #define UNUSED(x) (void) (x)
 #define ARRAY_COUNT(x) (sizeof (x) / sizeof (x)[0])
-#define TO_STR(x) #x
-#define EVAL_TO_STR(x) TO_STR(x)
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define DEFAULT_TITLE "Layman Game Engine"
 
 void utils_render_cube(void);
+void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color);
+struct entity *find_selected_entity(void);
 
 #endif

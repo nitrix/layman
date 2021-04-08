@@ -1,13 +1,14 @@
 #include "client.h"
 
-static void camera_update_view_matrix(struct camera *camera) {
+void camera_update_view_matrix(struct camera *camera) {
 	glm_mat4_identity(camera->view_matrix);
-	glm_lookat((float *) camera->translation, (vec3) { 0, 0, -1}, (vec3) { 0, 1, 0}, camera->view_matrix);
 
 	// TODO: Quaternions here too?
+	glm_translate(camera->view_matrix, camera->translation);
 	glm_rotate_z(camera->view_matrix, camera->rotation[2], camera->view_matrix);
 	glm_rotate_y(camera->view_matrix, camera->rotation[1], camera->view_matrix);
 	glm_rotate_x(camera->view_matrix, camera->rotation[0], camera->view_matrix);
+	glm_mat4_inv(camera->view_matrix, camera->view_matrix);
 }
 
 void camera_init(struct camera *camera) {
