@@ -69,6 +69,20 @@ void utils_render_cube(void) {
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
+void utils_render_ngon(vec3 origin, int n, float radius, mat4 transform, vec4 color) {
+	float theta = (M_PI * 2) / (float) n;
+
+	for (int i = 0; i < n; i++) {
+		vec3 p1 = {0, radius, 0};
+		vec3 p2 = {0, radius, 0};
+
+		glm_vec3_rotate(p1, theta * i, (vec3) { 0, 0, 1});
+		glm_vec3_rotate(p2, theta * (i + 1), (vec3) { 0, 0, 1});
+
+		utils_render_line(p1, p2, transform, color);
+	}
+}
+
 void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color) {
 	static GLuint vao, vbo;
 
@@ -76,7 +90,7 @@ void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color) {
 
 	vertices[0] = from[0];
 	vertices[1] = from[1];
-	vertices[2] = from[1];
+	vertices[2] = from[2];
 	vertices[3] = to[0];
 	vertices[4] = to[1];
 	vertices[5] = to[2];
@@ -86,7 +100,7 @@ void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color) {
 		glGenBuffers(1, &vbo);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_COPY);
+		glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
 
 		glBindVertexArray(vao);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);

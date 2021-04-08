@@ -18,6 +18,7 @@
 
 void utils_render_cube(void);
 void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color);
+void utils_render_ngon(vec3 origin, int n, float radius, mat4 transform, vec4 color);
 struct entity *find_selected_entity(void);
 
 #endif
