@@ -17,6 +17,7 @@
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 void utils_render_cube(void);
+void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color);
 struct entity *find_selected_entity(void);
 
 #endif

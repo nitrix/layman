@@ -129,7 +129,7 @@ static void framebuffer_resize_callback(GLFWwindow *window, int width, int heigh
 static void drop_callback(GLFWwindow *window, int nb, const char *paths[]) {
 	UNUSED(window);
 
-	for (size_t i = 0; i < nb; i++) {
+	for (int i = 0; i < nb; i++) {
 		printf("--> %s\n", paths[i]);
 	}
 }

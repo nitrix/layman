@@ -1,3 +1,4 @@
+#include "cimgui.h"
 #include "client.h"
 
 static float closest_distance_between_two_rays(vec3 r1_origin, vec3 r1_direction, vec3 r2_origin, vec3 r2_direction, float *d1, float *d2) {
@@ -34,137 +35,115 @@ static float closest_distance_between_two_rays(vec3 r1_origin, vec3 r1_direction
 }
 
 void gizmo_init(struct gizmo *gizmo) {
-	gizmo->arrow_model = model_load("assets/arrow.glb");
-	if (!gizmo->arrow_model) {
-		fprintf(stderr, "Unable to load arrow model\n");
-		return;
-	}
-
 	gizmo->mode = GIZMO_MODE_NONE;
 }
 
 void gizmo_fini(struct gizmo *gizmo) {
-	model_destroy(gizmo->arrow_model);
+	UNUSED(gizmo);
 }
 
 static void gizmo_render_translation(struct gizmo *gizmo) {
-	struct mesh *mesh = &gizmo->arrow_model->meshes[0];
+	UNUSED(gizmo);
+
+	static bool dragging = false;
+	static size_t drag_axis = 0;
+	static vec3 drag_start;
+
 	struct entity *entity = find_selected_entity();
 
-	mesh_switch(mesh);
-	glUseProgram(mesh->shader->program_id);
-
-	// FIXME?
-	mesh->material.roughness_factor = 1;
-	mesh->material.normal_scale = 1;
-
-	mat4 view_projection_matrix;
-	glm_mat4_mul(client.renderer.projection_matrix, (vec4 *) client.camera.view_matrix, view_projection_matrix);
-
 	mat4 model_matrix = GLM_MAT4_IDENTITY_INIT;
-	glm_mat4_copy(mesh->initial_transform, model_matrix);
+	glm_translate(model_matrix, entity->translation);
 
-	// Translation, rotation, scale.
-	// glm_translate(model_matrix, (vec3) { 0, 0, -5});
-	// glm_quat_rotate(model_matrix, (float *) entity->rotation, model_matrix);
-	// glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
+	bool proximity_already = false;
 
-	// Uniforms.
-	shader_bind_uniform_camera(mesh->shader, &client.camera);
+	for (size_t axis = 0; axis < 3; axis++) {
+		float t1, t2;
 
-	// Render.
-	// FIXME: Support more than just unsigned shorts.
+		vec3 r1_origin, r1_direction, r2_origin, r2_direction;
 
-	mat4 tmp_matrix;
+		glm_vec4_copy3(client.window.cursor_ray_origin, r1_origin);
+		glm_vec4_copy3(client.window.cursor_ray_direction, r1_direction);
 
-	// X
-	glm_mat4_identity(tmp_matrix);
-	glm_translate(tmp_matrix, entity->translation);
-	glm_rotate_z(tmp_matrix, -M_PI_2, tmp_matrix);
-	glm_mat4_mul(tmp_matrix, model_matrix, tmp_matrix);
-	glm_vec4_copy((vec4) { 1, 0, 0, 1}, mesh->material.base_color_factor);
-	shader_bind_uniform_mvp(mesh->shader, view_projection_matrix, tmp_matrix, 1);
-	shader_bind_uniform_material(mesh->shader, &mesh->material);
-	glDrawElements(GL_TRIANGLES, mesh->indices_count, mesh->indices_type, NULL);
+		glm_vec3_copy(entity->translation, r2_origin);
 
-	// Y
-	glm_mat4_identity(tmp_matrix);
-	glm_translate(tmp_matrix, entity->translation);
-	glm_mat4_mul(tmp_matrix, model_matrix, tmp_matrix);
-	glm_vec4_copy((vec4) { 0, 1, 0, 1}, mesh->material.base_color_factor);
-	shader_bind_uniform_mvp(mesh->shader, view_projection_matrix, tmp_matrix, 1);
-	shader_bind_uniform_material(mesh->shader, &mesh->material);
-	glDrawElements(GL_TRIANGLES, mesh->indices_count, mesh->indices_type, NULL);
+		glm_vec3_zero(r2_direction);
+		r2_direction[axis] = 1;
 
-	// Z
-	glm_mat4_identity(tmp_matrix);
-	glm_translate(tmp_matrix, entity->translation);
-	glm_rotate_x(tmp_matrix, M_PI_2, tmp_matrix);
-	glm_mat4_mul(tmp_matrix, model_matrix, tmp_matrix);
-	glm_vec4_copy((vec4) { 0, 0, 1, 1}, mesh->material.base_color_factor);
-	shader_bind_uniform_mvp(mesh->shader, view_projection_matrix, tmp_matrix, 1);
-	shader_bind_uniform_material(mesh->shader, &mesh->material);
-	glDrawElements(GL_TRIANGLES, mesh->indices_count, mesh->indices_type, NULL);
+		float distance = closest_distance_between_two_rays(r1_origin, r1_direction, r2_origin, r2_direction, &t1, &t2);
 
-	/*
-	   float t1, t2;
+		vec3 line_start = GLM_VEC3_ZERO_INIT;
+		vec3 line_end;
+		glm_vec3_copy(r2_direction, line_end); // The line end, happens to be the same as the ray direction.
+		vec4 color;
+		glm_vec3_copy(r2_direction, color); // The color of the line, happens to be the same as the ray direction.
 
-	   vec3 r1_origin, r1_direction, r2_origin, r2_direction;
+		// Closest axis intersect
+		vec3 intersect;
+		glm_vec3_copy(r2_origin, intersect);
+		glm_vec3_muladds(r2_direction, t2, intersect);
 
-	   glm_vec4_copy3(client.window.cursor_ray_origin, r1_origin);
-	   glm_vec4_copy3(client.window.cursor_ray_direction, r1_direction);
+		// Proximity.
+		bool on_axis = distance < 0.05 && t2 >= 0 && t2 <= 1;
+		bool proximity = on_axis && !dragging && !client.ui.ig_io->WantCaptureMouse && !proximity_already;
 
-	   // HACK: Very hacky. Remove.
-	   if (client.scene.entity_count >= 1) {
-	        glm_vec3_copy(client.scene.entities[0]->translation, r2_origin);
-	   }
+		if (proximity) {
+			proximity_already = true;
+		}
 
-	   // r2_origin[0] = 0;
-	   // r2_origin[1] = 0;
-	   // r2_origin[2] = -10;
+		// Mouse dragging.
+		if (proximity && igIsMouseDragging(ImGuiMouseButton_Left, 0)) {
+			if (!dragging) {
+				dragging = true;
+				drag_axis = axis;
+				glm_vec3_copy(intersect, drag_start);
+			}
+		}
 
-	   r2_direction[0] = 0;
-	   r2_direction[1] = 1;
-	   r2_direction[2] = 0;
+		if (igIsMouseReleased(ImGuiMouseButton_Left)) {
+			dragging = false;
+		}
 
-	   float distance = closest_distance_between_two_rays(r1_origin, r1_direction, r2_origin, r2_direction, &t1, &t2);
+		bool dragging_current_axis = dragging && axis == drag_axis;
 
-	   if (igBegin("Test", &ui->show_test, ImGuiWindowFlags_None)) {
-	        igText("R1 Orig: %f %f %f", r1_origin[0], r1_origin[1], r1_origin[2]);
-	        igText("R1 Dir: %f %f %f", r1_direction[0], r1_direction[1], r1_direction[2]);
-	        igText("R2 Orig: %f %f %f", r2_origin[0], r2_origin[1], r2_origin[2]);
-	        igText("R2 Dir: %f %f %f", r2_direction[0], r2_direction[1], r2_direction[2]);
+		// Coloring the axis yellow.
+		if (proximity || dragging_current_axis) {
+			glm_vec4_copy((vec4) { 1, 1, 0, 1}, color); // Yellow.
+		}
 
-	        igText("Distance: %f", distance);
-	        igText("T1: %f", t1);
-	        igText("T2: %f", t2);
+		// The actual mutation by the delta.
+		if (dragging_current_axis) {
+			vec3 delta;
+			glm_vec3_sub(intersect, drag_start, delta);
+			glm_vec3_add(entity->translation, delta, entity->translation);
+			glm_vec3_copy(intersect, drag_start);
 
-	        static bool move;
-	        igCheckbox("Move selected entity", &move);
+			// Massive guide line.
+			vec3 guide_line_start, guide_line_end;
+			glm_vec3_zero(guide_line_start);
+			glm_vec3_zero(guide_line_end);
+			glm_vec3_muladds(r2_direction, 1000, guide_line_end);
+			utils_render_line(guide_line_start, guide_line_end, model_matrix, (vec4) { 0.5, 0.5, 0.5, 1});
+			glm_vec3_zero(guide_line_end);
+			glm_vec3_muladds(r2_direction, -1000, guide_line_end);
+			utils_render_line(guide_line_start, guide_line_end, model_matrix, (vec4) { 0.5, 0.5, 0.5, 1});
+		}
 
-	        if (move) {
-	                for (size_t i = 0; i < client.scene.entity_count; i++) {
-	                        struct entity *entity = client.scene.entities[i];
-	                        if (entity->id == ui->selected_entity_id) {
-	                                glm_vec3_copy(r2_origin, entity->translation);
-	                                glm_vec3_muladds(r2_direction, t2, entity->translation);
-	                        }
-	                }
-	        }
-	   }
-	 */
+		// Render axis handle.
+		utils_render_line(line_start, line_end, model_matrix, color);
+	}
 }
 
 void gizmo_render(struct gizmo *gizmo) {
-	// FIXME: Disabled.
-	return;
-
 	// Don't draw any gizmo if no entity is selected.
 	if (!client.ui.selected_entity_id) {
 		return;
 	}
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+	// Don't pay attention to the depth buffer.
+	glDisable(GL_DEPTH_TEST);
+
+	// Don't mess up the depth buffer either.
+	glDepthMask(false);
 
 	switch (gizmo->mode) {
 	    case GIZMO_MODE_TRANSLATION: gizmo_render_translation(gizmo); return;

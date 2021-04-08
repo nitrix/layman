@@ -222,6 +222,16 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				mesh->material.emissive_texture = texture;
 			}
 
+			// Extensions.
+			for (size_t i = 0; i < primitive->material->extensions_count; i++) {
+				cgltf_extension *extension = &primitive->material->extensions[i];
+
+				// Unlit extension.
+				if (strcmp(extension->name, "KHR_materials_unlit") == 0) {
+					options.material_unlit = true;
+				}
+			}
+
 			// Initial transform.
 			for (size_t i = 0; i < gltf->nodes_count; i++) {
 				cgltf_node *node = &gltf->nodes[i];

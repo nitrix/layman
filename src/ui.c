@@ -86,7 +86,7 @@ static void bring_window_to_focus_back(struct ui *ui, ImGuiWindow *window) {
 		ui->ig_context->WindowsFocusOrder.Data[0] = window;
 
 		// Nodge all of the remainder elements to the right, stopping if we find our previous selves again.
-		for (size_t i = 1; i < ui->ig_context->WindowsFocusOrder.Size; i++) {
+		for (int i = 1; i < ui->ig_context->WindowsFocusOrder.Size; i++) {
 			// Fetch the current element.
 			ImGuiWindow *element = ui->ig_context->WindowsFocusOrder.Data[i];
 

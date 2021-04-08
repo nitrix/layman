@@ -24,7 +24,7 @@ struct renderer {
 	bool wireframe;
 
 	// Mouse picking.
-	struct shader *mousepicking_shader;
+	struct shader *plain_shader;
 	uint32_t mousepicking_entity_id;
 };
 

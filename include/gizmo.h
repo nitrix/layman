@@ -10,7 +10,6 @@ enum gizmo_mode {
 
 struct gizmo {
 	enum gizmo_mode mode;
-	struct model *arrow_model;
 };
 
 void gizmo_init(struct gizmo *gizmo);

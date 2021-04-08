@@ -8,14 +8,14 @@
 #include "utils.h"
 
 #define RENDERER_FOV 45.0f
-#define RENDERER_PLANE_FAR 1000.0f
+#define RENDERER_PLANE_FAR 10000.0f
 #define RENDERER_PLANE_NEAR 0.1f
 
 INCBIN(shaders_skybox_main_vert, "../shaders/skybox/main.vert");
 INCBIN(shaders_skybox_main_frag, "../shaders/skybox/main.frag");
 
-INCBIN(shaders_mousepicking_main_vert, "../shaders/mousepicking/main.vert");
-INCBIN(shaders_mousepicking_main_frag, "../shaders/mousepicking/main.frag");
+INCBIN(shaders_plain_main_vert, "../shaders/plain/main.vert");
+INCBIN(shaders_plain_main_frag, "../shaders/plain/main.frag");
 
 void renderer_update_projection_matrix(struct renderer *renderer) {
 	glm_mat4_identity(renderer->projection_matrix);
@@ -39,8 +39,8 @@ void renderer_init(struct renderer *renderer) {
 	renderer->exposure = 1;
 	renderer->wireframe = false;
 
-	renderer->mousepicking_shader = shader_load_from_memory(NULL, shaders_mousepicking_main_vert_data, shaders_mousepicking_main_vert_size, shaders_mousepicking_main_frag_data, shaders_mousepicking_main_frag_size, NULL, 0);
-	if (!renderer->mousepicking_shader) {
+	renderer->plain_shader = shader_load_from_memory(NULL, shaders_plain_main_vert_data, shaders_plain_main_vert_size, shaders_plain_main_frag_data, shaders_plain_main_frag_size, NULL, 0);
+	if (!renderer->plain_shader) {
 		return;
 	}
 
@@ -48,7 +48,7 @@ void renderer_init(struct renderer *renderer) {
 }
 
 void renderer_fini(struct renderer *renderer) {
-	shader_destroy(renderer->mousepicking_shader);
+	shader_destroy(renderer->plain_shader);
 }
 
 void renderer_switch(const struct renderer *new) {
@@ -57,7 +57,7 @@ void renderer_switch(const struct renderer *new) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1); // Black.
 
-	// FIXME: Back face culling.
+	// FIXME: Back face culling (glTF double-sided?).
 	// glEnable(GL_CULL_FACE);
 	// glCullFace(GL_BACK);
 	// glFrontFace(GL_CCW);
@@ -66,6 +66,9 @@ void renderer_switch(const struct renderer *new) {
 	// Depth testing.
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	// Do update the depth buffer.
+	glDepthMask(GL_TRUE);
 
 	// Multisampling.
 	glEnable(GL_MULTISAMPLE);
@@ -97,13 +100,13 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	glm_translate(model_matrix, (float *) entity->translation);
 	glm_quat_rotate(model_matrix, (float *) entity->rotation, model_matrix);
 	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
-	glm_mat4_mul(model_matrix, mesh->initial_transform, model_matrix);
+	glm_mat4_mul(model_matrix, (vec4 *) mesh->initial_transform, model_matrix);
 
 	// Uniforms.
-	shader_bind_uniform_environment(mesh->shader, scene->environment);
-	shader_bind_uniform_material(mesh->shader, &mesh->material);
-	shader_bind_uniform_camera(mesh->shader, camera);
-	shader_bind_uniform_lights(mesh->shader, scene->lights, scene->lights_count);
+	shader_bind_uniform_environment(shader, scene->environment);
+	shader_bind_uniform_material(shader, &mesh->material);
+	shader_bind_uniform_camera(shader, camera);
+	shader_bind_uniform_lights(shader, scene->lights, scene->lights_count);
 	shader_bind_uniform_mvp(shader, view_projection_matrix, model_matrix, renderer->exposure);
 
 	// Render.
@@ -165,10 +168,10 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 			struct mesh *mesh = &entity->model->meshes[i];
 
 			// Render mesh.
-			glUseProgram(renderer->mousepicking_shader->program_id);
+			glUseProgram(renderer->plain_shader->program_id);
 			static GLint picking_color_location = -1;
 			if (picking_color_location == -1) {
-				picking_color_location = glGetUniformLocation(renderer->mousepicking_shader->program_id, "u_pickingColor");
+				picking_color_location = glGetUniformLocation(renderer->plain_shader->program_id, "u_Color");
 			}
 
 			// Convert entity ID to color.
@@ -176,7 +179,7 @@ void renderer_render(struct renderer *renderer, const struct camera *camera, con
 			entity_id_as_color(entity->id, color);
 			glUniform4fv(picking_color_location, 1, color);
 
-			render_mesh(renderer, camera, scene, entity, renderer->mousepicking_shader, mesh);
+			render_mesh(renderer, camera, scene, entity, renderer->plain_shader, mesh);
 		}
 	}
 
