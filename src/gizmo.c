@@ -131,6 +131,10 @@ static void gizmo_render_translation(struct gizmo *gizmo) {
 		// Render axis handle.
 		utils_render_line(line_start, line_end, model_matrix, color);
 	}
+
+	if (dragging) {
+		client.ui.ig_io->WantCaptureMouse = true;
+	}
 }
 
 void gizmo_render(struct gizmo *gizmo) {
