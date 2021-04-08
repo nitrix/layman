@@ -125,6 +125,15 @@ static void framebuffer_resize_callback(GLFWwindow *window, int width, int heigh
 	glViewport(0, 0, width, height);
 }
 
+// TODO: Would be nice to use this functionality for something.
+static void drop_callback(GLFWwindow *window, int nb, const char *paths[]) {
+	UNUSED(window);
+
+	for (size_t i = 0; i < nb; i++) {
+		printf("--> %s\n", paths[i]);
+	}
+}
+
 void window_fullscreen(struct window *window, bool fullscreen) {
 	static int original_width, original_height, original_x, original_y;
 
@@ -209,6 +218,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 	glfwSetMouseButtonCallback(window->glfw_window, mouse_button_callback);
 	glfwSetScrollCallback(window->glfw_window, scroll_callback);
+	glfwSetDropCallback(window->glfw_window, drop_callback);
 
 	return true;
 }

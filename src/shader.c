@@ -1,55 +1,7 @@
-#include "buffer.h"
 #include "client.h"
+#include "toolkit.h"
 
 // FIXME: This function is a disaster.
-static char *read_shader_file(const char *filepath) {
-	FILE *file = fopen(filepath, "rb");
-	if (!file) {
-		return NULL;
-	}
-
-	char *content = NULL;
-	size_t content_size = 0;
-	char line[1024];
-
-	while (!feof(file)) {
-		char *ok = fgets(line, sizeof line, file);
-		if (!ok) {
-			break;
-		}
-
-		size_t read = strlen(line);
-
-		char *new_content = realloc(content, content_size + read);
-		if (!new_content) {
-			free(content);
-			fclose(file);
-			return NULL;
-		}
-
-		// Append to the new content.
-		memcpy(new_content + content_size, line, read);
-
-		content = new_content;
-		content_size += read;
-	}
-
-	// Resize to final size and null terminate.
-
-	char *new_content = realloc(content, content_size + 1);
-	if (!new_content) {
-		fclose(file);
-		free(content);
-		return NULL;
-	}
-
-	content = new_content;
-	content[content_size] = '\0';
-
-	fclose(file);
-
-	return content;
-}
 
 static GLuint compile_shader(GLenum type, const struct shader_options *options, const unsigned char *content, size_t length) {
 	GLuint shader_id = glCreateShader(type);
@@ -57,44 +9,45 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 		return 0;
 	}
 
-	struct buffer buffer;
-	buffer_init(&buffer);
+	struct tk_buffer buffer;
+	tk_buffer_init(&buffer);
 
-	#define BUFFER_COND_APPEND(cond, ...) (cond ? buffer_append_format(&buffer, __VA_ARGS__) : 0)
+	bool ok = true;
+
+	#define SHADER_OPTION(cond, ...) (cond ? ok &= tk_buffer_append_format(&buffer, __VA_ARGS__) : 0)
 
 	// Version.
-	buffer_append_format(&buffer, "#version 410 core\n");
+	tk_buffer_append_format(&buffer, "#version 410 core\n");
 
 	// If there are options, process them.
 	if (options) {
 		// Attributes.
-		BUFFER_COND_APPEND(options->has_normals, "#define HAS_NORMALS\n");
-		BUFFER_COND_APPEND(options->has_uv_set1, "#define HAS_UV_SET1\n");
-		BUFFER_COND_APPEND(options->has_tangents, "#define HAS_TANGENTS\n");
+		SHADER_OPTION(options->has_normals, "#define HAS_NORMALS\n");
+		SHADER_OPTION(options->has_uv_set1, "#define HAS_UV_SET1\n");
+		SHADER_OPTION(options->has_tangents, "#define HAS_TANGENTS\n");
 
 		// Textures.
-		BUFFER_COND_APPEND(options->has_base_color_map, "#define HAS_BASE_COLOR_MAP\n");
-		BUFFER_COND_APPEND(options->has_normal_map, "#define HAS_NORMAL_MAP\n");
-		BUFFER_COND_APPEND(options->has_occlusion_map, "#define HAS_OCCLUSION_MAP\n");
-		BUFFER_COND_APPEND(options->has_emissive_map, "#define HAS_EMISSIVE_MAP\n");
-		BUFFER_COND_APPEND(options->has_metallic_roughness_map, "#define HAS_METALLIC_ROUGHNESS_MAP\n");
+		SHADER_OPTION(options->has_base_color_map, "#define HAS_BASE_COLOR_MAP\n");
+		SHADER_OPTION(options->has_normal_map, "#define HAS_NORMAL_MAP\n");
+		SHADER_OPTION(options->has_occlusion_map, "#define HAS_OCCLUSION_MAP\n");
+		SHADER_OPTION(options->has_emissive_map, "#define HAS_EMISSIVE_MAP\n");
+		SHADER_OPTION(options->has_metallic_roughness_map, "#define HAS_METALLIC_ROUGHNESS_MAP\n");
 
 		// Material workflow.
-		BUFFER_COND_APPEND(options->material_metallicroughness, "#define MATERIAL_METALLICROUGHNESS\n");
-		BUFFER_COND_APPEND(options->material_specularglossiness, "#define MATERIAL_SPECULARGLOSSINESS\n");
+		SHADER_OPTION(options->material_metallicroughness, "#define MATERIAL_METALLICROUGHNESS\n");
+		SHADER_OPTION(options->material_specularglossiness, "#define MATERIAL_SPECULARGLOSSINESS\n");
 
 		// Lighting.
-		BUFFER_COND_APPEND(options->material_unlit, "#define MATERIAL_UNLIT\n");
-		BUFFER_COND_APPEND(options->use_hdr, "#define USE_HDR\n");
-		BUFFER_COND_APPEND(options->use_ibl, "#define USE_IBL\n");
-		BUFFER_COND_APPEND(options->use_punctual, "#define USE_PUNCTUAL\n");
-		BUFFER_COND_APPEND(options->light_count, "#define LIGHT_COUNT %d\n", MAX_LIGHTS);
+		SHADER_OPTION(options->material_unlit, "#define MATERIAL_UNLIT\n");
+		SHADER_OPTION(options->use_hdr, "#define USE_HDR\n");
+		SHADER_OPTION(options->use_ibl, "#define USE_IBL\n");
+		SHADER_OPTION(options->use_punctual, "#define USE_PUNCTUAL\n");
+		SHADER_OPTION(options->light_count, "#define LIGHT_COUNT %d\n", MAX_LIGHTS);
 	}
 
 	// FIXME: When has_emissive_map is turned off, emissiveFactor must be forced to 0.
 
-	bool ok = true;
-	ok &= buffer_append(&buffer, content, length);
+	ok &= tk_buffer_append(&buffer, content, length);
 
 	if (!ok) {
 		glDeleteShader(shader_id);
@@ -105,7 +58,7 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 	GLint source_length = buffer.used;
 	glShaderSource(shader_id, 1, &source, &source_length);
 
-	buffer_fini(&buffer);
+	tk_buffer_fini(&buffer);
 
 	glCompileShader(shader_id);
 
@@ -182,17 +135,17 @@ struct shader *shader_load_from_files(const struct shader_options *options, cons
 	size_t compute_length = 0;
 
 	if (vertex_filepath) {
-		vertex_content = read_shader_file(vertex_filepath);
+		vertex_content = tk_file_get_content(vertex_filepath);
 		vertex_length = strlen(vertex_content);
 	}
 
 	if (fragment_filepath) {
-		fragment_content = read_shader_file(fragment_filepath);
+		fragment_content = tk_file_get_content(fragment_filepath);
 		fragment_length = strlen(fragment_content);
 	}
 
 	if (compute_filepath) {
-		compute_content = read_shader_file(compute_filepath);
+		compute_content = tk_file_get_content(compute_filepath);
 		compute_length = strlen(compute_content);
 	}
 

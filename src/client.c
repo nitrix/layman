@@ -54,7 +54,7 @@ void main_loop(void) {
 	}
 }
 
-int main(void) {
+int client_run(void) {
 	if (!setup()) {
 		cleanup();
 		return EXIT_FAILURE;

@@ -10,15 +10,11 @@ ADD_SUBDIRECTORY(lib/cglm)
 ADD_SUBDIRECTORY(lib/glad)
 ADD_SUBDIRECTORY(lib/glfw)
 ADD_SUBDIRECTORY(lib/gltf)
+ADD_SUBDIRECTORY(lib/toolkit)
 ADD_SUBDIRECTORY(lib/stb)
 
-# ======================================================================================================================
-#                                                    CLIENT
-# ======================================================================================================================
-
 ADD_EXECUTABLE(
-    client
-    src/buffer.c
+    layman
     src/camera.c
     src/client.c
     src/entity.c
@@ -26,12 +22,14 @@ ADD_EXECUTABLE(
     src/framebuffer.c
     src/gizmo.c
     src/light.c
+    src/main.c
     src/material.c
     src/mesh.c
     src/model.c
     src/modelmanager.c
     src/renderer.c
     src/scene.c
+    src/server.c
     src/shader.c
     src/texture.c
     src/ui.c
@@ -39,29 +37,23 @@ ADD_EXECUTABLE(
     src/window.c
 )
 
-# TARGET_COMPILE_OPTIONS(client PRIVATE -std=c11 -Wall -Wextra -static)
-TARGET_LINK_LIBRARIES(client PRIVATE cglm glad glfw gltf stb_image cimgui incbin)
-TARGET_INCLUDE_DIRECTORIES(client PRIVATE include)
+TARGET_COMPILE_OPTIONS(layman PRIVATE -std=c11 -Wall -Wextra -static)
+TARGET_LINK_LIBRARIES(layman PRIVATE cglm glad glfw gltf stb_image cimgui incbin toolkit)
+TARGET_INCLUDE_DIRECTORIES(layman PRIVATE include)
 
 # This tells GLFW to not include OpenGL, we use Glad for that.
-TARGET_COMPILE_DEFINITIONS(client PRIVATE GLFW_INCLUDE_NONE)
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE GLFW_INCLUDE_NONE)
 
 # No prefix and snake case for incbin.
-TARGET_COMPILE_DEFINITIONS(client PRIVATE INCBIN_PREFIX=\ )
-TARGET_COMPILE_DEFINITIONS(client PRIVATE INCBIN_STYLE=INCBIN_STYLE_SNAKE)
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_PREFIX=\ )
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE INCBIN_STYLE=INCBIN_STYLE_SNAKE)
 
-TARGET_COMPILE_DEFINITIONS(client PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
-TARGET_COMPILE_OPTIONS(client PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
-TARGET_COMPILE_OPTIONS(client PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
+TARGET_COMPILE_DEFINITIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
+TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:DEBUG>:-O0;-g;-ggdb>")
+TARGET_COMPILE_OPTIONS(layman PRIVATE "$<$<CONFIG:RELEASE>:-O3>")
 
 # Useful sometimes for debugging.
-# TARGET_COMPILE_OPTIONS(client PUBLIC -fsanitize=undefined -fsanitize-undefined-trap-on-error)
-# TARGET_COMPILE_OPTIONS(client PUBLIC -fsanitize=address)
-# TARGET_LINK_OPTIONS(client PUBLIC -fsanitize=undefined)
-# TARGET_LINK_OPTIONS(client PUBLIC -fsanitize=address)
-
-# ======================================================================================================================
-#                                                    SERVER
-# ======================================================================================================================
-
-ADD_EXECUTABLE(server src/server.c)
+# TARGET_COMPILE_OPTIONS(layman PRIVATE -fsanitize=undefined -fsanitize-undefined-trap-on-error)
+# TARGET_COMPILE_OPTIONS(layman PRIVATE -fsanitize=address)
+# TARGET_LINK_OPTIONS(layman PRIVATE -fsanitize=undefined)
+# TARGET_LINK_OPTIONS(layman PRIVATE -fsanitize=address)

@@ -1,15 +1,11 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "glad/glad.h"
 #include "gltf.h"
 #include "incbin.h"
 #include "stb_image.h"
+#include "toolkit.h"
 
 #include "camera.h"
 #include "entity.h"
@@ -38,5 +34,7 @@ struct client {
 };
 
 extern struct client client;
+
+int client_run(void);
 
 #endif

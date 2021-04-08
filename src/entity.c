@@ -9,7 +9,7 @@ bool entity_init(struct entity *entity, const char *model_filepath) {
 	entity->scale = 1;
 	entity->id = next_entity_id++;
 
-	entity->model = modelmanager_use_model(model_filepath);
+	entity->model = modelmanager_load_model(model_filepath);
 	if (!entity->model) {
 		return false;
 	}
@@ -18,7 +18,7 @@ bool entity_init(struct entity *entity, const char *model_filepath) {
 }
 
 void entity_fini(struct entity *entity) {
-	modelmanager_unuse_model(entity->model);
+	modelmanager_unload_model(entity->model);
 }
 
 void entity_id_as_color(uint32_t id, vec4 color) {

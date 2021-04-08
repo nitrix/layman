@@ -12,7 +12,7 @@ struct modelmanager {
 	size_t capacity;
 } mm;
 
-struct model *modelmanager_use_model(const char *filepath) {
+struct model *modelmanager_load_model(const char *filepath) {
 	// Ensure the entry doesn't already exist.
 	for (size_t i = 0; i < mm.used; i++) {
 		struct entry *entry = &mm.entries[i];
@@ -51,7 +51,7 @@ struct model *modelmanager_use_model(const char *filepath) {
 	return model;
 }
 
-void modelmanager_unuse_model(const struct model *model) {
+void modelmanager_unload_model(const struct model *model) {
 	for (size_t i = 0; i < mm.used; i++) {
 		struct entry *entry = &mm.entries[i];
 		if (entry->model == model) {

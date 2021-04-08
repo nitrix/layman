@@ -229,7 +229,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				// Find a node corresponding to our mesh.
 				if (node->mesh == gltf->meshes + mesh_i) {
 					if (node->has_matrix) {
-						glm_mat4_copy(node->matrix, mesh->initial_transform);
+						glm_mat4_ucopy((vec4 *) node->matrix, mesh->initial_transform);
 					} else {
 						if (node->has_translation) {
 							glm_translate(mesh->initial_transform, node->translation);
