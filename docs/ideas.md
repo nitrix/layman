@@ -1,0 +1,34 @@
+# Ideas to look into
+
+- Face culling.
+- Flat terrain.
+- Transparency
+- Fog
+- Third person camera with tilt-pan-zoom offsets.
+- Skeletal animation
+- Multi-texturing
+- Terrain collision
+- Texture atlases
+- GUI
+- Day/night cycle
+- Cell shading
+- Font rendering
+- Distance field text rendering
+- Particle effects
+- Instanced rendering
+- Procedural terrain
+- Shadow mapping
+- Percentage closer filtering
+- Post-processing effects
+- Gaussian Blur
+- Bloom effect
+- Multiple render targets
+- Geometry shaders
+- Cube map reflections
+- Lens flare
+- Occlusion queries
+- Water
+- Runtime keybindings.
+- Sheen KHR extension.
+- Transmission KHR extension.
+- Specular/glossiness workflow.

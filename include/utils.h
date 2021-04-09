@@ -16,6 +16,8 @@
 #define ARRAY_COUNT(x) (sizeof (x) / sizeof (x)[0])
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 
+#include "cglm/cglm.h"
+
 void utils_render_cube(void);
 void utils_render_line(vec3 from, vec3 to, mat4 transform, vec4 color);
 void utils_render_ngon(int n, float radius, mat4 transform, vec4 color);

@@ -9,5 +9,6 @@
 
 #include "tk/buffer.h"
 #include "tk/file.h"
+#include "tk/time.h"
 
 #endif
