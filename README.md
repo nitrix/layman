@@ -2,66 +2,29 @@
 
 A simple 3D engine for the layman.
 
-![Screenshot](docs/screenshot.png)
+![Screenshot](assets/screenshot.png)
+
+## Overview
+
+- Portable on Windows, Linux and Mac.
+- No programming or special knowledge required.
+- Integrated all-in-one single executable (client, server and editor).
 
 ## Features
 
-- C11, portable on Windows, Linux and Mac.
-- High resolution clock for elapsed-time calculation.
-- Physically Based Rendering (metallic/roughness and specular/glossiness workflows).
-- Analytical lights and Image-Based Lighting (IBL).
-- Supports glTF 2.0 file format.
-- Multisample Anti-aliasing (MSAA).
-- Mipmapping and Anisotropic Filtering.
-- Tone mapping (Linear, Uncharted, Hejl Richard, ACES).
-- Wireframe mode.
+- [Client features](docs/features.md#Client+features)
+- [Server features](docs/features.md#Server+features)
+- [Editor features](docs/features.md#Editor+features)
 
-## Planned
-- Face culling.
-- Flat terrain.
-- Transparency
-- Fog
-- Third person camera with tilt-pan-zoom offsets.
-- Skeletal animation
-- Multi-texturing
-- Terrain collision
-- Texture atlases
-- GUI
-- Day/night cycle
-- Cell shading
-- Font rendering
-- Distance field text rendering
-- Particle effects
-- Instanced rendering
-- Procedural terrain
-- Shadow mapping
-- Percentage closer filtering
-- Post-processing effects
-- Gaussian Blur
-- Bloom effect
-- Multiple render targets
-- Geometry shaders
-- Cube map reflections
-- Lens flare
-- Occlusion queries
-- Water
-- Runtime keybinding system to map actions to GLFW key constants.
+## Usage
 
-## References
+Download the engine, launch it, hit the <kbd>F1</kbd> key.
 
-### Shading
+## Screenshots
 
-- [Real Shading in Unreal Engine 4](http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf) by Epic Games.
-- [Physically Based Shading](http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf) by Disney
-- [Environment Maps](https://github.com/KhronosGroup/glTF-WebGL-PBR/#environment-maps) by Kronos.
-- [An Inexpensive BRDF Model for Physically based Rendering](https://www.cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf) by Christophe Schlick.
-
-### glTF extensions
-
-- [KHR_materials_clearcoat](https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_clearcoat) by Kronos.
-- [KHR_materials_specular](https://github.com/ux3d/glTF/tree/KHR_materials_pbrClearcoat/extensions/2.0/Khronos/KHR_materials_specular) by Kronos.
-- [KHR_materials_subsurface](https://github.com/KhronosGroup/glTF/pull/1766) by Kronos.
-- [KHR_materials_thinfilm](https://github.com/ux3d/glTF/tree/extensions/KHR_materials_thinfilm/extensions/2.0/Khronos/KHR_materials_thinfilm) by Kronos.
+| Client example | Editor example | Server example |
+| ---------------| -------------- | -------------- |
+| [![Client](assets/client_thumbnail.jpg)](assets/client.png) | [![Editor](assets/editor_thumbnail.jpg)](assets/editor.png) | [![Server](assets/server_thumbnail.jpg)](assets/server.png) |
 
 ## License
 

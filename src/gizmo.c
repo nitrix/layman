@@ -105,6 +105,8 @@ static void gizmo_render_translation(struct gizmo *gizmo) {
 }
 
 static void gizmo_render_rotation(struct gizmo *gizmo) {
+	UNUSED(gizmo);
+
 	struct entity *entity = find_selected_entity();
 
 	for (size_t axis = 0; axis < 3; axis++) {
