@@ -1,39 +1,6 @@
 #include "cimgui.h"
 #include "client.h"
 
-static float closest_distance_between_two_rays(vec3 r1_origin, vec3 r1_direction, vec3 r2_origin, vec3 r2_direction, float *d1, float *d2) {
-	vec3 dp;
-	glm_vec3_sub(r2_origin, r1_origin, dp);
-
-	float v12 = glm_vec3_dot(r1_direction, r1_direction);
-	float v22 = glm_vec3_dot(r2_direction, r2_direction);
-	float v1v2 = glm_vec3_dot(r1_direction, r2_direction);
-
-	float det = v1v2 * v1v2 - v12 * v22;
-
-	if (fabs(det) > FLT_MIN) {
-		float inv_det = 1.f / det;
-
-		float dpv1 = glm_vec3_dot(dp, r1_direction);
-		float dpv2 = glm_vec3_dot(dp, r2_direction);
-
-		// FIXME: I had to invert their signs, not sure why.
-		float t1 = -1 * inv_det * (v22 * dpv1 - v1v2 * dpv2);
-		float t2 = -1 * inv_det * (v1v2 * dpv1 - v12 * dpv2);
-
-		*d1 = t1;
-		*d2 = t2;
-
-		glm_vec3_muladds(r2_direction, t2, dp);
-		glm_vec3_muladds(r1_direction, -t1, dp);
-		return glm_vec3_norm(dp);
-	} else {
-		vec3 a;
-		glm_vec3_cross(dp, r1_direction, a);
-		return sqrt(glm_vec3_dot(a, a) / v12);
-	}
-}
-
 void gizmo_init(struct gizmo *gizmo) {
 	gizmo->mode = GIZMO_MODE_NONE;
 }
@@ -69,7 +36,7 @@ static void gizmo_render_translation(struct gizmo *gizmo) {
 		glm_vec3_zero(r2_direction);
 		r2_direction[axis] = 1;
 
-		float distance = closest_distance_between_two_rays(r1_origin, r1_direction, r2_origin, r2_direction, &t1, &t2);
+		float distance = utils_closest_distance_between_two_rays(r1_origin, r1_direction, r2_origin, r2_direction, &t1, &t2);
 
 		vec3 line_start = GLM_VEC3_ZERO_INIT;
 		vec3 line_end;
@@ -137,6 +104,57 @@ static void gizmo_render_translation(struct gizmo *gizmo) {
 	}
 }
 
+static void gizmo_render_rotation(struct gizmo *gizmo) {
+	struct entity *entity = find_selected_entity();
+
+	for (size_t axis = 0; axis < 3; axis++) {
+		vec3 circle_origin = {0};
+		glm_vec3_copy(entity->translation, circle_origin);
+
+		vec3 circle_orientation = {0};
+
+		circle_orientation[axis] = 1;
+
+		float circle_radius = 1;
+
+		vec3 closest = {0};
+
+		mat4 transform = GLM_MAT4_IDENTITY_INIT;
+
+		glm_translate(transform, entity->translation);
+		glm_quat_rotate(transform, entity->rotation, transform);
+		switch (axis) {
+		    case 0:
+			    glm_rotate_y(transform, circle_orientation[0] * M_PI_2, transform);
+			    break;
+		    case 1: glm_rotate_x(transform, circle_orientation[1] * M_PI_2, transform); break;
+		    case 2: glm_rotate_z(transform, circle_orientation[2] * M_PI_2, transform); break;
+		}
+
+		vec4 color = {circle_orientation[0], circle_orientation[1], circle_orientation[2], 1};
+
+		mat4 t = GLM_MAT4_IDENTITY_INIT;
+		glm_quat_rotate(t, entity->rotation, t);
+		glm_vec3_rotate_m4(t, circle_orientation, circle_orientation);
+
+		float distance = utils_closest_distance_between_ray_and_circle(
+				client.window.cursor_ray_origin,
+				client.window.cursor_ray_direction,
+				circle_origin,
+				circle_orientation,
+				circle_radius,
+				closest);
+
+		bool proximity = distance < 0.1 && distance >= 0;
+
+		if (proximity) {
+			glm_vec4_copy((vec4) { 1, 1, 0, 1}, color);
+		}
+
+		utils_render_ngon(64, circle_radius, transform, color);
+	}
+}
+
 void gizmo_render(struct gizmo *gizmo) {
 	// Don't draw any gizmo if no entity is selected.
 	if (!client.ui.selected_entity_id) {
@@ -151,6 +169,7 @@ void gizmo_render(struct gizmo *gizmo) {
 
 	switch (gizmo->mode) {
 	    case GIZMO_MODE_TRANSLATION: gizmo_render_translation(gizmo); return;
+	    case GIZMO_MODE_ROTATION: gizmo_render_rotation(gizmo); return;
 	    default: return;
 	}
 }

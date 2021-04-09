@@ -25,12 +25,21 @@
 #include "utils.h"
 #include "window.h"
 
+enum direction {
+	FORWARD = 1,
+	BACKWARD = 2,
+	LEFT = 4,
+	RIGHT = 8
+};
+
 struct client {
 	struct window window;
 	struct renderer renderer;
 	struct camera camera;
 	struct scene scene;
 	struct ui ui;
+
+	enum direction moving;
 };
 
 extern struct client client;

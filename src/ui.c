@@ -24,6 +24,7 @@ bool ui_init(struct ui *ui) {
 	ui->show_scene_editor = false;
 	ui->show_debug_tools = false;
 	ui->show_settings = false;
+	ui->show_debug_camera = false;
 	ui->show_about = false;
 
 	ui->selected_entity_id = 0; // FIXME: Does not belong here.
@@ -124,6 +125,62 @@ static void render_settings(struct ui *ui) {
 	igEnd();
 }
 
+static void render_debug_camera(struct ui *ui) {
+	igSetNextWindowSize((ImVec2) { 300, 210}, ImGuiCond_Once);
+
+	if (igBegin("Debug camera", &ui->show_debug_camera, ImGuiWindowFlags_NoResize)) {
+		igText("Eye");
+
+		igSetNextItemWidth(-60);
+
+		igPushStyleColorVec4(ImGuiCol_FrameBg, (ImVec4) { 0.140, 0.140, 0.140, 1});
+		igPushStyleColorVec4(ImGuiCol_FrameBgActive, (ImVec4) { 0.140, 0.140, 0.140, 1});
+		igPushStyleColorVec4(ImGuiCol_FrameBgHovered, (ImVec4) { 0.140, 0.140, 0.140, 1});
+
+		if (igDragFloat3("Position##camera_eye", client.camera.eye, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_ReadOnly)) {
+			camera_update(&client.camera);
+		}
+
+		igPopStyleColor(3);
+
+		igSetNextItemWidth(-60);
+
+		if (igDragFloat("Distance##eye_distance", &client.camera.eye_distance, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update(&client.camera);
+		}
+
+		igSetNextItemWidth(-60);
+
+		if (igDragFloat("Around##eye_around", &client.camera.eye_around, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update(&client.camera);
+		}
+
+		igSetNextItemWidth(-60);
+
+		if (igDragFloat("Above##eye_above", &client.camera.eye_above, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update(&client.camera);
+		}
+
+		igSeparator();
+
+		igText("Center");
+
+		igSetNextItemWidth(-60);
+
+		if (igDragFloat3("Position##camera_center", client.camera.center, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update(&client.camera);
+		}
+
+		igSetNextItemWidth(-60);
+
+		if (igDragFloat("Rotation##center_rotation", &client.camera.center_rotation, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
+			camera_update(&client.camera);
+		}
+	}
+
+	igEnd();
+}
+
 static void render_debug_tools(struct ui *ui) {
 	center_next_window();
 
@@ -144,21 +201,8 @@ static void render_debug_tools(struct ui *ui) {
 			window_fullscreen(&client.window, client.window.fullscreen);
 		}
 
+		igCheckbox("Debug camera", &ui->show_debug_camera);
 		igCheckbox("ImGUI Demo Window", &ui->show_imgui_demo);
-
-		igSeparator();
-
-		igSetNextItemWidth(-130);
-
-		if (igDragFloat3("Camera translation", client.camera.translation, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
-			camera_update_view_matrix(&client.camera);
-		}
-
-		igSetNextItemWidth(-130);
-
-		if (igDragFloat3("Camera rotation", client.camera.rotation, 0.01, -FLT_MAX, FLT_MAX, "%f", ImGuiSliderFlags_None)) {
-			camera_update_view_matrix(&client.camera);
-		}
 
 		igSeparator();
 
@@ -174,6 +218,8 @@ static void render_debug_tools(struct ui *ui) {
 			    default: ui->gizmo.mode = GIZMO_MODE_NONE;
 			}
 		}
+
+		igText("Moving bitmask: %d", client.moving);
 	}
 
 	igEnd();
@@ -364,6 +410,10 @@ void ui_render(struct ui *ui) {
 
 		if (ui->show_settings) {
 			render_settings(ui);
+		}
+
+		if (ui->show_debug_camera) {
+			render_debug_camera(ui);
 		}
 
 		if (ui->show_about) {

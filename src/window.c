@@ -73,15 +73,40 @@ static void scroll_callback(GLFWwindow *glfw_window, double xoffset, double yoff
 	UNUSED(glfw_window);
 	UNUSED(xoffset);
 	UNUSED(yoffset);
+
+	client.camera.eye_distance += -yoffset * 0.2f;
+	camera_update(&client.camera);
 }
 
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
 	UNUSED(glfw_window);
 
+	double delta_x = x - client.window.cursor_pos_x;
+	double delta_y = y - client.window.cursor_pos_y;
+
 	client.window.cursor_pos_x = x;
 	client.window.cursor_pos_y = y;
 
 	recalculate_cursor_ray();
+
+	if (client.ui.ig_io->WantCaptureMouse) {
+		return;
+	}
+
+	if (glfwGetMouseButton(glfw_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		client.camera.center_rotation += -delta_x * 0.005f;
+
+		client.camera.eye_above += delta_y * 0.005f;
+		if (client.camera.eye_above >= M_PI_2) {
+			client.camera.eye_above = M_PI_2 - 0.00001f;
+		}
+
+		if (client.camera.eye_above < -M_PI_2) {
+			client.camera.eye_above = -M_PI_2 + 0.00001f;
+		}
+
+		camera_update(&client.camera);
+	}
 }
 
 static void mouse_button_callback(GLFWwindow *glfw_window, int button, int action, int mods) {
@@ -105,8 +130,46 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	UNUSED(scancode);
 	UNUSED(mods);
 
+	if (client.ui.ig_io->WantTextInput) {
+		return;
+	}
+
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
 		client.ui.show = !client.ui.show;
+
+		/*
+		   if (client.ui.show) {
+		        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		   } else {
+		        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		   }
+		 */
+	}
+
+	if (key == GLFW_KEY_W) {
+		if (action == GLFW_PRESS) {
+			client.moving |= FORWARD;
+		} else if (action == GLFW_RELEASE) {
+			client.moving &= ~FORWARD;
+		}
+	} else if (key == GLFW_KEY_A) {
+		if (action == GLFW_PRESS) {
+			client.moving |= LEFT;
+		} else if (action == GLFW_RELEASE) {
+			client.moving &= ~LEFT;
+		}
+	} else if (key == GLFW_KEY_S) {
+		if (action == GLFW_PRESS) {
+			client.moving |= BACKWARD;
+		} else if (action == GLFW_RELEASE) {
+			client.moving &= ~BACKWARD;
+		}
+	} else if (key == GLFW_KEY_D) {
+		if (action == GLFW_PRESS) {
+			client.moving |= RIGHT;
+		} else if (action == GLFW_RELEASE) {
+			client.moving &= ~RIGHT;
+		}
 	}
 }
 
@@ -154,10 +217,12 @@ void window_fullscreen(struct window *window, bool fullscreen) {
 bool window_init(struct window *window, unsigned int width, unsigned int height, const char *title, bool fullscreen) {
 	window->width = width;
 	window->height = height;
-	window->start_time = glfwGetTime();
 	window->samples = 4; // TODO: Support changing the number of samples. This requires recreating the window and sharing the context.
 	window->fullscreen = fullscreen;
 	window->title = strdup(title);
+
+	window->last_time = glfwGetTime();
+	window->now_time = glfwGetTime();
 
 	if (!window->title) {
 		return false;
@@ -224,7 +289,7 @@ bool window_init(struct window *window, unsigned int width, unsigned int height,
 }
 
 double window_elapsed(const struct window *window) {
-	return glfwGetTime() - window->start_time;
+	return window->now_time - window->last_time;
 }
 
 void window_fini(struct window *window) {
@@ -261,9 +326,10 @@ bool window_closed(const struct window *window) {
 	return glfwWindowShouldClose(window->glfw_window) == 1;
 }
 
-void window_poll_events(const struct window *window) {
+void window_poll_events(struct window *window) {
 	UNUSED(window);
 	glfwPollEvents();
+	window->now_time = glfwGetTime();
 }
 
 void window_framebuffer_size(const struct window *window, int *width, int *height) {
@@ -274,6 +340,7 @@ bool window_extension_supported(const char *name) {
 	return glfwExtensionSupported(name) == GLFW_TRUE;
 }
 
-void window_refresh(const struct window *window) {
+void window_refresh(struct window *window) {
 	glfwSwapBuffers(window->glfw_window);
+	window->last_time = window->now_time;
 }

@@ -14,6 +14,7 @@ struct ui {
 	bool show_scene_editor;
 	bool show_debug_tools;
 	bool show_settings;
+	bool show_debug_camera;
 	bool show_about;
 
 	uint32_t selected_entity_id;

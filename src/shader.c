@@ -312,7 +312,7 @@ void shader_bind_uniform_environment(const struct shader *shader, const struct e
 }
 
 void shader_bind_uniform_camera(const struct shader *shader, const struct camera *camera) {
-	glUniform3fv(shader->uniform_camera, 1, camera->translation);
+	glUniform3fv(shader->uniform_camera, 1, camera->eye);
 }
 
 void shader_bind_uniform_lights(const struct shader *shader, const struct light **lights, size_t count) {
