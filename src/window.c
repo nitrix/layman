@@ -73,6 +73,9 @@ static void scroll_callback(GLFWwindow *glfw_window, double xoffset, double yoff
 	UNUSED(glfw_window);
 	UNUSED(xoffset);
 	UNUSED(yoffset);
+
+	client.camera.eye_distance += -yoffset * 0.2f;
+	camera_update(&client.camera);
 }
 
 static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
@@ -86,9 +89,12 @@ static void cursor_pos_callback(GLFWwindow *glfw_window, double x, double y) {
 
 	recalculate_cursor_ray();
 
+	if (client.ui.ig_io->WantCaptureMouse) {
+		return;
+	}
+
 	if (glfwGetMouseButton(glfw_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
 		client.camera.center_rotation += -delta_x * 0.005f;
-		camera_update(&client.camera);
 
 		client.camera.eye_above += delta_y * 0.005f;
 		if (client.camera.eye_above >= M_PI_2) {
@@ -123,6 +129,10 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 	UNUSED(window);
 	UNUSED(scancode);
 	UNUSED(mods);
+
+	if (client.ui.ig_io->WantTextInput) {
+		return;
+	}
 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
 		client.ui.show = !client.ui.show;
