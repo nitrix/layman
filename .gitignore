@@ -4,4 +4,6 @@
 
 # Do not commit large assets.
 /assets/*.glb
+/assets/*.gltf
+/assets/*.bin
 /assets/*.hdr

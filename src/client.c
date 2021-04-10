@@ -12,8 +12,10 @@ bool setup(void) {
 	camera_init(&client.camera);
 	scene_init(&client.scene);
 	ui_init(&client.ui);
-
 	client.moving = 0;
+
+	client.camera.eye_distance = 3;
+	camera_update(&client.camera);
 
 	struct environment *pisa = malloc(sizeof *pisa);
 	if (!environment_init_from_file(pisa, "assets/pisa.hdr")) {

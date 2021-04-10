@@ -75,6 +75,10 @@ static void scroll_callback(GLFWwindow *glfw_window, double xoffset, double yoff
 	UNUSED(yoffset);
 
 	client.camera.eye_distance += -yoffset * 0.2f;
+	if (client.camera.eye_distance <= 0.00001) {
+		client.camera.eye_distance = 0.00001;
+	}
+
 	camera_update(&client.camera);
 }
 

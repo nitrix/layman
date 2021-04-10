@@ -13,3 +13,15 @@
 [submodule "lib/cimgui"]
 	path = lib/cimgui
 	url = https://github.com/cimgui/cimgui
+[submodule "lib/toolkit"]
+	path = lib/toolkit
+	url = https://github.com/nitrix/toolkit
+[submodule "docs/gltf-tutorials"]
+	path = docs/gltf-tutorials
+	url = https://github.com/KhronosGroup/glTF-Tutorials
+[submodule "docs/gltf"]
+	path = docs/gltf
+	url = https://github.com/KhronosGroup/glTF
+[submodule "docs/gl"]
+	path = docs/gl
+	url = https://github.com/BSVino/docs.gl

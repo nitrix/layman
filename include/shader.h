@@ -48,31 +48,44 @@ struct shader {
 };
 
 struct shader_options {
+	// Attributes.
 	bool has_normals;
 	bool has_uv_set1;
 	bool has_tangents;
+	bool has_weight_set1;
+	bool has_joint_set1;
+	bool has_color_vec3;
+	bool has_color_vec4;
+
+	// Textures.
 	bool has_base_color_map;
 	bool has_normal_map;
 	bool has_occlusion_map;
 	bool has_emissive_map;
 	bool has_metallic_roughness_map;
-	bool has_weight_set1;
 
 	// FIXME: Enum for the workflow?
 	bool material_metallicroughness;
 	bool material_specularglossiness;
 
+	// Lighting.
 	bool material_unlit;
 	bool use_hdr;
 	bool use_ibl;
 	bool use_punctual;
 	int light_count;
 
+	// Skinning.
+	bool use_skinning;
+	int joint_count;
+
+	// Tone-mapping.
 	// FIXME: Enum for this?
 	bool tonemap_uncharted;
 	bool tonemap_hejlrichard;
 	bool tonemap_aces;
 
+	// Debugging.
 	// FIXME: Enum for this?
 	bool debug_output;
 	bool debug_basecolor;

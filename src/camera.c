@@ -24,7 +24,7 @@ void camera_update(struct camera *camera) {
 void camera_init(struct camera *camera) {
 	glm_vec3_zero(camera->eye);
 	glm_vec3_zero(camera->center);
-	camera->eye_distance = 3;
+	camera->eye_distance = 0.00001;
 	camera_update(camera);
 }
 
