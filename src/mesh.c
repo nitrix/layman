@@ -8,6 +8,7 @@ bool mesh_init(struct mesh *mesh) {
 	mesh->ebo_indices = 0;
 	mesh->vbo_tangents = 0;
 	mesh->vbo_weights = 0;
+	mesh->vbo_colors = 0;
 
 	mesh->indices_type = 0;
 
@@ -95,9 +96,19 @@ void mesh_provide_weights(struct mesh *mesh, const float *data, size_t count, si
 
 	glGenBuffers(1, &mesh->vbo_weights);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_weights);
-	glBufferData(GL_ARRAY_BUFFER, count * 3 * sizeof (float), data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, count * 4 * sizeof (float), data, GL_STATIC_DRAW);
 	glVertexAttribPointer(MESH_ATTRIBUTE_WEIGHTS, 4, GL_FLOAT, false, stride, 0);
 	glEnableVertexAttribArray(MESH_ATTRIBUTE_WEIGHTS);
+}
+
+void mesh_provide_colors(struct mesh *mesh, const float *data, size_t count, size_t stride, int components) {
+	mesh_switch(mesh);
+
+	glGenBuffers(1, &mesh->vbo_colors);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_colors);
+	glBufferData(GL_ARRAY_BUFFER, count * components * sizeof (float), data, GL_STATIC_DRAW);
+	glVertexAttribPointer(MESH_ATTRIBUTE_COLORS, components, GL_FLOAT, false, stride, 0);
+	glEnableVertexAttribArray(MESH_ATTRIBUTE_COLORS);
 }
 
 void mesh_switch(const struct mesh *mesh) {

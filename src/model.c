@@ -98,6 +98,9 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			const float *weights = NULL;
 			size_t weights_count = 0;
 			size_t weights_stride = 0;
+			const float *colors = NULL;
+			size_t colors_count = 0;
+			size_t colors_stride = 0;
 
 			for (size_t attribute_i = 0; attribute_i < primitive->attributes_count; attribute_i++) {
 				const cgltf_attribute *attribute = primitive->attributes + attribute_i;
@@ -150,7 +153,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 					    break;
 
 				    case cgltf_attribute_type_weights:
-					    if (attribute->data->type != cgltf_type_vec3) {
+					    if (attribute->data->type != cgltf_type_vec4) {
 						    break;
 					    }
 
@@ -159,6 +162,20 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 					    weights = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
 					    weights_count = attribute->data->count;
 					    weights_stride = attribute->data->stride;
+					    break;
+
+				    case cgltf_attribute_type_color:
+					    if (attribute->data->type == cgltf_type_vec3) {
+						    options.has_color_vec3 = true;
+					    } else if (attribute->data->type == cgltf_type_vec4) {
+						    options.has_color_vec4 = true;
+					    } else {
+						    break;
+					    }
+
+					    colors = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
+					    colors_count = attribute->data->count;
+					    colors_stride = attribute->data->stride;
 					    break;
 
 				    default:
@@ -204,6 +221,11 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 			if (weights_count) {
 				mesh_provide_weights(mesh, weights, weights_count, weights_stride);
+			}
+
+			if (colors_count) {
+				int components = options.has_color_vec3 ? 3 : (options.has_color_vec4 ? 4 : 0);
+				mesh_provide_colors(mesh, colors, colors_count, colors_stride, components);
 			}
 
 			// FIXME: Handle allocation failures of the textures below.

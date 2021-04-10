@@ -26,6 +26,8 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 		SHADER_OPTION(options->has_uv_set1, "#define HAS_UV_SET1\n");
 		SHADER_OPTION(options->has_tangents, "#define HAS_TANGENTS\n");
 		SHADER_OPTION(options->has_weight_set1, "#define HAS_WEIGHT_SET1\n");
+		SHADER_OPTION(options->has_color_vec3, "#define HAS_VERTEX_COLOR_VEC3\n");
+		SHADER_OPTION(options->has_color_vec4, "#define HAS_VERTEX_COLOR_VEC4\n");
 
 		// Textures.
 		SHADER_OPTION(options->has_base_color_map, "#define HAS_BASE_COLOR_MAP\n");
@@ -231,6 +233,8 @@ struct shader *shader_load_from_memory(const struct shader_options *options, con
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_UV, "a_UV1");
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_NORMAL, "a_Normal");
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_TANGENT, "a_Tangent");
+	glBindAttribLocation(program_id, MESH_ATTRIBUTE_WEIGHTS, "a_Weight1");
+	glBindAttribLocation(program_id, MESH_ATTRIBUTE_COLORS, "a_Color");
 
 	glLinkProgram(program_id);
 

@@ -11,6 +11,7 @@ enum mesh_attribute {
 	MESH_ATTRIBUTE_NORMAL,
 	MESH_ATTRIBUTE_TANGENT,
 	MESH_ATTRIBUTE_WEIGHTS,
+	MESH_ATTRIBUTE_COLORS,
 };
 
 struct mesh {
@@ -21,6 +22,7 @@ struct mesh {
 	GLuint ebo_indices;
 	GLuint vbo_tangents;
 	GLuint vbo_weights;
+	GLuint vbo_colors;
 
 	size_t indices_count;
 	GLenum indices_type;
@@ -39,6 +41,7 @@ void mesh_provide_uvs(struct mesh *mesh, const float *data, size_t count, size_t
 void mesh_provide_indices(struct mesh *mesh, const void *data, size_t count, GLenum type);
 void mesh_provide_tangents(struct mesh *mesh, const float *data, size_t count, size_t stride);
 void mesh_provide_weights(struct mesh *mesh, const float *data, size_t count, size_t stride);
+void mesh_provide_colors(struct mesh *mesh, const float *data, size_t count, size_t stride, int components);
 void mesh_switch(const struct mesh *mesh);
 
 #endif
