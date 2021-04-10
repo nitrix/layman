@@ -16,7 +16,9 @@
 - Skybox.
 
 ### Planned
-- Supports assets streaming/lazy loading.
+
+- Support the KHR_lights_punctual extension.
+- Support assets streaming/lazy loading.
 - Cutscenes.
 - Self updates.
 

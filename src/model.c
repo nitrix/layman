@@ -95,6 +95,9 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			const float *tangents = NULL;
 			size_t tangents_count = 0;
 			size_t tangents_stride = 0;
+			const float *weights = NULL;
+			size_t weights_count = 0;
+			size_t weights_stride = 0;
 
 			for (size_t attribute_i = 0; attribute_i < primitive->attributes_count; attribute_i++) {
 				const cgltf_attribute *attribute = primitive->attributes + attribute_i;
@@ -146,6 +149,18 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 					    uvs_stride = attribute->data->stride;
 					    break;
 
+				    case cgltf_attribute_type_weights:
+					    if (attribute->data->type != cgltf_type_vec3) {
+						    break;
+					    }
+
+					    options.has_weight_set1 = true;
+
+					    weights = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
+					    weights_count = attribute->data->count;
+					    weights_stride = attribute->data->stride;
+					    break;
+
 				    default:
 					    break;
 				}
@@ -167,11 +182,29 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				    return false;
 			}
 
-			mesh_provide_vertices(mesh, vertices, vertices_count, vertices_stride);
-			mesh_provide_normals(mesh, normals, normals_count, normals_stride);
-			mesh_provide_uvs(mesh, uvs, uvs_count, uvs_stride);
-			mesh_provide_indices(mesh, indices, indices_count, mesh->indices_type);
-			mesh_provide_tangents(mesh, tangents, tangents_count, tangents_stride);
+			if (vertices_count) {
+				mesh_provide_vertices(mesh, vertices, vertices_count, vertices_stride);
+			}
+
+			if (normals_count) {
+				mesh_provide_normals(mesh, normals, normals_count, normals_stride);
+			}
+
+			if (uvs_count) {
+				mesh_provide_uvs(mesh, uvs, uvs_count, uvs_stride);
+			}
+
+			if (indices_count) {
+				mesh_provide_indices(mesh, indices, indices_count, mesh->indices_type);
+			}
+
+			if (tangents_count) {
+				mesh_provide_tangents(mesh, tangents, tangents_count, tangents_stride);
+			}
+
+			if (weights_count) {
+				mesh_provide_weights(mesh, weights, weights_count, weights_stride);
+			}
 
 			// FIXME: Handle allocation failures of the textures below.
 

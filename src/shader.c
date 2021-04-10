@@ -25,6 +25,7 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 		SHADER_OPTION(options->has_normals, "#define HAS_NORMALS\n");
 		SHADER_OPTION(options->has_uv_set1, "#define HAS_UV_SET1\n");
 		SHADER_OPTION(options->has_tangents, "#define HAS_TANGENTS\n");
+		SHADER_OPTION(options->has_weight_set1, "#define HAS_WEIGHT_SET1\n");
 
 		// Textures.
 		SHADER_OPTION(options->has_base_color_map, "#define HAS_BASE_COLOR_MAP\n");

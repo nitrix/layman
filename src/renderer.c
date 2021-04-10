@@ -94,7 +94,7 @@ static void render_mesh(struct renderer *renderer, const struct camera *camera, 
 	glm_translate(model_matrix, (float *) entity->translation);
 	glm_quat_rotate(model_matrix, (float *) entity->rotation, model_matrix);
 	glm_scale(model_matrix, (vec3) { entity->scale, entity->scale, entity->scale});
-	glm_mat4_mul(model_matrix, mesh->initial_transform, model_matrix);
+	glm_mat4_mul(model_matrix, (vec4 *) mesh->initial_transform, model_matrix);
 
 	// Uniforms.
 	shader_bind_uniform_environment(shader, scene->environment);
