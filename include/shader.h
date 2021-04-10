@@ -56,6 +56,7 @@ struct shader_options {
 	bool has_occlusion_map;
 	bool has_emissive_map;
 	bool has_metallic_roughness_map;
+	bool has_weight_set1;
 
 	// FIXME: Enum for the workflow?
 	bool material_metallicroughness;

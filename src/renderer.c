@@ -57,12 +57,6 @@ void renderer_switch(const struct renderer *new) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0, 0, 0, 1); // Black.
 
-	// FIXME: Back face culling (glTF double-sided?).
-	// glEnable(GL_CULL_FACE);
-	// glCullFace(GL_BACK);
-	// glFrontFace(GL_CCW);
-	// glDisable(GL_CULL_FACE);
-
 	// Depth testing.
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -118,6 +112,9 @@ static void render_skybox(const struct renderer *renderer, const struct camera *
 	static GLint environment_map_location = 0;
 	static GLint projection_location = 0;
 	static GLint view_location = 0;
+
+	// Must disable back-face culling because we're inside the cube.
+	glDisable(GL_CULL_FACE);
 
 	// FIXME: All this shouldn't be here.
 	if (skybox_shader == NULL) {
