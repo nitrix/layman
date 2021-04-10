@@ -305,7 +305,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 			// Skinning.
 			if (options.has_weight_set1 && options.has_joint_set1) {
-				options.use_skinning = true;
+				// FIXME: Enable skinning once it's supported.
+				// options.use_skinning = true;
 			}
 
 			// Shader.

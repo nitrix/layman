@@ -260,7 +260,7 @@ static void render_scene_editor(struct ui *ui) {
 	center_next_window();
 
 	if (igBegin("Scene editor", &ui->show_scene_editor, ImGuiWindowFlags_NoResize)) {
-		static char buf[1024] = "assets/AnimatedTriangle.gltf";
+		static char buf[1024] = "assets/DamagedHelmet.glb";
 		igSetNextItemWidth(-70);
 		igInputText("##scene-load", buf, sizeof buf, ImGuiInputTextFlags_None, NULL, NULL);
 		igSameLine(0, -1);
