@@ -20,6 +20,8 @@ struct material {
 	float occlusion_strength;
 	struct texture *emissive_texture;
 	vec3 emissive_factor;
+
+	bool double_sided;
 };
 
 void material_init(struct material *material);

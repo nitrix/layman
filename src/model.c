@@ -3,6 +3,40 @@
 INCBIN(shaders_pbr_main_vert, "../shaders/pbr/main.vert");
 INCBIN(shaders_pbr_main_frag, "../shaders/pbr/main.frag");
 
+static void apply_transforms_to_mesh(const cgltf_data *gltf, const cgltf_node *node, struct mesh *mesh, int mesh_index, mat4 previous_transform) {
+	mat4 current_transform;
+	glm_mat4_copy(previous_transform, current_transform);
+
+	if (node->has_matrix) {
+		mat4 tmp;
+		glm_mat4_ucopy(node->matrix, tmp);
+		glm_mat4_mul(current_transform, tmp, current_transform);
+	} else {
+		if (node->has_translation) {
+			glm_translate(current_transform, node->translation);
+		}
+
+		if (node->has_rotation) {
+			glm_quat_rotate(current_transform, (versor) { node->rotation[0], node->rotation[1], node->rotation[2], node->rotation[3]}, current_transform);
+		}
+
+		if (node->has_scale) {
+			glm_scale(current_transform, node->scale);
+		}
+	}
+
+	// Find a node corresponding to our mesh.
+	if (node->mesh == gltf->meshes + mesh_index) {
+		glm_mat4_copy(current_transform, mesh->initial_transform);
+		return;
+	}
+
+	for (size_t i = 0; i < node->children_count; i++) {
+		cgltf_node *child = node->children[i];
+		apply_transforms_to_mesh(gltf, child, mesh, mesh_index, current_transform);
+	}
+}
+
 bool load_meshes(struct model *model, const cgltf_data *gltf) {
 	size_t mesh_count = 0;
 
@@ -71,7 +105,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 						    break;
 					    }
 
-					    vertices = gltf->bin + attribute->data->buffer_view->offset;
+					    vertices = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
 					    vertices_count = attribute->data->count;
 					    vertices_stride = attribute->data->stride;
 					    break;
@@ -83,7 +117,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 					    options.has_normals = true;
 
-					    normals = gltf->bin + attribute->data->buffer_view->offset;
+					    normals = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
 					    normals_count = attribute->data->count;
 					    normals_stride = attribute->data->stride;
 					    break;
@@ -95,7 +129,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 					    options.has_tangents = true;
 
-					    tangents = gltf->bin + attribute->data->buffer_view->offset;
+					    tangents = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
 					    tangents_count = attribute->data->count;
 					    tangents_stride = attribute->data->stride;
 					    break;
@@ -107,7 +141,7 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 
 					    options.has_uv_set1 = true;
 
-					    uvs = gltf->bin + attribute->data->buffer_view->offset;
+					    uvs = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
 					    uvs_count = attribute->data->count;
 					    uvs_stride = attribute->data->stride;
 					    break;
@@ -222,6 +256,9 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				mesh->material.emissive_texture = texture;
 			}
 
+			// Double-sided.
+			mesh->material.double_sided = primitive->material->double_sided;
+
 			// Extensions.
 			for (size_t i = 0; i < primitive->material->extensions_count; i++) {
 				cgltf_extension *extension = &primitive->material->extensions[i];
@@ -233,27 +270,8 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 			}
 
 			// Initial transform.
-			for (size_t i = 0; i < gltf->nodes_count; i++) {
-				cgltf_node *node = &gltf->nodes[i];
-
-				// Find a node corresponding to our mesh.
-				if (node->mesh == gltf->meshes + mesh_i) {
-					if (node->has_matrix) {
-						glm_mat4_ucopy((vec4 *) node->matrix, mesh->initial_transform);
-					} else {
-						if (node->has_translation) {
-							glm_translate(mesh->initial_transform, node->translation);
-						}
-
-						if (node->has_rotation) {
-							glm_quat_rotate(mesh->initial_transform, (versor) { node->rotation[0], node->rotation[1], node->rotation[2], node->rotation[3]}, mesh->initial_transform);
-						}
-
-						if (node->has_scale) {
-							glm_scale(mesh->initial_transform, node->scale);
-						}
-					}
-				}
+			for (size_t i = 0; i < gltf->scene->nodes_count; i++) {
+				apply_transforms_to_mesh(gltf, gltf->scene->nodes[i], mesh, mesh_i, mesh->initial_transform);
 			}
 
 			// Shader.
