@@ -3,6 +3,214 @@
 INCBIN(shaders_pbr_main_vert, "../shaders/pbr/main.vert");
 INCBIN(shaders_pbr_main_frag, "../shaders/pbr/main.frag");
 
+static void apply_material_to_mesh(const cgltf_data *gltf, const cgltf_material *material, struct mesh *mesh, struct shader_options *options) {
+	mesh->material.name = strdup(material->name);
+
+	// Metallic/roughness workflow (optional).
+	if (material->has_pbr_metallic_roughness) {
+		const cgltf_pbr_metallic_roughness *mr = &material->pbr_metallic_roughness;
+
+		options->material_metallicroughness = true;
+
+		// Base color factor.
+		glm_vec3_copy(mr->base_color_factor, mesh->material.base_color_factor);
+
+		// Base color texture (optional).
+		if (mr->base_color_texture.texture) {
+			options->has_base_color_map = true;
+
+			struct texture *texture = malloc(sizeof *texture);
+			texture_init_from_memory(texture, TEXTURE_KIND_ALBEDO,
+				gltf->bin + mr->base_color_texture.texture->image->buffer_view->offset,
+				mr->base_color_texture.texture->image->buffer_view->size
+			);
+
+			mesh->material.base_color_texture = texture;
+		}
+
+		// Metallic/roughness texture (optional).
+		if (mr->metallic_roughness_texture.texture) {
+			options->has_metallic_roughness_map = true;
+
+			struct texture *texture = malloc(sizeof *texture);
+			texture_init_from_memory(texture, TEXTURE_KIND_METALLIC_ROUGHNESS,
+				gltf->bin + mr->metallic_roughness_texture.texture->image->buffer_view->offset,
+				mr->metallic_roughness_texture.texture->image->buffer_view->size
+			);
+
+			mesh->material.metallic_roughness_texture = texture;
+		}
+
+		// Metallic factor.
+		mesh->material.metallic_factor = mr->metallic_factor;
+
+		// Roughness factor.
+		mesh->material.roughness_factor = mr->roughness_factor;
+	}
+
+	// Normal texture (optional).
+	if (material->normal_texture.texture) {
+		options->has_normal_map = true;
+
+		struct texture *texture = malloc(sizeof *texture);
+		texture_init_from_memory(texture, TEXTURE_KIND_NORMAL,
+			gltf->bin + material->normal_texture.texture->image->buffer_view->offset,
+			material->normal_texture.texture->image->buffer_view->size
+		);
+
+		mesh->material.normal_texture = texture;
+	}
+
+	// Occlusion texture (optional).
+	if (material->occlusion_texture.texture) {
+		options->has_occlusion_map = true;
+
+		struct texture *texture = malloc(sizeof *texture);
+		texture_init_from_memory(texture, TEXTURE_KIND_OCCLUSION,
+			gltf->bin + material->occlusion_texture.texture->image->buffer_view->offset,
+			material->occlusion_texture.texture->image->buffer_view->size
+		);
+
+		mesh->material.occlusion_texture = texture;
+	}
+
+	// Emissive factor.
+	glm_vec3_copy(material->emissive_factor, mesh->material.emissive_factor);
+
+	// Emissive texture (optional).
+	if (material->emissive_texture.texture) {
+		options->has_emissive_map = true;
+
+		struct texture *texture = malloc(sizeof *texture);
+		texture_init_from_memory(texture, TEXTURE_KIND_EMISSION,
+			gltf->bin + material->emissive_texture.texture->image->buffer_view->offset,
+			material->emissive_texture.texture->image->buffer_view->size
+		);
+
+		mesh->material.emissive_texture = texture;
+	}
+
+	// Double-sided.
+	mesh->material.double_sided = material->double_sided;
+
+	// Extensions.
+	for (size_t i = 0; i < material->extensions_count; i++) {
+		cgltf_extension *extension = &material->extensions[i];
+
+		// Unlit extension.
+		if (strcmp(extension->name, "KHR_materials_unlit") == 0) {
+			options->material_unlit = true;
+		}
+	}
+}
+
+static void accessor_extract_data_count_stride(const cgltf_data *gltf, const cgltf_accessor *accessor, const void **data, size_t *count, size_t *stride) {
+	const char *ptr = NULL;
+
+	if (!ptr && accessor->buffer_view->buffer->data) {
+		ptr = accessor->buffer_view->buffer->data;
+	}
+
+	if (!ptr && accessor->buffer_view->data) {
+		ptr = accessor->buffer_view->data;
+	}
+
+	if (!ptr && gltf->bin) {
+		ptr = gltf->bin;
+	}
+
+	*data = ptr + accessor->offset + accessor->buffer_view->offset;
+	*count = accessor->count;
+	*stride = accessor->stride;
+}
+
+static void apply_attributes_to_mesh(const cgltf_data *gltf, const cgltf_primitive *primitive, struct mesh *mesh, struct shader_options *options) {
+	const void *data = NULL;
+	size_t count = 0;
+	size_t stride = 0;
+
+	for (size_t attribute_i = 0; attribute_i < primitive->attributes_count; attribute_i++) {
+		const cgltf_attribute *attribute = primitive->attributes + attribute_i;
+
+		switch (attribute->type) {
+		    case cgltf_attribute_type_position:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_vertices(mesh, data, count, stride);
+			    break;
+
+		    case cgltf_attribute_type_normal:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_normals(mesh, data, count, stride);
+			    options->has_normals = true;
+			    break;
+
+		    case cgltf_attribute_type_tangent:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_tangents(mesh, data, count, stride);
+			    options->has_tangents = true;
+			    break;
+
+		    case cgltf_attribute_type_texcoord:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_uvs(mesh, data, count, stride);
+			    options->has_uv_set1 = true;
+			    break;
+
+		    case cgltf_attribute_type_weights:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_weights(mesh, data, count, stride);
+			    options->has_weight_set1 = true;
+			    break;
+
+		    case cgltf_attribute_type_joints:
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_joints(mesh, data, count, stride);
+			    options->has_joint_set1 = true;
+			    options->joint_count = count;
+			    break;
+
+		    case cgltf_attribute_type_color: {
+			    int components = 0;
+
+			    if (attribute->data->type == cgltf_type_vec3) {
+				    options->has_color_vec3 = true;
+				    components = 3;
+			    } else if (attribute->data->type == cgltf_type_vec4) {
+				    options->has_color_vec4 = true;
+				    components = 4;
+			    } else {
+				    break;
+			    }
+
+			    accessor_extract_data_count_stride(gltf, attribute->data, &data, &count, &stride);
+			    mesh_provide_colors(mesh, data, count, stride, components);
+		    }
+		    break;
+
+		    default:
+			    break;
+		}
+	}
+
+	// Indices.
+	switch (primitive->indices->component_type) {
+	    case cgltf_component_type_r_8: mesh->indices_type = GL_BYTE; break;
+	    case cgltf_component_type_r_8u: mesh->indices_type = GL_UNSIGNED_BYTE; break;
+	    case cgltf_component_type_r_16: mesh->indices_type = GL_SHORT; break;
+	    case cgltf_component_type_r_16u: mesh->indices_type = GL_UNSIGNED_SHORT; break;
+	    case cgltf_component_type_r_32u: mesh->indices_type = GL_UNSIGNED_INT; break;
+	    default:
+		    fprintf(stderr, "Unsupported mesh indices type\n");
+		    return;
+	}
+
+	accessor_extract_data_count_stride(gltf, primitive->indices, &data, &count, &stride);
+
+	if (count) {
+		mesh_provide_indices(mesh, data, count, mesh->indices_type);
+	}
+}
+
 static void apply_transforms_to_mesh(const cgltf_data *gltf, const cgltf_node *node, struct mesh *mesh, int mesh_index, mat4 previous_transform) {
 	mat4 current_transform;
 	glm_mat4_copy(previous_transform, current_transform);
@@ -80,253 +288,24 @@ bool load_meshes(struct model *model, const cgltf_data *gltf) {
 				// .light_count = MAX_LIGHTS,
 			};
 
-			// Attributes.
-			const float *vertices = NULL;
-			size_t vertices_count = 0;
-			size_t vertices_stride = 0;
-			const float *normals = NULL;
-			size_t normals_count = 0;
-			size_t normals_stride = 0;
-			const void *indices = NULL;
-			size_t indices_count = 0;
-			const float *uvs = NULL;
-			size_t uvs_count = 0;
-			size_t uvs_stride = 0;
-			const float *tangents = NULL;
-			size_t tangents_count = 0;
-			size_t tangents_stride = 0;
-			const float *weights = NULL;
-			size_t weights_count = 0;
-			size_t weights_stride = 0;
-			const float *colors = NULL;
-			size_t colors_count = 0;
-			size_t colors_stride = 0;
-
-			for (size_t attribute_i = 0; attribute_i < primitive->attributes_count; attribute_i++) {
-				const cgltf_attribute *attribute = primitive->attributes + attribute_i;
-
-				switch (attribute->type) {
-				    case cgltf_attribute_type_position:
-					    if (attribute->data->type != cgltf_type_vec3) {
-						    break;
-					    }
-
-					    vertices = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    vertices_count = attribute->data->count;
-					    vertices_stride = attribute->data->stride;
-					    break;
-
-				    case cgltf_attribute_type_normal:
-					    if (attribute->data->type != cgltf_type_vec3) {
-						    break;
-					    }
-
-					    options.has_normals = true;
-
-					    normals = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    normals_count = attribute->data->count;
-					    normals_stride = attribute->data->stride;
-					    break;
-
-				    case cgltf_attribute_type_tangent:
-					    if (attribute->data->type != cgltf_type_vec4) {
-						    break;
-					    }
-
-					    options.has_tangents = true;
-
-					    tangents = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    tangents_count = attribute->data->count;
-					    tangents_stride = attribute->data->stride;
-					    break;
-
-				    case cgltf_attribute_type_texcoord:
-					    if (attribute->data->type != cgltf_type_vec2) {
-						    break;
-					    }
-
-					    options.has_uv_set1 = true;
-
-					    uvs = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    uvs_count = attribute->data->count;
-					    uvs_stride = attribute->data->stride;
-					    break;
-
-				    case cgltf_attribute_type_weights:
-					    if (attribute->data->type != cgltf_type_vec4) {
-						    break;
-					    }
-
-					    options.has_weight_set1 = true;
-
-					    weights = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    weights_count = attribute->data->count;
-					    weights_stride = attribute->data->stride;
-					    break;
-
-				    case cgltf_attribute_type_color:
-					    if (attribute->data->type == cgltf_type_vec3) {
-						    options.has_color_vec3 = true;
-					    } else if (attribute->data->type == cgltf_type_vec4) {
-						    options.has_color_vec4 = true;
-					    } else {
-						    break;
-					    }
-
-					    colors = gltf->bin + attribute->data->offset + attribute->data->buffer_view->offset;
-					    colors_count = attribute->data->count;
-					    colors_stride = attribute->data->stride;
-					    break;
-
-				    default:
-					    break;
-				}
-			}
-
-			indices = gltf->bin + primitive->indices->buffer_view->offset;
-			indices_count = primitive->indices->count;
-
 			struct mesh *mesh = &model->meshes[final_mesh_i++];
 
-			switch (primitive->indices->component_type) {
-			    case cgltf_component_type_r_8: mesh->indices_type = GL_BYTE; break;
-			    case cgltf_component_type_r_8u: mesh->indices_type = GL_UNSIGNED_BYTE; break;
-			    case cgltf_component_type_r_16: mesh->indices_type = GL_SHORT; break;
-			    case cgltf_component_type_r_16u: mesh->indices_type = GL_UNSIGNED_SHORT; break;
-			    case cgltf_component_type_r_32u: mesh->indices_type = GL_UNSIGNED_INT; break;
-			    default:
-				    fprintf(stderr, "Unsupported mesh indices type\n");
-				    return false;
-			}
+			// Attributes.
+			apply_attributes_to_mesh(gltf, primitive, mesh, &options);
 
-			if (vertices_count) {
-				mesh_provide_vertices(mesh, vertices, vertices_count, vertices_stride);
-			}
-
-			if (normals_count) {
-				mesh_provide_normals(mesh, normals, normals_count, normals_stride);
-			}
-
-			if (uvs_count) {
-				mesh_provide_uvs(mesh, uvs, uvs_count, uvs_stride);
-			}
-
-			if (indices_count) {
-				mesh_provide_indices(mesh, indices, indices_count, mesh->indices_type);
-			}
-
-			if (tangents_count) {
-				mesh_provide_tangents(mesh, tangents, tangents_count, tangents_stride);
-			}
-
-			if (weights_count) {
-				mesh_provide_weights(mesh, weights, weights_count, weights_stride);
-			}
-
-			if (colors_count) {
-				int components = options.has_color_vec3 ? 3 : (options.has_color_vec4 ? 4 : 0);
-				mesh_provide_colors(mesh, colors, colors_count, colors_stride, components);
-			}
-
-			// FIXME: Handle allocation failures of the textures below.
-
-			mesh->material.name = strdup(primitive->material->name);
-
-			// Metallic/roughness workflow (optional).
-			if (primitive->material->has_pbr_metallic_roughness) {
-				cgltf_pbr_metallic_roughness *mr = &primitive->material->pbr_metallic_roughness;
-
-				options.material_metallicroughness = true;
-
-				// Base color factor.
-				glm_vec3_copy(mr->base_color_factor, mesh->material.base_color_factor);
-
-				// Base color texture (optional).
-				if (mr->base_color_texture.texture) {
-					options.has_base_color_map = true;
-
-					struct texture *texture = malloc(sizeof *texture);
-					texture_init_from_memory(texture, TEXTURE_KIND_ALBEDO,
-						gltf->bin + mr->base_color_texture.texture->image->buffer_view->offset,
-						mr->base_color_texture.texture->image->buffer_view->size
-					);
-					mesh->material.base_color_texture = texture;
-				}
-
-				// Metallic/roughness texture (optional).
-				if (mr->metallic_roughness_texture.texture) {
-					options.has_metallic_roughness_map = true;
-
-					struct texture *texture = malloc(sizeof *texture);
-					texture_init_from_memory(texture, TEXTURE_KIND_METALLIC_ROUGHNESS,
-						gltf->bin + mr->metallic_roughness_texture.texture->image->buffer_view->offset,
-						mr->metallic_roughness_texture.texture->image->buffer_view->size
-					);
-					mesh->material.metallic_roughness_texture = texture;
-				}
-
-				// Metallic factor.
-				mesh->material.metallic_factor = mr->metallic_factor;
-
-				// Roughness factor.
-				mesh->material.roughness_factor = mr->roughness_factor;
-			}
-
-			// Normal texture (optional).
-			if (primitive->material->normal_texture.texture) {
-				options.has_normal_map = true;
-
-				struct texture *texture = malloc(sizeof *texture);
-				texture_init_from_memory(texture, TEXTURE_KIND_NORMAL,
-					gltf->bin + primitive->material->normal_texture.texture->image->buffer_view->offset,
-					primitive->material->normal_texture.texture->image->buffer_view->size
-				);
-				mesh->material.normal_texture = texture;
-			}
-
-			// Occlusion texture (optional).
-			if (primitive->material->occlusion_texture.texture) {
-				options.has_occlusion_map = true;
-
-				struct texture *texture = malloc(sizeof *texture);
-				texture_init_from_memory(texture, TEXTURE_KIND_OCCLUSION,
-					gltf->bin + primitive->material->occlusion_texture.texture->image->buffer_view->offset,
-					primitive->material->occlusion_texture.texture->image->buffer_view->size
-				);
-				mesh->material.occlusion_texture = texture;
-			}
-
-			// Emissive factor.
-			glm_vec3_copy(primitive->material->emissive_factor, mesh->material.emissive_factor);
-
-			// Emissive texture (optional).
-			if (primitive->material->emissive_texture.texture) {
-				options.has_emissive_map = true;
-
-				struct texture *texture = malloc(sizeof *texture);
-				texture_init_from_memory(texture, TEXTURE_KIND_EMISSION,
-					gltf->bin + primitive->material->emissive_texture.texture->image->buffer_view->offset,
-					primitive->material->emissive_texture.texture->image->buffer_view->size
-				);
-				mesh->material.emissive_texture = texture;
-			}
-
-			// Double-sided.
-			mesh->material.double_sided = primitive->material->double_sided;
-
-			// Extensions.
-			for (size_t i = 0; i < primitive->material->extensions_count; i++) {
-				cgltf_extension *extension = &primitive->material->extensions[i];
-
-				// Unlit extension.
-				if (strcmp(extension->name, "KHR_materials_unlit") == 0) {
-					options.material_unlit = true;
-				}
+			// Material (optional).
+			if (primitive->material) {
+				apply_material_to_mesh(gltf, primitive->material, mesh, &options);
 			}
 
 			// Initial transform.
 			for (size_t i = 0; i < gltf->scene->nodes_count; i++) {
 				apply_transforms_to_mesh(gltf, gltf->scene->nodes[i], mesh, mesh_i, mesh->initial_transform);
+			}
+
+			// Skinning.
+			if (options.has_weight_set1 && options.has_joint_set1) {
+				options.use_skinning = true;
 			}
 
 			// Shader.
@@ -349,8 +328,8 @@ struct model *model_load(const char *filepath) {
 
 	cgltf_data *gltf = NULL;
 	cgltf_options options = {0};
-	cgltf_result result = cgltf_parse_file(&options, filepath, &gltf);
-	if (result != cgltf_result_success) {
+
+	if (cgltf_parse_file(&options, filepath, &gltf) != cgltf_result_success) {
 		free(model);
 		return NULL;
 	}
@@ -360,6 +339,13 @@ struct model *model_load(const char *filepath) {
 
 	// Model name is the filepath for now.
 	model->filepath = strdup(filepath);
+
+	// Load file/base64 buffers.
+	if (cgltf_load_buffers(&options, gltf, filepath) != cgltf_result_success) {
+		cgltf_free(gltf);
+		free(model);
+		return NULL;
+	}
 
 	bool loaded = load_meshes(model, gltf);
 

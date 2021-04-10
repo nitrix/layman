@@ -26,6 +26,7 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 		SHADER_OPTION(options->has_uv_set1, "#define HAS_UV_SET1\n");
 		SHADER_OPTION(options->has_tangents, "#define HAS_TANGENTS\n");
 		SHADER_OPTION(options->has_weight_set1, "#define HAS_WEIGHT_SET1\n");
+		SHADER_OPTION(options->has_joint_set1, "#define HAS_JOINT_SET1\n");
 		SHADER_OPTION(options->has_color_vec3, "#define HAS_VERTEX_COLOR_VEC3\n");
 		SHADER_OPTION(options->has_color_vec4, "#define HAS_VERTEX_COLOR_VEC4\n");
 
@@ -46,6 +47,10 @@ static GLuint compile_shader(GLenum type, const struct shader_options *options, 
 		SHADER_OPTION(options->use_ibl, "#define USE_IBL\n");
 		SHADER_OPTION(options->use_punctual, "#define USE_PUNCTUAL\n");
 		SHADER_OPTION(options->light_count, "#define LIGHT_COUNT %d\n", MAX_LIGHTS);
+
+		// Skinning.
+		SHADER_OPTION(options->joint_count, "#define JOINT_COUNT %d\n", options->joint_count);
+		SHADER_OPTION(options->use_skinning, "#define USE_SKINNING\n");
 	}
 
 	// FIXME: When has_emissive_map is turned off, emissiveFactor must be forced to 0.
@@ -234,6 +239,7 @@ struct shader *shader_load_from_memory(const struct shader_options *options, con
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_NORMAL, "a_Normal");
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_TANGENT, "a_Tangent");
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_WEIGHTS, "a_Weight1");
+	glBindAttribLocation(program_id, MESH_ATTRIBUTE_JOINTS, "a_Joint1");
 	glBindAttribLocation(program_id, MESH_ATTRIBUTE_COLORS, "a_Color");
 
 	glLinkProgram(program_id);
